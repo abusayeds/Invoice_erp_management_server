@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import path from "path";
 // Import the 'express' module
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+dns.setDefaultResultOrder('ipv4first');
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import notFound from "./middlewares/notFound";
-
-import morgan from "morgan";
-import useragent from "express-useragent";
 import router from "./routes";
 import { logger, logHttpRequests } from "./logger/logger";
+import { paymentController } from "./modules/make_modules/payment/payment.controller";
 
 // Create an Express application
 const app: Application = express();
-
+app.use("/stripe/webhook", express.raw({ type: "application/json" }), paymentController.webhook);
 // // Define __dirname manually
 
 //parsers
@@ -44,7 +44,7 @@ app.use(router);
 app.get("/", (req: Request, res: Response) => {
   logger.info("Root endpoint hit");
   const template = `<h1 style="text-align:center">Hello</h1>
-    <h2 style="text-align:center">Welcome to the Server </h2>
+    <h2 style="text-align:center">Welcome to the invoice Server </h2>
  
     `;
   res.status(200).send(template);
