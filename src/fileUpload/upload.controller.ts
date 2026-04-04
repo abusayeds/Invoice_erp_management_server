@@ -4,19 +4,19 @@ import catchAsync from "../utils/catchAsync";
 import sendResponse from "../utils/sendResponse";
 
 export const uploadFile = catchAsync(async (req, res) => {
-    if (!req.file) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'No uploded file ')
-    }
-    const file = req.file
-    console.log(file);
+  if (!req.file) {
+    throw new AppError(httpStatus.BAD_REQUEST, "No uploded file ");
+  }
+  const file = req.file;
+  console.log(file);
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "File uploaded",
-        data: {
-            path: file.path,
-            url: `${req.protocol}://${req.get('host')}/images/${file.filename}`
-        }
-    });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "File uploaded",
+    data: {
+      path: `/images/${file.filename}`,
+      url: `${req.protocol}://${req.get("host")}/images/${file.filename}`,
+    },
+  });
 });
