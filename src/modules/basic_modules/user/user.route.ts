@@ -9,7 +9,7 @@ import zodValidation from "../../../middlewares/zodValidationHandler";
 import { authMiddleware } from "../../../middlewares/auth";
 import { role } from "../../../utils/role";
 const router = express.Router();
-router.post("/register", zodValidation(userValidation.registerUserValidation), userController.registerUser,);
+router.post("/register",  userController.registerUser,);
 router.post("/verify-otp", userController.verifyOTP);
 router.post("/login", userController.loginUser);
 router.post("/forget-password", userController.forgotPassword);

@@ -13,20 +13,18 @@ const UserSchema = new Schema<IUser>(
       ),
       select: 0
     },
-    phone: { type: String, trim: true, required: true },
-    address: { type: String, required: true },
-    image: {
-      type: {
-        publicFileURL: { type: String, trim: true },
-        path: { type: String, trim: true },
-      },
-      required: false,
-    },
+    phone: { type: String, trim: true, },
+    address: { type: String,  },
+    image: { type: String, trim: true, },
     role: {
       type: String,
       enum: ["admin", "user"],
       default: "user",
     },
+    subscriptionId : {
+      type: Schema.Types.ObjectId,
+      ref: "Purchase",
+    } ,
     isDeleted: {
       type: Boolean,
       default: false,
