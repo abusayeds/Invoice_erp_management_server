@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export type IPendingUser = {
   email: string;
@@ -20,6 +20,7 @@ export type IUser = {
     path: string;
   };
   role: "admin" | "user";
+  subscriptionId ? :  Types.ObjectId | null;
   isDeleted: boolean;
   isVerify: boolean
 } & Document;
