@@ -5,6 +5,8 @@ const admin = {
   name: "MD Admin",
   email: "admin@gmail.com",
   password: "1qazxsw2",
+  address: "Dhaka, Bangladesh",
+  phone  :  "0125876543", 
   role: "admin",
   isDeleted: false,
 };
