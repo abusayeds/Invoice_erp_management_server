@@ -6,6 +6,7 @@ import { purchaseRoutes } from "../modules/make_modules/purchasePlan/purchase.ro
 import { companyRoutes } from "../modules/make_modules/company/company.route";
 import uploadRouter from "../fileUpload/route";
 import { statusRoutes } from "../modules/make_modules/status/status.route";
+import { TermsRoutes } from "../modules/make_modules/terms/terms.route";
 const router = express.Router();
 router.use("/api/v1/file-upload", uploadRouter);
 router.use("/api/v1/user", UserRoutes);
@@ -14,6 +15,6 @@ router.use("/api/v1/subscription", subscriptionRoutes);
 router.use("/api/v1/purchase", purchaseRoutes);
 router.use("/api/v1/company", companyRoutes);
 router.use("/api/v1/status", statusRoutes);
-
+router.use("/api/v1/terms", TermsRoutes );
 
 export default router;
