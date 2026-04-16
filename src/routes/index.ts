@@ -10,6 +10,10 @@ import { TermsRoutes } from "../modules/make_modules/terms/terms.route";
 import { PDFSettingRoutes } from "../modules/make_modules/pdf.setting/pdf.setting.route";
 import { PDFRoutes } from "../modules/make_modules/pdf.generator/pdf.routes";
 import { settingRoutes } from "../modules/make_modules/app.setting/app.setting.route";
+import { customerRoutes } from "../modules/make_modules/customer/customer.route";
+import { vendorRoutes } from "../modules/make_modules/vendor/vendor.route";
+import { productRoutes } from "../modules/make_modules/product/product.route";
+import { categoryRoutes } from "../modules/make_modules/category/category.route";
 
 const router = express.Router();
 router.use("/api/v1/file-upload", uploadRouter);
@@ -23,5 +27,9 @@ router.use("/api/v1/terms", TermsRoutes );
 router.use("/api/v1/pdf", PDFSettingRoutes );
 router.use("/api/v1/pdf", PDFRoutes );
 router.use("/api/v1/setting", settingRoutes );
+router.use("/api/v1/customer", customerRoutes );
+router.use("/api/v1/vendor", vendorRoutes );
+router.use("/api/v1/product", productRoutes );
+router.use("/api/v1/category", categoryRoutes );
 
 export default router;
