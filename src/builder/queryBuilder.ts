@@ -28,12 +28,26 @@ class queryBuilder<T> {
   }
 
   filter() {
-    const copyQuery = { ...this?.query };
-    const excludeField = ["searchTerm", "sort", "limit", "page", "fields"];
-    excludeField.forEach((el) => delete copyQuery[el]);
-    this.modelQuery = this?.modelQuery?.find(copyQuery as FilterQuery<T>);
-    return this;
+  const copyQuery = { ...this?.query };
+  const excludeField = ["searchTerm", "sort", "limit", "page", "fields", "startDate", "endDate"];
+  excludeField.forEach((el) => delete copyQuery[el]);
+  const startDate = this.query?.startDate as string;
+  const endDate = this.query?.endDate as string;
+
+  if (startDate || endDate) {
+    const dateFilter: Record<string, Date> = {};
+    if (startDate) dateFilter.$gte = new Date(startDate);
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); 
+      dateFilter.$lte = end;
+    }
+    (copyQuery as any).createdAt = dateFilter;
   }
+
+  this.modelQuery = this?.modelQuery?.find(copyQuery as FilterQuery<T>);
+  return this;
+}
 
   sort() {
     const sort =
