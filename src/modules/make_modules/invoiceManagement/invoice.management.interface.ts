@@ -8,6 +8,17 @@ export enum InvoiceManagementType {
   Credit_Note = "Credit_Note",
   Payment_Received = "Payment_Received",
 }
+export const invoiceStatus = [
+  "Draft",
+  "Partial",
+  "Paid",
+  "Overdue",
+  "Recurring",
+  "Void",
+  "CreditNotesApplied",
+  "Open",
+] as const;
+type Status = (typeof invoiceStatus)[number];
 export type TInvoiceManagement = {
   type: InvoiceManagementType;
   _id?: Types.ObjectId;
@@ -58,13 +69,18 @@ export type TInvoiceManagement = {
       amount: number;
     },
   ];
+  status : Status;
   terms_and_conditions: string;
   notes: string;
   internal_notes: string;
   Attachment: string;
   sub_total: number;
-  deposit: number;
-  discount: number;
-  shipping_cost: number;
+  deposit: number | string;
+  discount: number | string;
+  shipping_cost: number | string;
+  inline_discount: number;
+  tax: number;
   total: number;
+  isDeleted: boolean;
+  archive: boolean;
 };
