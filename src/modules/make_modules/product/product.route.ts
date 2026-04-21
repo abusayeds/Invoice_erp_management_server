@@ -18,10 +18,12 @@ router.get(
 router.get(
   "/single/:id",
   authMiddleware(role.user),
+  productController.singleProduct
 );
 router.post(
   "/delete",
   authMiddleware(role.user),
+  productController.deleteProduct
 );
 
 
