@@ -63,24 +63,20 @@ const validateTypeAndSubType = (
 
   validateTypeAndSubType(type, subType);
 
-  // type + subType (e.g. invoice.general শুধু)
   if (subType) {
     const data = await SettingModel.findOne({ user_id })
       .select(`${type}.${subType}`)
       .lean();
     if (!data) return null;
 
-    // ✅ সরাসরি subType এর data return
     return { [subType]: (data[type] as any)?.[subType] };
   }
 
-  // শুধু type (e.g. invoice পুরোটা)
   const data = await SettingModel.findOne({ user_id })
     .select(type)
     .lean();
   if (!data) return null;
 
-  // ✅ সরাসরি type এর data return — wrapper ছাড়া
   return data[type];
 };
 
