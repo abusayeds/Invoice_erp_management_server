@@ -10,5 +10,15 @@ router.post(
   authMiddleware(role.user),
   invoiceManagementController.invoiceManagementCreate
 );
+router.get(
+  "/single/:id",
+  authMiddleware(role.user),
+  invoiceManagementController.invoiceManagementGetSingle
+);
+router.get(
+  "/all",
+  authMiddleware(role.user),
+  invoiceManagementController.invoiceManagementGetAll
+);
 
 export const invoiceManagementRoutes = router;

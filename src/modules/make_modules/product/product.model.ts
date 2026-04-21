@@ -39,7 +39,7 @@ const productSchema = new Schema<TProduct>(
 
     description: { type: String, trim: true },
     isDeleted: { type: Boolean, default: false },
-    isActive: { type: Boolean, default: true },
+    isArchive: { type: Boolean, default: false },
   },
   {
     timestamps: true,

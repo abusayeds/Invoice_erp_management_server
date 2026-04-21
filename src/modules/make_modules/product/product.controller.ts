@@ -15,16 +15,40 @@ const productCreate = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 const allProduct= catchAsync(async (req: AuthRequest, res) => {
-  const result = await productService.productCreateDB(req.body);
+  const result = await productService.allProductDB(req.user?._id as string, req.query);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: "Product created successfully.",
-    data: result,
+    message: "All products retrieved successfully.",
+    data: result.allProduct,
+    pagination: result.pagination
+  });
+});
+const singleProduct= catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const result = await productService.singleProductDB(req.user?._id as string, id);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Single product retrieved successfully.",
+    data: result
+  });
+});
+const deleteProduct = catchAsync(async (req: AuthRequest, res) => {
+  const result = await productService.deleteProductDB(req.user?._id as string, req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Product deleted successfully.",
+    data: result
   });
 });
 
+ 
+
 export const productController = {
     productCreate,
-    allProduct
+    allProduct ,
+    singleProduct ,
+    deleteProduct
 }

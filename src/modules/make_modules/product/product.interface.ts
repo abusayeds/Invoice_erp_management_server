@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 export type TProduct = {
+  _id : Types.ObjectId;
     user_id : Types.ObjectId,
   productName: string;
   category?: string;
@@ -26,6 +27,6 @@ export type TProduct = {
   };
 
   description?: string;
-  isActive?: boolean;
+  isArchive?: boolean;
   isDeleted?: boolean;
 }

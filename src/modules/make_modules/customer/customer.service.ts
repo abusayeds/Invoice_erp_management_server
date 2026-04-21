@@ -28,7 +28,8 @@ const allCustomerDB = async (
       "tax_product",
     ])
     .filter()
-    .sort();
+    .sort()
+    .fields()
   const { totalData } = await customerQuery.paginate(
     CustomerModel.find({ user_id: user_id, active: true, archive : false , isDeleted: false }),
   );
