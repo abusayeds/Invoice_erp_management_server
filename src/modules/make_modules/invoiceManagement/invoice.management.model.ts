@@ -1,5 +1,5 @@
 import { Schema, model, Types } from "mongoose";
-import { InvoiceManagementType, TInvoiceManagement } from "./invoice.management.interface";
+import { InvoiceManagementType, invoiceStatus, TInvoiceManagement } from "./invoice.management.interface";
 
 const addressSchema = new Schema(
   {
@@ -83,11 +83,16 @@ const invoiceManagementSchema = new Schema<TInvoiceManagement>(
 
     Attachment: { type: String },
 
+    status : { type: String, enum: invoiceStatus, default: "Draft" },
     sub_total: { type: Number, default: 0 },
     deposit: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     shipping_cost: { type: Number, default: 0 },
+    inline_discount: { type: Number, default: 0 },
+    tax: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
+    isDeleted: { type: Boolean, default: false },
+    archive: { type: Boolean, default: false },
   },
   {
     timestamps: true,
