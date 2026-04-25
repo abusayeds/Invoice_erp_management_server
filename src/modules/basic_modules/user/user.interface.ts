@@ -14,11 +14,11 @@ export type IUser = {
   password?: string;
   confirmPassword?: string;
   phone?: string;
+  language?: string;
+  currency?: string;
+  country?: string;
   address?: string;
-  image?: {
-    publicFileURL: string;
-    path: string;
-  };
+  image?: string
   role: "admin" | "user";
   subscriptionId ? :  Types.ObjectId | null;
   isDeleted: boolean;
