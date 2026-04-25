@@ -14,6 +14,9 @@ const UserSchema = new Schema<IUser>(
       select: 0
     },
     phone: { type: String, trim: true, },
+    language: { type: String, trim: true, },
+    currency: { type: String, trim: true, },
+    country: { type: String, trim: true, },
     address: { type: String,  },
     image: { type: String, trim: true, },
     role: {
