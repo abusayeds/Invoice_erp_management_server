@@ -47,7 +47,7 @@ const invoiceManagementCreateDB = async (payload: TInvoiceManagement) => {
       if (product.pricing.sellPrice !== item.rate) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
-          `Product rate mismatch ${item.product_id}`,
+          `Product rate mismatch ${item.product_id}: ${product.pricing.sellPrice} vs ${item.rate}`,
         );
       }
       validateItemAmount(item, "product");
@@ -67,7 +67,7 @@ const invoiceManagementCreateDB = async (payload: TInvoiceManagement) => {
       if (service.rate !== item.rate) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
-          `Service rate mismatch ${item.service_id}`,
+          `Service rate mismatch ${item.service_id}:  ${service.rate} vs ${item.rate}`,
         );
       }
       validateItemAmount(item, "service");
@@ -82,6 +82,7 @@ const invoiceManagementCreateDB = async (payload: TInvoiceManagement) => {
   const createdInvoice = await InvoiceManagementModel.create(invoiceData);
   return createdInvoice;
 };
+
 
 const invoiceManagementGetSingleDB = async (id: string, userId: string) => {
   const invoice = await InvoiceManagementModel.findOne({

@@ -19,6 +19,11 @@ const UserSchema = new Schema<IUser>(
     country: { type: String, trim: true, },
     address: { type: String,  },
     image: { type: String, trim: true, },
+    authProvider : {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    }  ,
     role: {
       type: String,
       enum: ["admin", "user"],

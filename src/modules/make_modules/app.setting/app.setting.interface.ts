@@ -331,39 +331,15 @@
 
 import { Types } from "mongoose";
 
-export type TSettingType =
-  | "general"
-  | "modules"
-  | "currency_format"
-  | "whatsApp"
-  | "invoice"
-  | "sales_receipt"
-  | "estimate"
-  | "delivery_challan"
-  | "purchase_order"
-  | "proforma_invoice"
-  | "bill"
-  | "debit_note"
-  | "credit_note"
-  | "expense"
-  | "product";
+export type TSettingType ="general"| "modules"| "currency_format" | "whatsApp" | "invoice" | "sales_receipt"| "estimate" | "delivery_challan" | "purchase_order"| "proforma_invoice"| "bill"| "debit_note"| "credit_note"| "expense"| "product";
 export type TDocumentSubType = "general" | "columns" | "summary" | "print_email";
 export type TProductSubType  = "general" | "stock";
 export type TSettingSubType  = TDocumentSubType | TProductSubType;
 export type TSetting = {
   user_id: Types.ObjectId;
-
   general: {
     chat: boolean;
-    default:
-      | "System Default"
-      | "Moon Mail Server"
-      | "Mail App"
-      | "Outlook App"
-      | "Airmail App"
-      | "Postbox App"
-      | "Gmail"
-      | "Outlook";
+    default:| "System Default"| "Moon Mail Server"| "Mail App"| "Outlook App"| "Airmail App"| "Postbox App"| "Gmail"| "Outlook";
   };
 
   modules: {

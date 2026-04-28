@@ -225,6 +225,172 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     });
   }
 });
+const googleLogin = catchAsync(async (req: Request, res: Response) => {
+   if(!req.body.authProvider || req.body.authProvider !== "google"){
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid authentication provider.");
+  }
+  const user = await userService.googleLoginDB(req.body, );
+  const token = generateToken({ user: user });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Login complete!",
+    data: { user,token},
+  });
+  const isExistSetting = await SettingModel.findOne({ user_id: user?._id });
+  if (!isExistSetting) {
+    await SettingModel.create({
+      user_id: user?._id,
+      ...setting_seed_data,
+    });
+  }
+  for (const type of documentTypes) {
+    await pdfSettingService.PdfSettingCreateDB({
+      user_id: user?._id,
+      pdfType: type as unknown as any,
+      style: {
+        text_color: "#000000",
+        fill_color: "#3a4a6b",
+        border_color: "#cccccc",
+        fill_text_color: "#ffffff",
+        font: "times",
+        font_size: "normal",
+        full_page: "no",
+        horizontal_lines: "show",
+        vertical_lines: "show",
+        scaling: "fit_to_page",
+        horizontal_alignment: "left",
+        vertical_alignment: "top",
+        margin: {
+          top: 15,
+          right: 15,
+          bottom: 15,
+          left: 15,
+        },
+        outer_border: "show",
+      },
+      columns: {
+        serial: true,
+        line_item_image: true,
+        variant_size: "with_product",
+        variant_type: "with_product",
+        sku: true,
+        sac: true,
+        hsn: true,
+        quntity: "show_for_both",
+        price: true,
+        discount: true,
+        tax: "individual",
+        line_item_tax_format: "show_as_percentage",
+        item_display_order: "products_first",
+        notes: "light",
+        line_total: true,
+        show_price_with_tax: "no",
+        line_description_full_with: true,
+      },
+      header: {
+        title_alignment: "center",
+        sub_title_alignment: "center",
+        sub_title: true,
+        logo_size: "medium",
+        date_format: "medium",
+        logo: true,
+        header: true,
+        status_watermark: true,
+        number: true,
+        po_no: true,
+        due_date: true,
+        total_outstanding: true,
+        paid_amount: true,
+        qr_code: true,
+        qr_code_alignment: "right",
+        document_copy_label: true,
+        total_amount: true,
+        ganarated_by: true,
+        supply_type: true,
+        ganarated_date: true,
+        cancelled_date: true,
+        valid_till: true,
+      },
+      company: {
+        Reg_no: true,
+        reg_no_tax_id_align_below: "name",
+        tax_id: true,
+        name: true,
+        country: true,
+        address: true,
+        phone: true,
+        mobile: true,
+        fax: true,
+        email: true,
+        website: true,
+      },
+      contact: {
+        tax_id: true,
+        reg_no: true,
+        reg_no_tax_id_align_below: "address",
+        home_phone: true,
+        business_phone: true,
+        email: true,
+        email_below_contact: "name",
+        mobaile: true,
+        fax: true,
+        first_last_name: true,
+        mobile_below_contact: "name",
+        address_alignment: "left",
+        billing_adreess_alignment: "left",
+        shipping_adreess_alignment: "right",
+      },
+      summary: {
+        total_quantity: {
+          single_total: true,
+          group_by_unit: true,
+        },
+        include_items_from: {
+          products: true,
+          tasks: true,
+        },
+        amount_unused: true,
+        sub_total: true,
+        discount: true,
+        inline_discount: true,
+        shipping_cost: true,
+        shipping_method: true,
+        total: true,
+        amount_due: true,
+        amount_paid: true,
+        amount_used: true,
+        tax: "combine",
+        tax_value: true,
+        taxable_amount: true,
+        tatal_in_words: true,
+        hsc_sac_summary: true,
+        return_order: true,
+      },
+      notes_terms: {
+        notes: true,
+        notes_title: true,
+        font_size: "medium",
+        bank_details: true,
+        bank_details_title: true,
+        full_with: true,
+        terms_and_condition: true,
+      },
+      signature: {
+        company_sign: "company",
+        contact_sign: true,
+        company_signature_alignment: "right",
+        contact_signature_alignment: "left",
+        signature_size: "medium",
+      },
+      footer: {
+        created_moon_invoice_hyperlink: true,
+        show_tamplate_for_pages: "all",
+        page_number_alignment: "center",
+      },
+    });
+  }
+});
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
@@ -371,6 +537,7 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
 export const userController = {
   registerUser,
   loginUser,
+  googleLogin,
   forgotPassword,
   verifyForgotPasswordOTP,
   resendOTP,

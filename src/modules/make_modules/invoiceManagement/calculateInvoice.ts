@@ -21,30 +21,19 @@ export const calculateInvoice = async (data: any) => {
 
       inline_discount += discountAmount;
       tax_total += taxAmount;
-
-      // ❌ sub_total e tax add hobe na
       sub_total += afterDiscount;
     }
   };
 
-  // 👉 handle all cases
   processItems(data?.product);
   processItems(data?.service);
-
-  // 👉 global discount (%)
   const discountPercent = Number(data?.discount) || 0;
-  const discountAmount = (sub_total * discountPercent) / 100;
 
   const shipping_cost = Number(data?.shipping_cost) || 0;
   const deposit = Number(data?.deposit) || 0;
 
-  // ✅ total e tax add hobe
-  const total =
-    sub_total +
-    tax_total -
-    discountAmount +
-    shipping_cost -
-    deposit;
+  const total = sub_total + tax_total 
+   
 
   return {
     sub_total: Number(sub_total.toFixed(2)),

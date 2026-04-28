@@ -63,110 +63,83 @@ import { Types } from "mongoose";
 
 const getStatusDataDB = async (
   user_id: string,
-  query: Record<string, unknown>,
-  date: string,
+  query: Record<string, unknown> ,
+  startDate?: string
 ) => {
-  const dateFilter: Record<string, unknown> = {};
-  if (date) {
-    const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999);
-    dateFilter.createdAt = { $gte: startDate, $lte: endDate };
-  }
-  const allCustomerQuery = new queryBuilder(
-    CustomerModel.find({ user_id: user_id }),
-    query,
-  ).filter();
-  const allCustomers = await allCustomerQuery.modelQuery.exec();
-
-  const customerIds = allCustomers.map((c) => c._id);
-
-  if (customerIds.length === 0) {
-    return {
-      DraftInvoices: 0,
-      EstimateInvoices: 0,
-      Payments: 0,
-      Sales: 0,
-      Profit: 0,
-      Outstanding: 0.0,
-    };
-  }
-
-  const invoiceAgg = await InvoiceManagementModel.aggregate([
-    {
-      $match: {
-        user_id,
-        customer_id: { $in: customerIds },
-        ...dateFilter,
-      },
-    },
-    {
-      $group: {
-        _id: { type: "$type", status: "$status" },
-        total: { $sum: "$total" },
-      },
-    },
-  ]);
-
-  const paymentAgg = await PaymentModel.aggregate([
-    {
-      $match: {
-        user_id,
-        customer_id: { $in: customerIds },
-        ...dateFilter,
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: "$amount" },
-      },
-    },
-  ]);
-
-  let DraftInvoices = 0;
-  let EstimateInvoices = 0;
-  let SalesInvoices = 0;
-  let SalesReceipt = 0;
-
-  for (const row of invoiceAgg) {
-    const { type, status } = row._id;
-
-    if (type === InvoiceManagementType.Invoice && status === "Draft") {
-      DraftInvoices = row.total;
-    } else if (type === InvoiceManagementType.Estimate) {
-      EstimateInvoices = row.total;
-    } else if (type === InvoiceManagementType.Invoice && status === "Paid") {
-      SalesInvoices = row.total;
-    } else if (type === InvoiceManagementType.Sales_Receipt) {
-      SalesReceipt = row.total;
+  let dateFilter = {};
+  if (startDate) {
+    const parsedDate = new Date(startDate as string);
+    if (!isNaN(parsedDate.getTime())) {
+      dateFilter = {
+        createdAt: {
+          $gte: parsedDate,
+          $lte: new Date(),
+        },
+      };
     }
   }
 
-  const Payments = paymentAgg[0]?.total ?? 0;
-  const Sales = SalesInvoices + SalesReceipt;
-  const Outstanding = Number(Sales - Payments).toFixed(2);
+  const allCustomerQuery = new queryBuilder(
+    CustomerModel.find({ user_id }),
+    query
+  ).filter();
+  const allCustomer = await allCustomerQuery.modelQuery.exec();
+  const allData = await Promise.all(
+    allCustomer.map(async (customer) => {
+      const baseFilter = { customer_id: customer._id, user_id, ...dateFilter };
+
+      const [draftInvoices, estimateInvoices, salesInvoices, salesReceipts, payments] =
+        await Promise.all([
+          InvoiceManagementModel.find({
+            ...baseFilter,
+            type: InvoiceManagementType.Invoice,
+            status: "Draft",
+          }) as Promise<TInvoiceManagement[]>,
+
+          InvoiceManagementModel.find({
+            ...baseFilter,
+            type: InvoiceManagementType.Estimate,
+          }) as Promise<TInvoiceManagement[]>,
+
+          InvoiceManagementModel.find({
+            ...baseFilter,
+            type: InvoiceManagementType.Invoice,
+            status: "Paid",
+          }) as Promise<TInvoiceManagement[]>,
+
+          InvoiceManagementModel.find({
+            ...baseFilter,
+            type: InvoiceManagementType.Sales_Receipt,
+          }) as Promise<TInvoiceManagement[]>,
+
+          PaymentModel.find(baseFilter) as Promise<TPayment[]>,
+        ]);
+
+      return {
+        draft:     draftInvoices.reduce((acc, inv) => acc + inv.total, 0),
+        estimate:  estimateInvoices.reduce((acc, inv) => acc + inv.total, 0),
+        sales:     salesInvoices.reduce((acc, inv) => acc + inv.total, 0),
+        receipts:  salesReceipts.reduce((acc, rec) => acc + rec.total, 0),
+        payments:  payments.reduce((acc, pay) => acc + pay.amount, 0),
+      };
+    })
+  );
+  const totals = allData.reduce(
+    (acc, curr) => ({
+      DraftInvoices:    acc.DraftInvoices + curr.draft,
+      EstimateInvoices: acc.EstimateInvoices + curr.estimate,
+      Payments:         acc.Payments + curr.payments,
+      Sales:            acc.Sales + curr.sales + curr.receipts,
+    }),
+    { DraftInvoices: 0, EstimateInvoices: 0, Payments: 0, Sales: 0 }
+  );
 
   return {
-    DraftInvoices,
-    EstimateInvoices,
-    Payments,
-    Sales,
-    Profit: Sales,
-    Outstanding,
+    ...totals,
+    Profit:      totals.Sales,
+    Outstanding: Number(totals.Sales - totals.Payments).toFixed(2),
   };
 };
-// const graphChartDB = async (user_id : string , query: Record<string, unknown>) => {
-//      if(query?.type === "Sales"){
-//       const salesInvoices = await InvoiceManagementModel.find({ user_id: user_id, type :InvoiceManagementType.Invoice ,status: "Paid",}) as TInvoiceManagement[];
-//       const salesData =  salesInvoices.reduce((acc, sales) => acc + sales.total,0)
-//      }  else if(query?.type === "Payments"){
-//       const payments = await PaymentModel.find({ user_id: user_id}) as TPayment[];
-//       const paymentData =  payments.reduce((acc, payment) => acc + payment.amount,0)
-//      }
-// };
-
 const graphChartDB = async (
   user_id: string,
   query: Record<string, unknown>,

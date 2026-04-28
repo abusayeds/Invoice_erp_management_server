@@ -84,17 +84,9 @@ const verifyOtpDB = async (email: string) => {
 }
 
 const loginDB = async (email: string, password: string) => {
-  const user = await findUserByEmail(email);
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND,
-      "This account does not exist.",
-    );
-  }
-  if (user.isDeleted) {
-    throw new AppError(httpStatus.NOT_FOUND,
-      "your account is deleted by admin.",
-    );
-  }
+  const user = await UserModel.findOne({ email: email  , authProvider : "local" }).select('+password');
+  if (!user) {throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
+  if (user.isDeleted) { throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
 
   const isPasswordValid = await bcrypt.compare(
     password,
@@ -112,14 +104,31 @@ const loginDB = async (email: string, password: string) => {
 
   return userSafe;
 }
+const googleLoginDB = async (payload : IUser) => {
+  const { email } = payload;
+  let user = await UserModel.findOne({ email: email  , authProvider : "google" });
+  if (!user) { throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
+  if (user.isDeleted) {throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
+ if (!user) {
+    user = await UserModel.create({
+      name: payload.name,
+      email: payload.email,
+      image: payload.image,
+      authProvider: "google",
+      isVerified: true,
+      password: null,
+    });
+  }
+  const userSafe = { ...user.toObject ? user.toObject() : user };
+  delete userSafe.password;
+  delete userSafe.isVerify;
+
+  return userSafe;
+}
 
 const forgotPasswordDB = async (email: string) => {
-  const user = await UserModel.findOne({ email: email, isVerify: true });
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND,
-      "This account does not exist.",
-    );
-  }
+  const user = await UserModel.findOne({ email: email, isVerify: true  , authProvider : "local" });
+  if (!user) {throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
   const otp = generateOTP();
   await saveOTP(email, otp);
   await sendEmail(otp, email)
@@ -250,6 +259,7 @@ export const userService = {
   createUserDB,
   verifyOtpDB,
   loginDB,
+  googleLoginDB ,
   forgotPasswordDB,
   verifyForgotPasswordOtpDB,
   resendOtpDB,

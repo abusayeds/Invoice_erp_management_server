@@ -4,18 +4,26 @@ import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { invoiceManagementService } from "./invoice.management.service";
 import AppError from "../../../errors/AppError";
-import { InvoiceManagementType } from "./invoice.management.interface";
+import { InvoiceManagementType, TInvoiceManagement } from "./invoice.management.interface";
+import { Types } from "mongoose";
 
 const invoiceManagementCreate = catchAsync(async (req: AuthRequest, res) => {
-  req.body.user_id = req?.user?._id;
-  const result = await invoiceManagementService.invoiceManagementCreateDB(
-    req.body,
-  );
+  const payload = req.body;
+  const user_id = req?.user?._id;
+
+  const isBulk = Array.isArray(payload);
+  // const result = await invoiceManagementService.invoiceManagementCreateDB(req.body);
+  if (isBulk) {
+    payload.forEach(async (item: TInvoiceManagement) => {
+      item.user_id = user_id as Types.ObjectId;
+      await invoiceManagementService.invoiceManagementCreateDB(item);
+    });
+  }
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: " InvoiceManagement created successfully.",
-    data: result,
+    message: " InvoiceManagement created successfully",
+    data: "",
   });
 });
 

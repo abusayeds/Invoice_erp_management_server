@@ -16,6 +16,7 @@ import { productRoutes } from "../modules/make_modules/product/product.route";
 import { categoryRoutes } from "../modules/make_modules/category/category.route";
 import { serviceRoutes } from "../modules/make_modules/service/service.route";
 import { invoiceManagementRoutes } from "../modules/make_modules/invoiceManagement/invoice.management.route";
+import { paymentRoutes } from "../modules/make_modules/addPayment/payment.route";
 
 const router = express.Router();
 router.use("/api/v1/file-upload", uploadRouter);
@@ -35,5 +36,6 @@ router.use("/api/v1/product", productRoutes );
 router.use("/api/v1/service", serviceRoutes );
 router.use("/api/v1/category", categoryRoutes );
 router.use("/api/v1/invoice-management", invoiceManagementRoutes );
+router.use("/api/v1/payment", paymentRoutes);
 
 export default router;

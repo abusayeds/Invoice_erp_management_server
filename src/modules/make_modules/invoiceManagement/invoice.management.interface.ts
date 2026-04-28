@@ -7,23 +7,19 @@ export enum InvoiceManagementType {
   Delivery_Challan = "Delivery_Challan",
   Credit_Note = "Credit_Note",
   Payment_Received = "Payment_Received",
+  Purchase_Order = "Purchase_Order",
+  Bill = "Bill",
+  Expenses = "Expenses",
+  Debit_Note = "Debit_Note",
 }
-export const invoiceStatus = [
-  "Draft",
-  "Partial",
-  "Paid",
-  "Overdue",
-  "Recurring",
-  "Void",
-  "CreditNotesApplied",
-  "Open",
-] as const;
+export const invoiceStatus = ["Draft","Partial","Paid","Overdue","Recurring","Void","CreditNotesApplied","Open"] as const;
 type Status = (typeof invoiceStatus)[number];
 export type TInvoiceManagement = {
   type: InvoiceManagementType;
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
-  customer_id: Types.ObjectId;
+  customer_id : Types.ObjectId;
+  vendor_id : Types.ObjectId;
   invoice_number?: string;
   currency: string;
   date: Date;
@@ -83,4 +79,5 @@ export type TInvoiceManagement = {
   total: number;
   isDeleted: boolean;
   archive: boolean;
+  createdAt ?  : Date;
 };

@@ -19,6 +19,7 @@ export type IUser = {
   country?: string;
   address?: string;
   image?: string
+  authProvider ?: "local" | "google";
   role: "admin" | "user";
   subscriptionId ? :  Types.ObjectId | null;
   isDeleted: boolean;

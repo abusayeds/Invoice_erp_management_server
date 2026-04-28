@@ -55,6 +55,10 @@ const invoiceManagementSchema = new Schema<TInvoiceManagement>(
       type: Schema.Types.ObjectId,
       ref: "Customer",
     },
+    vendor_id: {
+      type: Schema.Types.ObjectId,
+      ref: "Vendor",
+    },
 
     invoice_number: { type: String },
 

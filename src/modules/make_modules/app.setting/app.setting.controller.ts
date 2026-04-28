@@ -33,8 +33,6 @@ const updateSetting = catchAsync(async (req: AuthRequest, res: Response) => {
   const user= req?.user
   const type = req.body.type as TSettingType;
   const subType = req.body.subType as string | undefined;
-  console.log(type);
-  
   if (!type) {
     throw new AppError(400, "'type' body is required");
   }
