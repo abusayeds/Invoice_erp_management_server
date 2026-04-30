@@ -1,4 +1,6 @@
+import httpStatus from "http-status";
 import queryBuilder from "../../../builder/queryBuilder";
+import AppError from "../../../errors/AppError";
 import { TVendor } from "./vendor.interface";
 import { VendorModel } from "./vendor.model";
 
@@ -53,9 +55,15 @@ const deleteVendorDB = async ( user_id : string , payload: TVendor) => {
   const res = await VendorModel.findOneAndUpdate({user_id , _id : payload._id} , payload , {new : true})
   return res;
 };
+const updateVendorDB = async ( user_id : string , payload: TVendor) => {
+  const res = await VendorModel.findOneAndUpdate({user_id , _id : payload._id} , payload , {new : true})
+   if(!res) {throw new AppError( httpStatus.NOT_FOUND,"Vendor not found");}
+  return res;
+}
 export const vendorService = {
   vendorCreateDB,
   allVendorDB,
   singleVendorDB , 
-  deleteVendorDB
+  deleteVendorDB  ,
+  updateVendorDB
 };

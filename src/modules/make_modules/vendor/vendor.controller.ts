@@ -3,6 +3,9 @@ import { AuthRequest } from "../../../middlewares/auth";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { vendorService } from "./vendor.service";
+import { ActivitiesType } from "../activities/activities.interface";
+import { Types } from "mongoose";
+import { activitiesService } from "../activities/activities.service";
 
 const vendorCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -13,6 +16,11 @@ const vendorCreate = catchAsync(async (req: AuthRequest, res) => {
     message: "vendor successfully.",
     data: result,
   });
+  await activitiesService.activitiesCreateDB({
+      user_id: req?.user?._id as Types.ObjectId,
+      type: ActivitiesType.Created,
+      title: ` ${result?.companyName} Vendor Created`,
+    });
 });
 const allVendor = catchAsync(async (req: AuthRequest, res) => {
   const result = await vendorService.allVendorDB( req?.user?._id as string , req.query);
@@ -42,10 +50,32 @@ const deleteVendor = catchAsync(async (req: AuthRequest, res) => {
     message: "Oparation successfull.",
     data: result
   });
+  await activitiesService.activitiesCreateDB({  
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Archived,
+    title: ` ${result?.companyName} Vendor Archived`,
+  });
+});
+const updateVendor = catchAsync(async (req: AuthRequest, res) => {
+  const result = await vendorService.updateVendorDB( req?.user?._id as string , req.body);
+ 
+   
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Oparation successfull.",
+    data: result
+  });
+  await activitiesService.activitiesCreateDB({  
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: ` ${result?.companyName} Vendor Updated`,
+  });
 });
 export const vendorController = {
   vendorCreate,
   allVendor , 
   singleVendor , 
-  deleteVendor
+  deleteVendor ,
+  updateVendor
 };

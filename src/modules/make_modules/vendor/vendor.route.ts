@@ -25,6 +25,11 @@ router.post(
   authMiddleware(role.user),
   vendorController.deleteVendor
 );
+router.post(
+  "/update",
+  authMiddleware(role.user),
+  vendorController.updateVendor
+);
 
 
 export const vendorRoutes = router;
