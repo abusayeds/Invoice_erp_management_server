@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { TCategory, parentCategoryEnum } from "./category.interface";
-import { number } from "zod";
+
 
 const categorySchema = new Schema<TCategory>(
   {
