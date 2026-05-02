@@ -1,4 +1,4 @@
-import { role } from './../../../utils/role';
+import { role } from "./../../../utils/role";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from "express";
 import httpStatus from "http-status";
@@ -18,10 +18,18 @@ import {
 } from "./user.service";
 import { AuthRequest } from "../../../middlewares/auth";
 import { pdfSettingService } from "../../make_modules/pdf.setting/pdf.setting.service";
-import { documentTypes, PDFSettingModel } from "../../make_modules/pdf.setting/pdf.setting.model";
+import {
+  documentTypes,
+  PDFSettingModel,
+} from "../../make_modules/pdf.setting/pdf.setting.model";
 import { SettingModel } from "../../make_modules/app.setting/app.setting.model";
-import { seedEditTitles, setting_seed_data } from "../../../utils/seedData";
+import {
+  seedCategory,
+  seedEditTitles,
+  setting_seed_data,
+} from "../../../utils/seedData";
 import { EditTitleModel } from "../../make_modules/editTitles/editTitles.model";
+import { CategoryModel } from "../../make_modules/category/category.model";
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
@@ -73,8 +81,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
       token,
     },
   });
-
-  if( role.user === user.role) {
+  if (role.user === user.role) {
     const isExistSetting = await SettingModel.findOne({ user_id: user?._id });
     if (!isExistSetting) {
       await SettingModel.create({
@@ -82,8 +89,10 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
         ...setting_seed_data,
       });
     }
-    const existingPdfSetting = await PDFSettingModel.findOne({ user_id: user?._id });
-    if(!existingPdfSetting) {
+    const existingPdfSetting = await PDFSettingModel.findOne({
+      user_id: user?._id,
+    });
+    if (!existingPdfSetting) {
       for (const type of documentTypes) {
         await pdfSettingService.PdfSettingCreateDB({
           user_id: user?._id,
@@ -237,22 +246,32 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
         user_id: user._id,
         titles: seedEditTitles,
       });
-    }  
+    }
+
+    const existingCategory = await CategoryModel.findOne({ user_id: user._id });
+    if (!existingCategory) {
+      const categoryData = seedCategory.map((item) => ({
+        ...item,
+        user_id: user._id,
+      }));
+      await CategoryModel.insertMany(categoryData);
+    }
   }
-
-
 });
 const googleLogin = catchAsync(async (req: Request, res: Response) => {
-   if(!req.body.authProvider || req.body.authProvider !== "google"){
-    throw new AppError(httpStatus.BAD_REQUEST, "Invalid authentication provider.");
+  if (!req.body.authProvider || req.body.authProvider !== "google") {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Invalid authentication provider.",
+    );
   }
-  const user = await userService.googleLoginDB(req.body, );
+  const user = await userService.googleLoginDB(req.body);
   const token = generateToken({ user: user });
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Login complete!",
-    data: { user,token},
+    data: { user, token },
   });
   const isExistSetting = await SettingModel.findOne({ user_id: user?._id });
   if (!isExistSetting) {
