@@ -1,8 +1,12 @@
+
+import { Types } from "mongoose";
 import { AuthRequest } from "../../../middlewares/auth";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
+import { activitiesService } from "../activities/activities.service";
 import { InvoiceManagementModel } from "../invoiceManagement/invoice.management.model";
 import { addPaymentService } from "./payment.service";
+import { ActivitiesType } from "../activities/activities.interface";
 
 const paymentCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -18,8 +22,11 @@ const paymentCreate = catchAsync(async (req: AuthRequest, res) => {
       req.body.invoice_id,
       { status: "Paid" },
       { new: true },
+      
     );
+    await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId,title: `${req.body.type} Paid` , type : ActivitiesType.Updated}); 
   }
+  await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId,title: "Payment Created", type: ActivitiesType.Created });
 });
 
 const paymentGetAll = catchAsync(async (req: AuthRequest, res) => {
@@ -51,6 +58,8 @@ const paymentUpdate = catchAsync(async (req: AuthRequest, res) => {
          message: "Payment updated successfully",
         data: result,
     });
+    await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId,title: `Payment Updated`, type: ActivitiesType.Updated }); 
+    
 }); 
 const paymentDelete = catchAsync(async (req: AuthRequest, res) => {
     await addPaymentService.paymentDeleteDB(req.params.id);        
@@ -60,6 +69,7 @@ const paymentDelete = catchAsync(async (req: AuthRequest, res) => {
          message: "Payment deleted successfully",
          data: null,
     }); 
+    await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId,title: `Payment Deleted`, type: ActivitiesType.Archived }); 
 });          
 
 

@@ -3,6 +3,9 @@ import { AuthRequest } from "../../../middlewares/auth";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { customerService } from "./customer.service";
+import { activitiesService } from "../activities/activities.service";
+import { ActivitiesType } from "../activities/activities.interface";
+import { Types } from "mongoose";
 
 const customerCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -13,39 +16,76 @@ const customerCreate = catchAsync(async (req: AuthRequest, res) => {
     message: "Customer successfully.",
     data: result,
   });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Created,
+    title: ` ${result?.companyName} Customer Created`,
+  });
 });
 const allCustomer = catchAsync(async (req: AuthRequest, res) => {
-  const result = await customerService.allCustomerDB( req?.user?._id as string , req.query);
+  const result = await customerService.allCustomerDB(
+    req?.user?._id as string,
+    req.query,
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "All customer get successfully.",
-    pagination : result.pagination ,
-    data: result.allCustomer
+    pagination: result.pagination,
+    data: result.allCustomer,
   });
 });
 const singleCustomer = catchAsync(async (req: AuthRequest, res) => {
-    const {id}  =  req.params
-  const result = await customerService.singleCustomerDB( req?.user?._id as string , id);
+  const { id } = req.params;
+  const result = await customerService.singleCustomerDB(
+    req?.user?._id as string,
+    id,
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "Single customer get successfully.",
-    data: result
+    data: result,
   });
 });
 const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
-  const result = await customerService.deleteCustomerDB( req?.user?._id as string , req.body);
+  const result = await customerService.deleteCustomerDB(
+    req?.user?._id as string,
+    req.body,
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "Oparation successfull.",
-    data: result
+    data: result,
+  });
+   await activitiesService.activitiesCreateDB({  
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Archived,
+    title: ` ${result?.companyName} Customer Archived`,
+  });
+});
+const updateCustomer = catchAsync(async (req: AuthRequest, res) => {
+  const result = await customerService.updateCustomerDB(
+    req?.user?._id as string,
+    req.body,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Oparation successfull.",
+    data: result,
+  });
+    await activitiesService.activitiesCreateDB({  
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: ` ${result?.companyName} Customer Updated`,
   });
 });
 export const customerController = {
   customerCreate,
-  allCustomer , 
-  singleCustomer , 
-  deleteCustomer
+  allCustomer,
+  singleCustomer,
+  deleteCustomer,
+  updateCustomer,
 };

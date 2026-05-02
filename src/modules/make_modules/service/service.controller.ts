@@ -3,24 +3,31 @@ import sendResponse from "../../../utils/sendResponse";
 import { ServiceService } from "./service.service";
 import catchAsync from "../../../utils/catchAsync";
 import { AuthRequest } from "../../../middlewares/auth";
+import { ActivitiesType } from "../activities/activities.interface";
+import { activitiesService } from "../activities/activities.service";
+import { Types } from "mongoose";
+import { TService } from "./service.interface";
 
 const createService = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
-
-  const result = await ServiceService.createServiceDB(req.body);
-
+  const result: TService = await ServiceService.createServiceDB(req.body);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,
     message: "Service created successfully",
     data: result,
   });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Created,
+    title: ` ${result?.serviceName} Service Created`,
+  });
 });
 
 const getAllService = catchAsync(async (req: AuthRequest, res) => {
   const result = await ServiceService.getAllServiceDB(
-    req?.user?._id as string ,
-     req.query
+    req?.user?._id as string,
+    req.query,
   );
 
   sendResponse(res, {
@@ -35,7 +42,7 @@ const getAllService = catchAsync(async (req: AuthRequest, res) => {
 const getSingleService = catchAsync(async (req: AuthRequest, res) => {
   const result = await ServiceService.getSingleServiceDB(
     req?.user?._id as string,
-    req.params.id
+    req.params.id,
   );
 
   sendResponse(res, {
@@ -50,7 +57,7 @@ const updateService = catchAsync(async (req: AuthRequest, res) => {
   const result = await ServiceService.updateServiceDB(
     req?.user?._id as string,
     req.params.id,
-    req.body
+    req.body,
   );
 
   sendResponse(res, {
@@ -59,12 +66,17 @@ const updateService = catchAsync(async (req: AuthRequest, res) => {
     message: "Service updated successfully",
     data: result,
   });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: ` ${result?.serviceName} Service Updated`,
+  });
 });
 
 const deleteService = catchAsync(async (req: AuthRequest, res) => {
   const result = await ServiceService.deleteServiceDB(
     req?.user?._id as string,
-    req.body
+    req.body,
   );
 
   sendResponse(res, {
@@ -72,6 +84,11 @@ const deleteService = catchAsync(async (req: AuthRequest, res) => {
     statusCode: httpStatus.OK,
     message: "Operation successful.",
     data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Archived,
+    title: ` ${result?.serviceName} Service Archived`,
   });
 });
 

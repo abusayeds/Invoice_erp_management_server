@@ -397,6 +397,7 @@ const PDFSettingSchema = new Schema<IPDFSetting>(
     user_id: {
       type: Schema.Types.ObjectId,
       required: true,
+      ref  : "User"
     },
 
     style: { type: StyleSchema, default: () => ({}) },

@@ -25,6 +25,11 @@ router.post(
   authMiddleware(role.user),
   customerController.deleteCustomer
 );
+router.post(
+  "/update",
+  authMiddleware(role.user),
+  customerController.updateCustomer
+);
 
 
 export const customerRoutes = router;

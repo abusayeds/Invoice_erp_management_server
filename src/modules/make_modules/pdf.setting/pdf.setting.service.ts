@@ -4,7 +4,7 @@ import AppError from "../../../errors/AppError";
 import httpStatus from "http-status";
 
 const PdfSettingCreateDB = async (payload: TPDFSetting): Promise<IPDFSetting> => {
-   const isExist  =  await PDFSettingModel.findOne({pdfType : payload.pdfType}) 
+   const isExist  =  await PDFSettingModel.findOne({ user_id: payload.user_id , pdfType : payload.pdfType}) 
    if(isExist) { throw new AppError(httpStatus.BAD_REQUEST , "alredy added") }
   const result = await PDFSettingModel.create(payload);
   return result;
@@ -12,9 +12,10 @@ const PdfSettingCreateDB = async (payload: TPDFSetting): Promise<IPDFSetting> =>
 
 const PdfSettingUpdateDB = async (
   pdfType: string,
-  payload: Partial<TPDFSetting>
+  payload: Partial<TPDFSetting>, 
+  user_id : string
 ): Promise<IPDFSetting | null> => {
-   const isExist  =  await PDFSettingModel.findOne({pdfType , user_id : payload}) 
+   const isExist  =  await PDFSettingModel.findOne({pdfType , user_id : user_id}) 
 
    if(!pdfType) { throw new AppError(httpStatus.BAD_REQUEST , "pdfType is required !") }
    if(!isExist) { throw new AppError(httpStatus.BAD_REQUEST , "PDF Setting not found") }

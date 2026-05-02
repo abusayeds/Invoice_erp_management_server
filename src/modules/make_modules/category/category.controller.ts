@@ -6,6 +6,7 @@ import { categoryService } from "./category.service";
 
 // CREATE
 const createCategory = catchAsync(async (req: AuthRequest, res) => {
+  req.body.user_id = req.user?._id
   const result = await categoryService.createCategoryDB(req.body);
   sendResponse(res, {
     success: true,
@@ -18,7 +19,6 @@ const createCategory = catchAsync(async (req: AuthRequest, res) => {
 // GET ALL
 const getAllCategory = catchAsync(async (req, res) => {
   const result = await categoryService.getAllCategoryDB();
-
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

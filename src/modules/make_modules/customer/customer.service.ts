@@ -1,6 +1,8 @@
+import httpStatus from "http-status";
 import queryBuilder from "../../../builder/queryBuilder";
 import { TCustomer } from "./customer.interface";
 import { CustomerModel } from "./customer.model";
+import AppError from "../../../errors/AppError";
 
 const customerCreateDB = async (payload: TCustomer) => {
   const res = await CustomerModel.create(payload);
@@ -53,9 +55,16 @@ const deleteCustomerDB = async ( user_id : string , payload: TCustomer) => {
   const res = await CustomerModel.findOneAndUpdate({user_id , _id : payload._id} , payload , {new : true})
   return res;
 };
+const updateCustomerDB = async ( user_id : string , payload: TCustomer) => {
+  const res = await CustomerModel.findOneAndUpdate  
+  ({user_id , _id : payload._id} , payload , {new : true})  
+  if(!res) {throw new AppError( httpStatus.NOT_FOUND,"Customer not found");}
+  return res;
+}
 export const customerService = {
   customerCreateDB,
   allCustomerDB,
   singleCustomerDB , 
-  deleteCustomerDB
+  deleteCustomerDB  ,
+  updateCustomerDB
 };

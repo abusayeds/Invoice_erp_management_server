@@ -6,27 +6,20 @@ import { invoiceManagementService } from "./invoice.management.service";
 import AppError from "../../../errors/AppError";
 import { InvoiceManagementType, TInvoiceManagement } from "./invoice.management.interface";
 import { Types } from "mongoose";
+import { ActivitiesType } from "../activities/activities.interface";
+import { activitiesService } from "../activities/activities.service";
 
 const invoiceManagementCreate = catchAsync(async (req: AuthRequest, res) => {
-  const payload = req.body;
-  const user_id = req?.user?._id;
-
-  const isBulk = Array.isArray(payload);
-  // const result = await invoiceManagementService.invoiceManagementCreateDB(req.body);
-  if (isBulk) {
-    payload.forEach(async (item: TInvoiceManagement) => {
-      item.user_id = user_id as Types.ObjectId;
-      await invoiceManagementService.invoiceManagementCreateDB(item);
-    });
-  }
+  req.body.user_id = req?.user?._id;
+  const result : TInvoiceManagement = await invoiceManagementService.invoiceManagementCreateDB(req.body);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: " InvoiceManagement created successfully",
-    data: "",
+    message: " InvoiceManagement created successfully.",
+    data: result,
   });
+   await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId, type : ActivitiesType.Created , title: `${result?.type} Create ` } );
 });
-
 const invoiceManagementGetSingle = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params;
   const result = await invoiceManagementService.invoiceManagementGetSingleDB(
@@ -73,4 +66,4 @@ export const invoiceManagementController = {
   invoiceManagementCreate,
   invoiceManagementGetSingle,
   invoiceManagementGetAll,
-};
+}

@@ -7,6 +7,8 @@ import { AuthRequest } from "../../../middlewares/auth";
 import { TSettingType } from "./app.setting.interface";
 import { Types } from "mongoose";
 import { settingService } from "./app.setting.service";
+import { activitiesService } from "../activities/activities.service";
+import { ActivitiesType } from "../activities/activities.interface";
 
 //  GET Setting
 const getSetting = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -49,6 +51,7 @@ const updateSetting = catchAsync(async (req: AuthRequest, res: Response) => {
     message: "Setting updated successfully",
     data,
   });
+  await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId,title: `Setting Updated`, type: ActivitiesType.Updated }); 
 });
 export const appSettingController = {
   getSetting,

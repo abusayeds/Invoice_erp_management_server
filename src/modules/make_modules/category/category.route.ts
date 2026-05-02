@@ -5,10 +5,10 @@ import { categoryController } from "./category.controller";
 
 const router = express.Router();
 
-router.post("/create", authMiddleware(role.admin), categoryController.createCategory);
+router.post("/create", authMiddleware(role.user), categoryController.createCategory);
 router.get("/all", categoryController.getAllCategory);
 router.get("/:id", categoryController.getSingleCategory);
-router.patch("/:id", authMiddleware(role.admin), categoryController.updateCategory);
-router.delete("/:id", authMiddleware(role.admin), categoryController.deleteCategory);
+router.patch("/:id", authMiddleware(role.user), categoryController.updateCategory);
+router.delete("/:id", authMiddleware(role.user), categoryController.deleteCategory);
 
 export const categoryRoutes = router;

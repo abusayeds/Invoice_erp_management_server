@@ -8,6 +8,8 @@ import AppError from "../../../errors/AppError";
 import { paymentService } from "../payment/payment.service";
 import { SubscriptionPlan, TSubscription } from "../subscription/subscription.interface";
 import { Types } from "mongoose";
+import { ActivitiesType } from "../activities/activities.interface";
+import { activitiesService } from "../activities/activities.service";
 
 const purchaseSubscription = catchAsync(async (req : AuthRequest, res) => {
 const { subscriptionId } = req.body;
@@ -55,6 +57,7 @@ const finalData = {
     message: "Payment session created successfully",
     data: result,
   });
+   await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId, type : ActivitiesType.Created , title: ` ${finalData.plan } Puschase Plan ` } );
 });
 
 
