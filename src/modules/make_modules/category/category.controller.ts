@@ -17,8 +17,9 @@ const createCategory = catchAsync(async (req: AuthRequest, res) => {
 });
 
 // GET ALL
-const getAllCategory = catchAsync(async (req, res) => {
-  const result = await categoryService.getAllCategoryDB();
+const getAllCategory = catchAsync(async (req :  AuthRequest, res) => {
+  const category =  req.query.category
+  const result = await categoryService.getAllCategoryDB(   req?.user?._id as string ,  category as string);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -28,10 +29,10 @@ const getAllCategory = catchAsync(async (req, res) => {
 });
 
 // GET SINGLE
-const getSingleCategory = catchAsync(async (req, res) => {
+const getSingleCategory = catchAsync(async (req : AuthRequest, res) => {
   const { id } = req.params;
 
-  const result = await categoryService.getSingleCategoryDB(id);
+  const result = await categoryService.getSingleCategoryDB(id , req?.user?._id as string);
 
   sendResponse(res, {
     success: true,
@@ -42,10 +43,10 @@ const getSingleCategory = catchAsync(async (req, res) => {
 });
 
 // UPDATE
-const updateCategory = catchAsync(async (req, res) => {
+const updateCategory = catchAsync(async (req : AuthRequest, res) => {
   const { id } = req.params;
 
-  const result = await categoryService.updateCategoryDB(id, req.body);
+  const result = await categoryService.updateCategoryDB(id, req.body , req?.user?._id as string);
 
   sendResponse(res, {
     success: true,
@@ -56,10 +57,10 @@ const updateCategory = catchAsync(async (req, res) => {
 });
 
 // DELETE
-const deleteCategory = catchAsync(async (req, res) => {
+const deleteCategory = catchAsync(async (req : AuthRequest, res) => {
   const { id } = req.params;
 
-  const result = await categoryService.deleteCategoryDB(id);
+  const result = await categoryService.deleteCategoryDB(id , req?.user?._id as string);
 
   sendResponse(res, {
     success: true,
