@@ -21,11 +21,11 @@ const subscriptionSchema = new Schema<TSubscription>(
       required: true,
     },
     invoices: {
-      type: Schema.Types.Mixed, // number | "unlimited"
+      type: Schema.Types.Mixed, 
       required: true,
     },
     estimates: {
-      type: Schema.Types.Mixed, // number | "unlimited"
+      type: Schema.Types.Mixed, 
       required: true,
     },
     proformaInvoices: {
