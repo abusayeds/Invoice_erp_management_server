@@ -7,22 +7,22 @@ const router = express.Router();
 
 router.post(
   "/create",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   productController.productCreate
 );
 router.get(
   "/all",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   productController.allProduct
 );
 router.get(
   "/single/:id",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   productController.singleProduct
 );
 router.post(
   "/delete",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   productController.deleteProduct
 );
 

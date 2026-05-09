@@ -5,7 +5,7 @@ import { appSettingController } from "./app.setting.controller";
 
 const router = Router();
 
-router.get("/", authMiddleware(role.user), appSettingController.getSetting);    
-router.patch("/",    authMiddleware(role.user),   appSettingController.updateSetting); 
+router.get("/", authMiddleware(role.company), appSettingController.getSetting);    
+router.patch("/",    authMiddleware(role.company),   appSettingController.updateSetting); 
 
 export const settingRoutes = router;

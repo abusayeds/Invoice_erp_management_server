@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.patch(
   "/:pdfType",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   pdfSettingController.PdfSettingUpdate
 );
 

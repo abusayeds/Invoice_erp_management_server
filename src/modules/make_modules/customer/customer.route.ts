@@ -7,27 +7,27 @@ const router = express.Router();
 
 router.post(
   "/create",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   customerController.customerCreate
 );
 router.get(
   "/all",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   customerController.allCustomer
 );
 router.get(
   "/single/:id",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   customerController.singleCustomer
 );
 router.post(
   "/delete",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   customerController.deleteCustomer
 );
 router.post(
   "/update",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   customerController.updateCustomer
 );
 

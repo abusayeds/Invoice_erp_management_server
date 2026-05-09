@@ -19,7 +19,7 @@ import { IUser } from "../../basic_modules/user/user.interface";
 const express = require("express");
 const router = express.Router();
 
-router.post("/invoice", authMiddleware(role.user) , async (req: AuthRequest, res: Response) => {
+router.post("/invoice", authMiddleware(role.company) , async (req: AuthRequest, res: Response) => {
   const user =  req?.user as IUser
   try {
     const { pdfType } = req.body;

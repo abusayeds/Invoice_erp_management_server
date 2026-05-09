@@ -5,9 +5,9 @@ import { editTitleController } from "./editTitles.controller";
 
 const router = express.Router();
 
-router.patch("/update",authMiddleware(role.user), editTitleController.editTitlesUpdate);
-router.get("/single/:id",authMiddleware(role.user),editTitleController.singleEditTitles);
-router.get("/my",authMiddleware(role.user),editTitleController.myEditTitles);
+router.patch("/update",authMiddleware(role.company), editTitleController.editTitlesUpdate);
+router.get("/single/:id",authMiddleware(role.company),editTitleController.singleEditTitles);
+router.get("/my",authMiddleware(role.company),editTitleController.myEditTitles);
 
 
 export const EditTitlesRoutes = router;

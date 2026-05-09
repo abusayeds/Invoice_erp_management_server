@@ -5,7 +5,7 @@ import { role } from "../../../utils/role";
 
 const router = express.Router();
 
-router.post("/create" , authMiddleware(role.user),companyController.createCompany);
+router.post("/create" , authMiddleware(role.company),companyController.createCompany);
 
 router.get("/",  companyController.getAllCompanies);
 

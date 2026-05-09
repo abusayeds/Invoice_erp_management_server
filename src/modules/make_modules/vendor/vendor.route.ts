@@ -7,27 +7,27 @@ const router = express.Router();
 
 router.post(
   "/create",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   vendorController.vendorCreate
 );
 router.get(
   "/all",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   vendorController.allVendor
 );
 router.get(
   "/single/:id",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   vendorController.singleVendor
 );
 router.post(
   "/delete",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   vendorController.deleteVendor
 );
 router.post(
   "/update",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   vendorController.updateVendor
 );
 

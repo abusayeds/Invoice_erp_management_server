@@ -7,17 +7,17 @@ const router = express.Router();
 
 router.post(
   "/create",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   invoiceManagementController.invoiceManagementCreate
 );
 router.get(
   "/single/:id",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   invoiceManagementController.invoiceManagementGetSingle
 );
 router.get(
   "/all",
-  authMiddleware(role.user),
+  authMiddleware(role.company),
   invoiceManagementController.invoiceManagementGetAll
 );
 
