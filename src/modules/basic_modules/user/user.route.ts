@@ -19,7 +19,7 @@ router.post("/resend", userController.resendOTP);
 router.post("/reset-password", zodValidation(userValidation.resetPassWordValidation), userController.resetPassword);
 router.post("/change-password", userController.changePassword);
 router.post("/update", zodValidation(userValidation.updateUserValidation), userController.updateUser);
-router.get("/my-profile", authMiddleware(role.admin , role.user), userController.myProfile);
+router.get("/my-profile", authMiddleware(role.admin , role.company), userController.myProfile);
 router.get("/all-user", authMiddleware(role.admin), userController.getAllUsers);
 router.post("/block-user", authMiddleware(role.admin), BlockUser);
 router.post("/delete", authMiddleware(role.admin), deleteUser);

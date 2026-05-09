@@ -81,7 +81,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
       token,
     },
   });
-  if (role.user === user.role) {
+  if (role.company === user.role) {
     const isExistSetting = await SettingModel.findOne({ user_id: user?._id });
     if (!isExistSetting) {
       await SettingModel.create({
@@ -590,7 +590,7 @@ export const BlockUser = catchAsync(async (req: Request, res: Response) => {
   const { decoded }: any = await tokenDecoded(req, res);
   const adminId = decoded.id;
   const requestingUser = await UserModel.findById(adminId);
-  if (!requestingUser || requestingUser.role !== "admin") {
+  if (!requestingUser || requestingUser.role !== role.admin) {
     throw new AppError(
       httpStatus.FORBIDDEN,
       "Unauthorized: Only admins can change user status.",
@@ -601,7 +601,7 @@ export const BlockUser = catchAsync(async (req: Request, res: Response) => {
     throw new AppError(httpStatus.NOT_FOUND, "User not found.");
   }
 
-  if (user.role === "admin") {
+  if (user.role === role.admin) {
     throw new AppError(
       httpStatus.FORBIDDEN,
       "Cannot change status of an admin user.",

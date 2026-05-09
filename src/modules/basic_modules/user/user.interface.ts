@@ -1,11 +1,12 @@
 import { Document, Types } from "mongoose";
+import { TRole } from "../../../utils/role";
 
 export type IPendingUser = {
   email: string;
   name: string;
   password: string;
   confirmPassword: string;
-  role: "user" | "admin";
+  role: TRole;
 } & Document;
 
 export type IUser = {
@@ -20,7 +21,7 @@ export type IUser = {
   address?: string;
   image?: string
   authProvider ?: "local" | "google";
-  role: "admin" | "user";
+  role: TRole;
   subscriptionId ? :  Types.ObjectId | null;
   isDeleted: boolean;
   isVerify: boolean

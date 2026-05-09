@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import mongoose, { Schema } from "mongoose";
 import { IOTP, IUser } from "./user.interface";
+import { role } from "../../../utils/role";
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, trim: true },
@@ -26,8 +27,7 @@ const UserSchema = new Schema<IUser>(
     }  ,
     role: {
       type: String,
-      enum: ["admin", "user"],
-      default: "user",
+      enum: Object.values(role),
     },
     subscriptionId : {
       type: Schema.Types.ObjectId,

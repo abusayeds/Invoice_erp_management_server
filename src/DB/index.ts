@@ -1,5 +1,5 @@
 import { UserModel } from "../modules/basic_modules/user/user.model";
-
+import { role } from "../utils/role";
 
 const admin = {
   name: "MD Admin",
@@ -7,7 +7,7 @@ const admin = {
   password: "1qazxsw2",
   address: "Dhaka, Bangladesh",
   phone  :  "0125876543", 
-  role: "admin",
+  role: role.admin,
   isDeleted: false,
 };
 

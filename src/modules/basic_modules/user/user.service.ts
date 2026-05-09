@@ -9,6 +9,7 @@ import AppError from "../../../errors/AppError";
 import { sendEmail, sendRegistationOtpEmail, } from "./sendEmail";
 import { IUser, } from "./user.interface";
 import { OTPModel, UserModel } from "./user.model";
+import { role } from "../../../utils/role";
 
 export const generateToken = (payload: any): string => {
   return jwt.sign(payload, JWT_SECRET_KEY as string, { expiresIn: "7d" });
@@ -239,8 +240,8 @@ const myProfileDB = async (userId: string) => {
   return user
 }
 const allUserDB = async (query: Record<string, unknown>,) => {
-  const userQuery = new queryBuilder(UserModel.find({ role: "user" }).select('-password -isVerify'), query).sort()
-  const { totalData } = await userQuery.paginate(UserModel.find({ role: "user" }))
+  const userQuery = new queryBuilder(UserModel.find({ role: role.company }).select('-password -isVerify'), query).sort()
+  const { totalData } = await userQuery.paginate(UserModel.find({ role: role.company }))
   const user = await userQuery.modelQuery.exec()
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;

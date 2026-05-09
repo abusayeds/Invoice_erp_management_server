@@ -1,6 +1,10 @@
 export const role = {
     admin: "admin",
-    user: "user",
+    company: "company",
+    client : "client" ,
+    staff : "staff" ,
+    vendor :  "vandor" , 
+    hr :  "hr"
 } as const;
 
 export type TRole = keyof typeof role
