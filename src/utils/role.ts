@@ -1,9 +1,9 @@
 export const role = {
-    admin: "admin",
+    superadmin: "superadmin",
     company: "company",
     client : "client" ,
     staff : "staff" ,
-    vendor :  "vandor" , 
+    vendor :  "vendor" , 
     hr :  "hr"
 } as const;
 

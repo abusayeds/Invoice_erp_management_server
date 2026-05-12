@@ -9,6 +9,8 @@ export type IPendingUser = {
   role: TRole;
 } & Document;
 
+export type TPermissions = string[];
+
 export type IUser = {
   name?: string;
   email: string;
@@ -19,12 +21,15 @@ export type IUser = {
   currency?: string;
   country?: string;
   address?: string;
-  image?: string
-  authProvider ?: "local" | "google";
+  image?: string;
+  authProvider?: "local" | "google";
   role: TRole;
-  subscriptionId ? :  Types.ObjectId | null;
+  subscriptionId?: Types.ObjectId | null;
+  companyId?: Types.ObjectId | null;
+  permissions?: TPermissions;
   isDeleted: boolean;
-  isVerify: boolean
+  isVerify: boolean; 
+  login: boolean;
 } & Document;
 
 export type IOTP = {

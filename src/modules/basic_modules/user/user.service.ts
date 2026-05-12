@@ -9,7 +9,10 @@ import AppError from "../../../errors/AppError";
 import { sendEmail, sendRegistationOtpEmail, } from "./sendEmail";
 import { IUser, } from "./user.interface";
 import { OTPModel, UserModel } from "./user.model";
-import { role } from "../../../utils/role";
+import { role,  } from "../../../utils/role";
+import { Types } from "mongoose";
+import { PermissionModel } from "../../make_modules/permission/permission.model";
+import { TPermission } from "../../make_modules/permission/permission.interface";
 
 export const generateToken = (payload: any): string => {
   return jwt.sign(payload, JWT_SECRET_KEY as string, { expiresIn: "7d" });
@@ -253,9 +256,99 @@ const allUserDB = async (query: Record<string, unknown>,) => {
   return { pagination, user, };
 }
 
+const createUserByCompanyDB = async (companyId: string, payload: IUser) => {
+  const isUserRegistered = await UserModel.findOne({ email: payload.email });
+  if (isUserRegistered) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User already exists");
+  }
+  const rolePermissions = await PermissionModel.findOne({
+    companyId,
+    role: payload.role,
+  });
+  if (rolePermissions) {
+    payload.permissions = rolePermissions.permissions;
+  }
+  payload.companyId = new Types.ObjectId(companyId);
+  payload.isVerify = true; 
+  const result = await UserModel.create(payload);
+  const userObject = result.toObject();
+  delete userObject.password;
+  
+  return userObject;
+};
+const createCompanyBySuperadminDB = async (payload: IUser) => {
+  const isUserRegistered = await UserModel.findOne({ email: payload.email });
+  if (isUserRegistered) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User already exists");
+  }
+  payload.isVerify = true; 
+  const result = await UserModel.create(payload);
+  const userObject = result.toObject();
+  delete userObject.password;
+  
+  return userObject;
+};
 
+const allUserForCompanyDB = async (companyId: string , query: Record<string, unknown>,  ) => {
+  const userQuery = new queryBuilder(UserModel.find({ companyId: companyId }).select("name email role companyId phone login image"), query).search(['name' , 'email']).fields().sort()
+  const { totalData } = await userQuery.paginate(UserModel.find({ companyId: companyId }))
+  const user = await userQuery.modelQuery.exec()
+  const currentPage = Number(query?.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const pagination = userQuery.calculatePagination({
+    totalData,
+    currentPage,
+    limit,
+  });
+  return { pagination, user, };
+}
+const allRoleDB = async (companyId: string) => {
 
+  const allRoles = Object.values(role).filter(
+    (singleRole) =>
+      singleRole !== role.superadmin &&
+      singleRole !== role.company
+  );
 
+  const users = await UserModel.find({
+    isDeleted: false,
+    companyId,
+  }).select("name role");
+
+  const permissionsData = await PermissionModel.find({
+    companyId,
+    role: { $in: allRoles },
+  });
+
+  const result = allRoles.map((singleRole) => {
+
+    const roleUsers = users.filter(
+      (user) => user.role === singleRole
+    );
+
+    const permission = permissionsData.find(
+      (item) => item.role === singleRole
+    );
+
+    return {
+      name: singleRole,
+
+      label:
+        singleRole.charAt(0).toUpperCase() +
+        singleRole.slice(1),
+
+      permissions:
+        permission?.permissions?.length || 0,
+
+      users: roleUsers.map((user) => ({
+        _id: user._id,
+        name: user.name,
+      })),
+    };
+  });
+
+  return result;
+};
 export const userService = {
   createUserDB,
   verifyOtpDB,
@@ -268,7 +361,11 @@ export const userService = {
   changePasswordDB,
   updateUserDB,
   myProfileDB,
-  allUserDB
+  allUserDB,
+  createUserByCompanyDB,
+  createCompanyBySuperadminDB , 
+  allRoleDB , 
+  allUserForCompanyDB
 }
 
 

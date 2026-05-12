@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { TRole } from "../utils/role";
+import { role, TRole } from "../utils/role";
 import AppError from "../errors/AppError";
 import httpStatus from "http-status";
 import { UserModel } from "../modules/basic_modules/user/user.model";
-import { IUser } from "../modules/basic_modules/user/user.interface";
+import { IUser, TPermissions } from "../modules/basic_modules/user/user.interface";
 
 export interface AuthRequest extends Request {
   user?: IUser;
@@ -37,8 +37,8 @@ export const authMiddleware = (...requiredRoles: TRole[]) => {
         );
       }
 
-      const role = decoded.user.role;
-      if (requiredRoles.length > 0 && !requiredRoles.includes(role)) {
+      const userRole = decoded.user.role;
+      if (requiredRoles.length > 0 && !requiredRoles.includes(userRole)) {
         return next(
           new AppError(httpStatus.FORBIDDEN, "You are not authorized.")
         );
@@ -61,5 +61,24 @@ export const authMiddleware = (...requiredRoles: TRole[]) => {
 
       next(error);
     }
+  };
+};
+
+export const checkPermission = (permission: string) => {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const user = req.user;
+    if (!user) {
+      return next(new AppError(httpStatus.UNAUTHORIZED, "User not found"));
+    }
+
+    if (user.role === role.superadmin) {
+      return next();
+    }
+
+    if (user.permissions && user.permissions.includes(permission)) {
+      return next();
+    }
+
+    return next(new AppError(httpStatus.FORBIDDEN, "Permission denied"));
   };
 };

@@ -30,6 +30,7 @@ import {
 } from "../../../utils/seedData";
 import { EditTitleModel } from "../../make_modules/editTitles/editTitles.model";
 import { CategoryModel } from "../../make_modules/category/category.model";
+import { ROLE_PERMISSIONS } from "../../../utils/permissions";
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
@@ -71,7 +72,13 @@ const verifyOTP = catchAsync(async (req: Request, res: Response) => {
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = await userService.loginDB(email, password);
-  const token = generateToken({ user: user });
+  const tokenUser =  {
+    _id :  user._id , 
+    name :  user.name , 
+    email :  user.email ,  
+    role : user.role 
+  }
+  const token = generateToken({ user: tokenUser });
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -81,7 +88,9 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
       token,
     },
   });
-  if (role.company === user.role) {
+     if(
+      user.role === role.company || user.role === role.client || user.role === role.hr || user.role === role.vendor || user.role === role.staff
+     ){
     const isExistSetting = await SettingModel.findOne({ user_id: user?._id });
     if (!isExistSetting) {
       await SettingModel.create({
@@ -247,7 +256,6 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
         titles: seedEditTitles,
       });
     }
-
     const existingCategory = await CategoryModel.findOne({ user_id: user._id });
     if (!existingCategory) {
       const categoryData = seedCategory.map((item) => ({
@@ -257,6 +265,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
       await CategoryModel.insertMany(categoryData);
     }
   }
+    await UserModel.findByIdAndUpdate(user._id, { login : true });
 });
 const googleLogin = catchAsync(async (req: Request, res: Response) => {
   if (!req.body.authProvider || req.body.authProvider !== "google") {
@@ -570,6 +579,50 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const createUserByCompany = catchAsync(async (req: AuthRequest, res: Response) => {
+  const companyId = req.user?._id;
+  const result = await userService.createUserByCompanyDB(companyId as string, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "User created successfully with role permissions.",
+    data: result,
+  });
+});
+const createCompanyBySuperadmin = catchAsync(async (req: AuthRequest, res: Response) => {
+  req.body.permissions = ROLE_PERMISSIONS.company
+  const result = await userService.createCompanyBySuperadminDB(req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "User created successfully Company Created.",
+    data: result,
+  });
+});
+
+const allUserForCompany = catchAsync(async (req: AuthRequest, res: Response) => {
+  const companyId = req.user?._id;
+  const result = await userService.allUserForCompanyDB(companyId as string , req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User list retrieved successfully",
+    data: result,
+  });
+});
+
+const allRole = catchAsync(async (req: AuthRequest, res: Response) => {
+  const companyId = req.user?._id;
+  const result = await userService.allRoleDB(companyId as string);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Role list retrieved successfully",
+    data: result,
+  });
+});
+
+
 export const userController = {
   registerUser,
   loginUser,
@@ -583,6 +636,10 @@ export const userController = {
   myProfile,
   getAllUsers,
   verifyOTP,
+  createUserByCompany ,
+  createCompanyBySuperadmin , 
+  allUserForCompany , 
+  allRole
 };
 
 export const BlockUser = catchAsync(async (req: Request, res: Response) => {
@@ -590,7 +647,7 @@ export const BlockUser = catchAsync(async (req: Request, res: Response) => {
   const { decoded }: any = await tokenDecoded(req, res);
   const adminId = decoded.id;
   const requestingUser = await UserModel.findById(adminId);
-  if (!requestingUser || requestingUser.role !== role.admin) {
+  if (!requestingUser || requestingUser.role !== role.superadmin) {
     throw new AppError(
       httpStatus.FORBIDDEN,
       "Unauthorized: Only admins can change user status.",
@@ -601,7 +658,7 @@ export const BlockUser = catchAsync(async (req: Request, res: Response) => {
     throw new AppError(httpStatus.NOT_FOUND, "User not found.");
   }
 
-  if (user.role === role.admin) {
+  if (user.role === role.superadmin) {
     throw new AppError(
       httpStatus.FORBIDDEN,
       "Cannot change status of an admin user.",

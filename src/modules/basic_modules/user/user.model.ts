@@ -29,6 +29,12 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: Object.values(role),
     },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    permissions: [{ type: String }],
     subscriptionId : {
       type: Schema.Types.ObjectId,
       ref: "Purchase",
@@ -38,6 +44,10 @@ const UserSchema = new Schema<IUser>(
       default: false,
     },
     isVerify: {
+      type: Boolean,
+      default: false
+    } ,
+    login: {
       type: Boolean,
       default: false
     }
