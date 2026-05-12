@@ -1,0 +1,115 @@
+{
+	"info": {
+		"_postman_id": "c1f28b52-73a1-432d-94cb-55c3c0c1b7a2",
+		"name": "INVOICE(idimitr) - New Permission Routes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create User By Company",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"New Staff\",\n    \"email\": \"staff1@example.com\",\n    \"password\": \"1234\",\n    \"confirmPassword\": \"1234\",\n    \"role\": \"staff\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/user/create-user-by-company",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"user",
+						"create-user-by-company"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Role Permission",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"role\": \"staff\",\n    \"permissions\": [\n        \"manage-dashboard\",\n        \"view-plans\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/permission/update-permission",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"permission",
+						"update-permission"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get My Permissions (Company)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/permission/my-permissions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"permission",
+						"my-permissions"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "token",
+			"value": "YOUR_COMPANY_TOKEN_HERE"
+		}
+	]
+}
