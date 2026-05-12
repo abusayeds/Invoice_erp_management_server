@@ -4,7 +4,7 @@ import { AuthRequest } from "../../../middlewares/auth";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { activitiesService } from "../activities/activities.service";
-import { InvoiceManagementModel } from "../invoiceManagement/invoice.management.model";
+import { InvoiceModel } from "../invoice/invoice.model";
 import { addPaymentService } from "./payment.service";
 import { ActivitiesType } from "../activities/activities.interface";
 
@@ -18,7 +18,7 @@ const paymentCreate = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
   if (req.body.type === "invoice") {
-    await InvoiceManagementModel.findByIdAndUpdate(
+    await InvoiceModel.findByIdAndUpdate(
       req.body.invoice_id,
       { status: "Paid" },
       { new: true },

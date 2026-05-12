@@ -1,5 +1,5 @@
-import { Schema, model, Types } from "mongoose";
-import { InvoiceManagementType, invoiceStatus, TInvoiceManagement } from "./invoice.management.interface";
+import { Schema, model, Types } from 'mongoose';
+import { creditNoteStatus, TCreditNote } from './creditNote.interface';
 
 const addressSchema = new Schema(
   {
@@ -15,7 +15,7 @@ const addressSchema = new Schema(
 
 const productSchema = new Schema(
   {
-    product_id: { type: Types.ObjectId, ref: "Product", required: true },
+    product_id: { type: Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, required: true },
     rate: { type: Number, required: true },
     tax: { type: Number, default: 0 },
@@ -27,67 +27,39 @@ const productSchema = new Schema(
 
 const serviceSchema = new Schema(
   {
-    service_id: { type: Types.ObjectId, ref: "Service", },
-    quantity: { type: Number, },
-    rate: { type: Number, },
+    service_id: { type: Types.ObjectId, ref: 'Service' },
+    quantity: { type: Number },
+    rate: { type: Number },
     tax: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
-    amount: { type: Number, },
+    amount: { type: Number },
   },
   { _id: false }
 );
 
-const invoiceManagementSchema = new Schema<TInvoiceManagement>(
+const creditNoteSchema = new Schema<TCreditNote>(
   {
-    type: {
-      type: String,
-      enum: Object.values(InvoiceManagementType),
-      required: true,
-    },
-
-    user_id: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    customer_id: {
-      type: Schema.Types.ObjectId,
-      ref: "Customer",
-    },
-    vendor_id: {
-      type: Schema.Types.ObjectId,
-      ref: "Vendor",
-    },
-
+    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    customer_id: { type: Schema.Types.ObjectId, ref: 'Customer' },
+    vendor_id: { type: Schema.Types.ObjectId, ref: 'Vendor' },
     invoice_number: { type: String },
-
-    currency: { type: String, },
-
-    date: { type: Date, },
-    due_date: { type: Date, },
-
+    currency: { type: String },
+    date: { type: Date },
+    due_date: { type: Date },
     sub_title: { type: String },
     po: { type: Schema.Types.Mixed },
-
     shipping_method: { type: String },
     payment_method: [{ type: String }],
-
     discount_before_tax: { type: Number, default: 0 },
-
-    billing_address: { type: addressSchema,  },
-    shipping_address: { type: addressSchema,  },
-
+    billing_address: { type: addressSchema },
+    shipping_address: { type: addressSchema },
     product: [productSchema],
     service: [serviceSchema],
-
     terms_and_conditions: { type: String },
     notes: { type: String },
     internal_notes: { type: String },
-
     Attachment: { type: String },
-
-    status : { type: String, enum: invoiceStatus, default: "Draft" },
+    status: { type: String, enum: creditNoteStatus, default: 'Draft' },
     sub_total: { type: Number, default: 0 },
     deposit: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
@@ -98,12 +70,7 @@ const invoiceManagementSchema = new Schema<TInvoiceManagement>(
     isDeleted: { type: Boolean, default: false },
     archive: { type: Boolean, default: false },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-export const InvoiceManagementModel = model<TInvoiceManagement>(
-  "InvoiceManagement",
-  invoiceManagementSchema
-);
+export const CreditNoteModel = model<TCreditNote>('CreditNote', creditNoteSchema);

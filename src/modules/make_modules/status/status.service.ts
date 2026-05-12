@@ -16,11 +16,12 @@ import queryBuilder from "../../../builder/queryBuilder";
 import { TPayment } from "../addPayment/payment.interface";
 import { PaymentModel } from "../addPayment/payment.model";
 import { CustomerModel } from "../customer/customer.model";
-import {
-  InvoiceManagementType,
-  TInvoiceManagement,
-} from "../invoiceManagement/invoice.management.interface";
-import { InvoiceManagementModel } from "../invoiceManagement/invoice.management.model";
+import { InvoiceModel } from "../invoice/invoice.model";
+import { EstimateModel } from "../estimate/estimate.model";
+import { SalesReceiptModel } from "../salesReceipt/salesReceipt.model";
+import { TInvoice } from "../invoice/invoice.interface";
+import { TEstimate } from "../estimate/estimate.interface";
+import { TSalesReceipt } from "../salesReceipt/salesReceipt.interface";
 import { Types } from "mongoose";
 
 // const getStatusDataDB = async (user_id : string , query: Record<string, unknown>) => {
@@ -90,27 +91,23 @@ const getStatusDataDB = async (
 
       const [draftInvoices, estimateInvoices, salesInvoices, salesReceipts, payments] =
         await Promise.all([
-          InvoiceManagementModel.find({
+          InvoiceModel.find({
             ...baseFilter,
-            type: InvoiceManagementType.Invoice,
             status: "Draft",
-          }) as Promise<TInvoiceManagement[]>,
+          }) as Promise<TInvoice[]>,
 
-          InvoiceManagementModel.find({
+          EstimateModel.find({
             ...baseFilter,
-            type: InvoiceManagementType.Estimate,
-          }) as Promise<TInvoiceManagement[]>,
+          }) as Promise<TEstimate[]>,
 
-          InvoiceManagementModel.find({
+          InvoiceModel.find({
             ...baseFilter,
-            type: InvoiceManagementType.Invoice,
             status: "Paid",
-          }) as Promise<TInvoiceManagement[]>,
+          }) as Promise<TInvoice[]>,
 
-          InvoiceManagementModel.find({
+          SalesReceiptModel.find({
             ...baseFilter,
-            type: InvoiceManagementType.Sales_Receipt,
-          }) as Promise<TInvoiceManagement[]>,
+          }) as Promise<TSalesReceipt[]>,
 
           PaymentModel.find(baseFilter) as Promise<TPayment[]>,
         ]);
@@ -234,12 +231,11 @@ const graphChartDB = async (
 
   // ─── Sales ────────────────────────────────────────────────────────
   if (query?.type === "Sales") {
-    const salesInvoices = (await InvoiceManagementModel.find({
+    const salesInvoices = (await InvoiceModel.find({
       user_id,
-      type: InvoiceManagementType.Invoice,
       status: "Paid",
       createdAt: { $gte: start, $lte: end },
-    })) as TInvoiceManagement[];
+    })) as TInvoice[];
 
     const mapped = salesInvoices.map((inv: any) => ({
       date: new Date(inv.createdAt),
@@ -328,7 +324,7 @@ const topCustomerDB = async (user_id: string) => {
 };
 
 const topProductsDB = async (user_id: string) => {
-  const result = await InvoiceManagementModel.aggregate([
+  const result = await InvoiceModel.aggregate([
     // Step 1: Match invoices for this user, not deleted
     {
       $match: {

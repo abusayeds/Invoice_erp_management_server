@@ -3,7 +3,7 @@ import AppError from "../../../errors/AppError";
 import { CustomerModel } from "../customer/customer.model";
 import { TPayment } from "./payment.interface";
 import { PaymentModel } from "./payment.model";
-import { InvoiceManagementModel } from "../invoiceManagement/invoice.management.model";
+import { InvoiceModel } from "../invoice/invoice.model";
 import queryBuilder from "../../../builder/queryBuilder";
 
 const paymentCreateDB = async (payload: TPayment) => {
@@ -12,7 +12,7 @@ const paymentCreateDB = async (payload: TPayment) => {
     throw new AppError(httpStatus.NOT_FOUND, "Customer not found");
   }
   if (payload.type === "invoice") {
-    const invoice = await InvoiceManagementModel.findById(payload.invoice_id);
+    const invoice = await InvoiceModel.findById(payload.invoice_id);
     if (!invoice) {
       throw new AppError(httpStatus.NOT_FOUND, "Invoice not found");
     }
