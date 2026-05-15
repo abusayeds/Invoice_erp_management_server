@@ -8,6 +8,7 @@ export type TInvoice = {
   user_id: Types.ObjectId;
   customer_id?: Types.ObjectId;
   vendor_id?: Types.ObjectId;
+  warehouse_id?: Types.ObjectId;
   invoice_number?: string;
   currency?: string;
   date?: Date;
