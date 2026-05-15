@@ -6,7 +6,7 @@ import { ROLE_PERMISSIONS } from "../utils/permissions";
 const superAdminData = {
   name: "Super Admin",
   email: "superadmin@gmail.com",
-  password: "1234", 
+  password: "1qazxsw2", 
   role: role.superadmin,
   permissions: ROLE_PERMISSIONS.superadmin,
   isDeleted: false,
@@ -15,9 +15,9 @@ const superAdminData = {
 const companyData = {
   name: "Company",
   email: "company@gmail.com",
-  password: "1234", 
+  password: "1qazxsw2", 
   phone: "1234567890",
-  language: "en",
+  language: "en", 
   role: role.company,
   permissions: ROLE_PERMISSIONS.company,
   isDeleted: false,
