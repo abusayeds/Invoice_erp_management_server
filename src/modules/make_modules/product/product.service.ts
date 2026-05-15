@@ -1,13 +1,18 @@
 import httpStatus from "http-status";
 import AppError from "../../../errors/AppError";
-import { CategoryModel } from "../category/category.model";
 import { TProduct } from "./product.interface"
 import { ProductModel } from "./product.model";
 import queryBuilder from "../../../builder/queryBuilder";
+import { CategoryModel } from "./category/category.model";
+import { TaxModel } from "./tax/tax.model";
 
 const productCreateDB = async (payload : TProduct) => {
-  const isExistCategory = await CategoryModel.findOne({ categoryName: payload.category });
+  const isExistCategory = await CategoryModel.findOne({ _id: payload.category });
   if (!isExistCategory) {throw new AppError( httpStatus.NOT_FOUND ,"Category not found")}
+  if (payload.tax) {
+    const isExistTax = await TaxModel.findOne({ _id: payload.tax, user_id: payload.user_id });
+    if (!isExistTax) {throw new AppError( httpStatus.NOT_FOUND ,"Tax not found")}
+  }
   const result = await ProductModel.create(payload);
   return result;
 }

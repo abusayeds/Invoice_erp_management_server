@@ -2,9 +2,10 @@ import { Types } from "mongoose";
 
 export type TProduct = {
   _id : Types.ObjectId;
-    user_id : Types.ObjectId,
+  user_id : Types.ObjectId,
   productName: string;
-  category?: string;
+  category?: Types.ObjectId;
+  tax?: Types.ObjectId;
   sku?: string;
   unitType?: string;
   quantity: number;

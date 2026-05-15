@@ -28,8 +28,9 @@ const productSchema = new Schema<TProduct>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
     productName: { type: String, required: true, trim: true },
-    category: { type: String, trim: true },
-    sku: { type: String, trim: true, unique: true, sparse: true },
+    category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    tax: { type: Schema.Types.ObjectId, ref: "Tax" },
+    sku: { type: String, trim: true,  sparse: true },
     unitType: { type: String },
     quantity: { type: Number, required: true, default: 1 },
     image: { type: String },
