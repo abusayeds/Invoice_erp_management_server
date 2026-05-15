@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { AuthRequest } from "../../../middlewares/auth";
+import catchAsync from "../../../../utils/catchAsync";
+import sendResponse from "../../../../utils/sendResponse";
+import { AuthRequest } from "../../../../middlewares/auth";
 import { categoryService } from "./category.service";
 
 // CREATE
@@ -19,7 +19,7 @@ const createCategory = catchAsync(async (req: AuthRequest, res) => {
 // GET ALL
 const getAllCategory = catchAsync(async (req :  AuthRequest, res) => {
   const category =  req.query.category
-  const result = await categoryService.getAllCategoryDB(   req?.user?._id as string ,  category as string);
+  const result = await categoryService.getAllCategoryDB(   req?.user?._id as string , category as string);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

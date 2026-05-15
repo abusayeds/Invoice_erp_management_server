@@ -1,7 +1,7 @@
 import express from "express";
-import { authMiddleware } from "../../../middlewares/auth";
-import { role } from "../../../utils/role";
 import { categoryController } from "./category.controller";
+import { authMiddleware } from "../../../../middlewares/auth";
+import { role } from "../../../../utils/role";
 
 const router = express.Router();
 
