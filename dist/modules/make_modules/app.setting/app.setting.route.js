@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.settingRoutes = void 0;
+const express_1 = require("express");
+const auth_1 = require("../../../middlewares/auth");
+const role_1 = require("../../../utils/role");
+const app_setting_controller_1 = require("./app.setting.controller");
+const router = (0, express_1.Router)();
+router.get("/", (0, auth_1.authMiddleware)(role_1.role.company), app_setting_controller_1.appSettingController.getSetting);
+router.patch("/", (0, auth_1.authMiddleware)(role_1.role.company), app_setting_controller_1.appSettingController.updateSetting);
+exports.settingRoutes = router;
