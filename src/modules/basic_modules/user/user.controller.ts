@@ -89,7 +89,12 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     },
   });
      if(
-      user.role === role.company || user.role === role.client || user.role === role.hr || user.role === role.vendor || user.role === role.staff
+      user.role === role.company ||
+      user.role === role.customer ||
+      user.role === "client" ||
+      user.role === role.hr ||
+      user.role === role.vendor ||
+      user.role === role.staff
      ){
     const isExistSetting = await SettingModel.findOne({ user_id: user?._id });
     if (!isExistSetting) {
