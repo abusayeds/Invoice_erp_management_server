@@ -1,5 +1,6 @@
 import { Document, Types } from "mongoose";
 import { TRole } from "../../../utils/role";
+import { TBusinessProfile } from "./user.business.interface";
 
 export type IPendingUser = {
   email: string;
@@ -26,6 +27,7 @@ export type IUser = {
   role: TRole;
   subscriptionId?: Types.ObjectId | null;
   companyId?: Types.ObjectId | null;
+  businessProfile?: TBusinessProfile;
   permissions?: TPermissions;
   isDeleted: boolean;
   isVerify: boolean; 
