@@ -31,8 +31,8 @@ const serviceSchema = new Schema(
 const quotationSchema = new Schema<QuotationDocument>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    customer_id: { type: Schema.Types.ObjectId, ref: "Customer" },
-    vendor_id: { type: Schema.Types.ObjectId, ref: "Vendor" },
+    customer_id: { type: Schema.Types.ObjectId, ref: "User" },
+    vendor_id: { type: Schema.Types.ObjectId, ref: "User" },
     warehouse_id: { type: Schema.Types.ObjectId, ref: "Warehouse" },
     quotation_number: { type: String },
     quotation_date: { type: Date },

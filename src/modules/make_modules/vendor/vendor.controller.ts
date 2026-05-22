@@ -19,7 +19,7 @@ const vendorCreate = catchAsync(async (req: AuthRequest, res) => {
   await activitiesService.activitiesCreateDB({
       user_id: req?.user?._id as Types.ObjectId,
       type: ActivitiesType.Created,
-      title: ` ${result?.companyName} Vendor Created`,
+      title: ` ${result?.businessProfile?.companyName || result?.name} Vendor Created`,
     });
 });
 const allVendor = catchAsync(async (req: AuthRequest, res) => {
@@ -53,7 +53,7 @@ const deleteVendor = catchAsync(async (req: AuthRequest, res) => {
   await activitiesService.activitiesCreateDB({  
     user_id: req?.user?._id as Types.ObjectId,
     type: ActivitiesType.Archived,
-    title: ` ${result?.companyName} Vendor Archived`,
+    title: ` ${result?.businessProfile?.companyName || result?.name} Vendor Archived`,
   });
 });
 const updateVendor = catchAsync(async (req: AuthRequest, res) => {
@@ -69,7 +69,7 @@ const updateVendor = catchAsync(async (req: AuthRequest, res) => {
   await activitiesService.activitiesCreateDB({  
     user_id: req?.user?._id as Types.ObjectId,
     type: ActivitiesType.Updated,
-    title: ` ${result?.companyName} Vendor Updated`,
+    title: ` ${result?.businessProfile?.companyName || result?.name} Vendor Updated`,
   });
 });
 export const vendorController = {

@@ -1,16 +1,13 @@
 import httpStatus from "http-status";
 import AppError from "../../../errors/AppError";
-import { CustomerModel } from "../customer/customer.model";
+import { assertClientUser } from "../../../utils/partyUser";
 import { TPayment } from "./payment.interface";
 import { PaymentModel } from "./payment.model";
 import { InvoiceModel } from "../invoice/invoice.model";
 import queryBuilder from "../../../builder/queryBuilder";
 
 const paymentCreateDB = async (payload: TPayment) => {
-  const customer = await CustomerModel.findById(payload.customer_id);
-  if (!customer) {
-    throw new AppError(httpStatus.NOT_FOUND, "Customer not found");
-  }
+  await assertClientUser(payload.customer_id);
   if (payload.type === "invoice") {
     const invoice = await InvoiceModel.findById(payload.invoice_id);
     if (!invoice) {

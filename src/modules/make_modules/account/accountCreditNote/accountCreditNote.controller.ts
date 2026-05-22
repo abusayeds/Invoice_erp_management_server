@@ -1,0 +1,68 @@
+import httpStatus from "http-status";
+import { AuthRequest } from "../../../../middlewares/auth";
+import catchAsync from "../../../../utils/catchAsync";
+import sendResponse from "../../../../utils/sendResponse";
+import { Types } from "mongoose";
+import { accountCreditNoteService } from "./accountCreditNote.service";
+import { ActivitiesType } from "../../activities/activities.interface";
+import { activitiesService } from "../../activities/activities.service";
+import { TCreditNote } from "../../creditNote/creditNote.interface";
+
+const create = catchAsync(async (req: AuthRequest, res) => {
+  req.body.user_id = req.user!._id;
+  const data: TCreditNote = await accountCreditNoteService.createDB(req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "Credit note created successfully",
+    data,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req.user!._id as Types.ObjectId,
+    type: ActivitiesType.Created,
+    title: "Credit note created",
+  });
+});
+
+const getAll = catchAsync(async (req: AuthRequest, res) => {
+  const result = await accountCreditNoteService.getAllDB(req.user!._id as string, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Credit notes retrieved successfully",
+    data: result.rows,
+    pagination: result.pagination,
+  });
+});
+
+const getSingle = catchAsync(async (req: AuthRequest, res) => {
+  const data = await accountCreditNoteService.getSingleDB(req.params.id, req.user!._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Credit note retrieved successfully",
+    data,
+  });
+});
+
+const approve = catchAsync(async (req: AuthRequest, res) => {
+  const data = await accountCreditNoteService.approveDB(req.params.id, req.user!._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Credit note approved successfully",
+    data,
+  });
+});
+
+const remove = catchAsync(async (req: AuthRequest, res) => {
+  const data = await accountCreditNoteService.deleteDB(req.params.id, req.user!._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Credit note deleted successfully",
+    data,
+  });
+});
+
+export const accountCreditNoteController = { create, getAll, getSingle, approve, remove };

@@ -19,7 +19,7 @@ const customerCreate = catchAsync(async (req: AuthRequest, res) => {
   await activitiesService.activitiesCreateDB({
     user_id: req?.user?._id as Types.ObjectId,
     type: ActivitiesType.Created,
-    title: ` ${result?.companyName} Customer Created`,
+    title: ` ${result?.businessProfile?.companyName || result?.name} Customer Created`,
   });
 });
 const allCustomer = catchAsync(async (req: AuthRequest, res) => {
@@ -62,7 +62,7 @@ const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
    await activitiesService.activitiesCreateDB({  
     user_id: req?.user?._id as Types.ObjectId,
     type: ActivitiesType.Archived,
-    title: ` ${result?.companyName} Customer Archived`,
+    title: ` ${result?.businessProfile?.companyName || result?.name} Customer Archived`,
   });
 });
 const updateCustomer = catchAsync(async (req: AuthRequest, res) => {
@@ -79,7 +79,7 @@ const updateCustomer = catchAsync(async (req: AuthRequest, res) => {
     await activitiesService.activitiesCreateDB({  
     user_id: req?.user?._id as Types.ObjectId,
     type: ActivitiesType.Updated,
-    title: ` ${result?.companyName} Customer Updated`,
+    title: ` ${result?.businessProfile?.companyName || result?.name} Customer Updated`,
   });
 });
 export const customerController = {

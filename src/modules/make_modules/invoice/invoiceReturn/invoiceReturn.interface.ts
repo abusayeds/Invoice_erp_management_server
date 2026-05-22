@@ -26,6 +26,7 @@ export type TInvoiceReturn = {
   return_reason: ReturnReason;
   notes?: string;
   status?: string;
+  credit_note_id?: Types.ObjectId;
   isDeleted: boolean;
   archive: boolean;
   createdAt?: Date;

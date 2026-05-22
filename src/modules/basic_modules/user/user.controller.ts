@@ -575,12 +575,13 @@ const myProfile = catchAsync(async (req: AuthRequest, res) => {
 });
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const rersult = await userService.allUserDB(req.query);
+  const result = await userService.allUserDB(req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "User list retrieved successfully",
-    data: rersult,
+    pagination: result.pagination,
+    data: result.user,
   });
 });
 
@@ -612,7 +613,8 @@ const allUserForCompany = catchAsync(async (req: AuthRequest, res: Response) => 
     statusCode: httpStatus.OK,
     success: true,
     message: "User list retrieved successfully",
-    data: result,
+    pagination: result.pagination,
+    data: result.user,
   });
 });
 

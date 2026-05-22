@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import AppError from '../../../errors/AppError';
-import { CustomerModel } from '../customer/customer.model';
+import { CLIENT_POPULATE_SELECT } from '../../../utils/partyUser';
+import { validateDocumentParties } from '../../../utils/documentPartyValidation';
 import { TDebitNote } from './debitNote.interface';
 import { ProductModel } from '../product/product.model';
 import { ServiceModel } from '../service/service.model';
@@ -12,13 +13,9 @@ import { DebitNoteModel } from './debitNote.model';
 import queryBuilder from '../../../builder/queryBuilder';
 
 const createDB = async (payload: TDebitNote) => {
-  if (payload.customer_id) {
-    const isCustomerExist = await CustomerModel.findById(payload.customer_id);
-    if (!isCustomerExist) {
-      throw new AppError(httpStatus.NOT_FOUND, 'Customer not found');
-    }
-  }
-  if (Array.isArray(payload.product)) {
+  await validateDocumentParties(payload);
+  const fromReturn = payload.source === "return";
+  if (!fromReturn && Array.isArray(payload.product)) {
     for (const item of payload.product) {
       const product = (await ProductModel.findById(item.product_id)) as TProduct;
       if (!product) {
@@ -30,7 +27,7 @@ const createDB = async (payload: TDebitNote) => {
       validateItemAmount(item, 'product');
     }
   }
-  if (Array.isArray(payload.service)) {
+  if (!fromReturn && Array.isArray(payload.service)) {
     for (const item of payload.service) {
       const service = (await ServiceModel.findById(item.service_id)) as TService;
       if (!service) {
@@ -44,8 +41,41 @@ const createDB = async (payload: TDebitNote) => {
   }
   const result = await calculateInvoice(payload);
   const data = { ...payload, ...result };
+  data.source = data.source ?? "manual";
+  data.applied_amount = data.applied_amount ?? 0;
+  data.balance_amount = data.balance_amount ?? data.total ?? 0;
   const createdRecord = await DebitNoteModel.create(data);
   return createdRecord;
+};
+
+const approveDB = async (id: string, userId: string) => {
+  const record = await DebitNoteModel.findOne({
+    _id: id,
+    user_id: userId,
+    isDeleted: false,
+  });
+  if (!record) throw new AppError(httpStatus.NOT_FOUND, "Debit note not found");
+  if (record.status !== "Draft") {
+    throw new AppError(httpStatus.BAD_REQUEST, "Only draft debit notes can be approved");
+  }
+  record.status = "Approved";
+  const total = record.total ?? 0;
+  if (record.balance_amount === undefined || record.balance_amount === null) {
+    record.balance_amount = total - (record.applied_amount ?? 0);
+  }
+  await record.save();
+  return record;
+};
+
+const deleteDraftDB = async (id: string, userId: string) => {
+  const record = await DebitNoteModel.findOne({ _id: id, user_id: userId, isDeleted: false });
+  if (!record) throw new AppError(httpStatus.NOT_FOUND, "Debit note not found");
+  if (record.status !== "Draft") {
+    throw new AppError(httpStatus.BAD_REQUEST, "Only draft debit notes can be deleted");
+  }
+  record.isDeleted = true;
+  await record.save();
+  return record;
 };
 
 const getSingleDB = async (id: string, userId: string) => {
@@ -69,7 +99,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       isDeleted: false,
     }).populate({
       path: 'customer_id',
-      select: 'firstName lastName',
+      select: CLIENT_POPULATE_SELECT,
     }),
     query
   )
@@ -91,4 +121,6 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   return { allRecords, pagination };
 };
 
-export const debitNoteService = { createDB, getSingleDB, getAllDB };
+export const debitNoteService = { createDB, getSingleDB, getAllDB, approveDB, deleteDraftDB };
+
+

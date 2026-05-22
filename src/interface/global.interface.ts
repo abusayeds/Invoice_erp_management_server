@@ -3,12 +3,12 @@ export type TResponse<T> = {
   success: boolean;
   message?: string;
   pagination?: {
-    totalPage?: number;
-    currentPage?: number;
+    totalPage: number;
+    currentPage: number;
     prevPage: number;
     nextPage: number;
-    limit?: number;
-    totalItem?: number;
+    /** Total matching rows (from queryBuilder.paginate → calculatePagination). */
+    totalData: number;
   };
   data: T;
 };

@@ -40,8 +40,8 @@ const serviceSchema = new Schema(
 const invoiceSchema = new Schema<TInvoice>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customer_id: { type: Schema.Types.ObjectId, ref: 'Customer' },
-    vendor_id: { type: Schema.Types.ObjectId, ref: 'Vendor' },
+    customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
     warehouse_id: { type: Schema.Types.ObjectId, ref: 'Warehouse' },
     invoice_number: { type: String },
     currency: { type: String },
@@ -68,6 +68,8 @@ const invoiceSchema = new Schema<TInvoice>(
     inline_discount: { type: Number, default: 0 },
     tax: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
+    paid_amount: { type: Number, default: 0 },
+    balance_amount: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },
     archive: { type: Boolean, default: false },
   },

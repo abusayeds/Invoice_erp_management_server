@@ -87,10 +87,29 @@ const deleteReturn = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+const approveReturn = catchAsync(async (req: AuthRequest, res) => {
+  const result = await returnPurchaseService.approveReturnPurchaseDB(
+    req.params.id,
+    req?.user?._id as string
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Purchase return approved; draft debit note created",
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: "Purchase Return Approved",
+  });
+});
+
 export const returnPurchaseController = {
   createReturn,
   getAllReturn,
   getSingleReturn,
   updateReturn,
   deleteReturn,
+  approveReturn,
 };

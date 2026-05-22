@@ -3,6 +3,7 @@ import { authMiddleware } from "../../../middlewares/auth";
 import { role } from "../../../utils/role";
 import { addPaymentController } from "./payment.controller";
 
+/** @deprecated Prefer `/api/v1/account/customer-payments` and `/api/v1/account/vendor-payments` for allocations + bank account. */
 const router = express.Router();
 
 router.post("/create", authMiddleware(role.company), addPaymentController.paymentCreate);

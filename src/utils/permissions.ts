@@ -1,3 +1,5 @@
+import { HRM_PERMISSIONS, HRM_PERMISSION_NAMES } from "../modules/make_modules/hrm/shared/hrm.permissions";
+
 export const ALL_PERMISSIONS = [
   // Dashboard permissions
   { name: 'manage-dashboard', module: 'dashboard', label: 'Manage Dashboard' },
@@ -203,6 +205,7 @@ export const ALL_PERMISSIONS = [
   { name: 'accept-sales-proposals', module: 'sales-proposals', label: 'Accept Sales Proposals' },
   { name: 'convert-sales-proposals', module: 'sales-proposals', label: 'Convert Sales Proposals' },
   { name: 'reject-sales-proposals', module: 'sales-proposals', label: 'Reject Sales Proposals' },
+  ...HRM_PERMISSIONS,
 ];
 
 export const ROLE_PERMISSIONS = {
@@ -241,5 +244,27 @@ export const ROLE_PERMISSIONS = {
     'manage-sales-invoices', 'manage-any-sales-invoices', 'manage-own-sales-invoices', 'view-sales-invoices', 'create-sales-invoices', 'edit-sales-invoices', 'delete-sales-invoices', 'post-sales-invoices', 'print-sales-invoices',
     'manage-sales-return-invoices', 'manage-any-sales-return-invoices', 'manage-own-sales-return-invoices', 'view-sales-return-invoices', 'create-sales-return-invoices', 'delete-sales-return-invoices', 'approve-sales-returns-invoices', 'complete-sales-returns-invoices',
     'manage-sales-proposals', 'manage-any-sales-proposals', 'manage-own-sales-proposals', 'view-sales-proposals', 'create-sales-proposals', 'edit-sales-proposals', 'delete-sales-proposals', 'print-sales-proposals', 'sent-sales-proposals', 'accept-sales-proposals', 'convert-sales-proposals', 'reject-sales-proposals',
-  ]
+    ...HRM_PERMISSION_NAMES,
+  ],
+  hr: [...HRM_PERMISSION_NAMES],
+  staff: [
+    'manage-hrm-dashboard',
+    'manage-own-attendances',
+    'clock-in',
+    'clock-out',
+    'manage-own-leave-applications',
+    'create-leave-applications',
+    'view-leave-applications',
+    'manage-own-payslip',
+    'view-payslip',
+    'download-payslip',
+    'view-holidays',
+    'view-events',
+    'view-announcements',
+    'manage-warning-response',
+    'view-warnings',
+    'manage-own-acknowledgments',
+    'view-acknowledgments',
+    'manage-acknowledgment-status',
+  ],
 };

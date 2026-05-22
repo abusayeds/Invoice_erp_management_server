@@ -66,6 +66,8 @@ export type TInvoice = {
   inline_discount: number;
   tax: number;
   total: number;
+  paid_amount?: number;
+  balance_amount?: number;
   isDeleted: boolean;
   archive: boolean;
   createdAt?: Date;

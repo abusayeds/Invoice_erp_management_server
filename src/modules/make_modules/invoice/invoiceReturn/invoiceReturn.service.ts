@@ -5,6 +5,7 @@ import { TInvoiceReturn } from "./invoiceReturn.interface";
 import { InvoiceReturnModel } from "./invoiceReturn.model";
 import { InvoiceModel } from "../invoice.model";
 import { WarehouseModel } from "../../warehouse/warehouse.model";
+import { createCreditNoteFromInvoiceReturn } from "../../account/noteFromReturn.service";
 
 const createInvoiceReturnDB = async (payload: TInvoiceReturn) => {
   const invoice = await InvoiceModel.findById(payload.invoice_id);
@@ -86,10 +87,27 @@ const deleteInvoiceReturnDB = async (id: string, user_id: string) => {
   return invoiceReturn;
 };
 
+/** Approve return → draft credit note (Laravel: ApproveSalesReturn → CreateCreditNoteFromReturn). */
+const approveInvoiceReturnDB = async (id: string, user_id: string) => {
+  const salesReturn = await InvoiceReturnModel.findOne({ _id: id, user_id, isDeleted: false });
+  if (!salesReturn) {
+    throw new AppError(httpStatus.NOT_FOUND, "Invoice Return not found");
+  }
+  if (salesReturn.status === "Approved") {
+    throw new AppError(httpStatus.BAD_REQUEST, "Sales return is already approved");
+  }
+  const creditNote = await createCreditNoteFromInvoiceReturn(user_id, salesReturn);
+  salesReturn.status = "Approved";
+  salesReturn.credit_note_id = creditNote._id;
+  await salesReturn.save();
+  return { salesReturn, creditNote };
+};
+
 export const invoiceReturnService = {
   createInvoiceReturnDB,
   getAllInvoiceReturnDB,
   getSingleInvoiceReturnDB,
   updateInvoiceReturnDB,
   deleteInvoiceReturnDB,
+  approveInvoiceReturnDB,
 };

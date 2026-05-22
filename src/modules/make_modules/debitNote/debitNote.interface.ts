@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 
-export const debitNoteStatus = ['Draft', 'Partial', 'Paid', 'Overdue', 'Recurring', 'Void', 'CreditNotesApplied', 'Open'] as const;
+export const debitNoteStatus = ['Draft', 'Partial', 'Paid', 'Overdue', 'Recurring', 'Void', 'CreditNotesApplied', 'Open', 'Approved', 'Applied'] as const;
 type Status = (typeof debitNoteStatus)[number];
 
 export type TDebitNote = {
@@ -8,6 +8,10 @@ export type TDebitNote = {
   user_id: Types.ObjectId;
   customer_id?: Types.ObjectId;
   vendor_id?: Types.ObjectId;
+  source?: "manual" | "return";
+  return_id?: Types.ObjectId;
+  source_invoice_id?: Types.ObjectId;
+  return_reason?: string;
   invoice_number?: string;
   currency?: string;
   date?: Date;
@@ -65,6 +69,8 @@ export type TDebitNote = {
   inline_discount: number;
   tax: number;
   total: number;
+  applied_amount?: number;
+  balance_amount?: number;
   isDeleted: boolean;
   archive: boolean;
   createdAt?: Date;

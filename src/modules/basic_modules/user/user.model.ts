@@ -74,6 +74,7 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: [...Object.values(role), "client"],
+      required: true,
     },
     companyId: {
       type: Schema.Types.ObjectId,
@@ -96,7 +97,7 @@ const UserSchema = new Schema<IUser>(
     },
     login: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   { timestamps: true }

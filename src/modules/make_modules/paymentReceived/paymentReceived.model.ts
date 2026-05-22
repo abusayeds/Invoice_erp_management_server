@@ -40,8 +40,8 @@ const serviceSchema = new Schema(
 const paymentReceivedSchema = new Schema<TPaymentReceived>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customer_id: { type: Schema.Types.ObjectId, ref: 'Customer' },
-    vendor_id: { type: Schema.Types.ObjectId, ref: 'Vendor' },
+    customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
     invoice_number: { type: String },
     currency: { type: String },
     date: { type: Date },

@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
 import AppError from "../../../errors/AppError";
-import { CustomerModel } from "../customer/customer.model";
+import { assertClientUser, CLIENT_POPULATE_SELECT } from "../../../utils/partyUser";
 import { TQuotation } from "./quotation.interface";
 import { ProductModel } from "../product/product.model";
 import { ServiceModel } from "../service/service.model";
@@ -13,10 +13,7 @@ import queryBuilder from "../../../builder/queryBuilder";
 
 const validateCustomerAndLineItems = async (payload: TQuotation) => {
   if (payload.customer_id) {
-    const isCustomerExist = await CustomerModel.findById(payload.customer_id);
-    if (!isCustomerExist) {
-      throw new AppError(httpStatus.NOT_FOUND, "Customer not found");
-    }
+    await assertClientUser(payload.customer_id);
   }
   if (Array.isArray(payload.product)) {
     for (const item of payload.product) {
@@ -79,7 +76,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       isDeleted: false,
     }).populate({
       path: "customer_id",
-      select: "firstName lastName",
+      select: CLIENT_POPULATE_SELECT,
     }),
     query
   )
@@ -149,3 +146,4 @@ const deleteDB = async (id: string, userId: string) => {
 };
 
 export const quotationService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
+

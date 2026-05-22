@@ -90,6 +90,7 @@ const verifyOtpDB = async (email: string) => {
 const loginDB = async (email: string, password: string) => {
   const user = await UserModel.findOne({ email: email  , authProvider : "local" }).select('+password');
   if (!user) {throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
+  if (!user.login) {throw new AppError(httpStatus.UNAUTHORIZED,"You are not allowed to login.")}
   if (user.isDeleted) { throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
 
   const isPasswordValid = await bcrypt.compare(

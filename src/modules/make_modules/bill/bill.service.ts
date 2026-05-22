@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import AppError from '../../../errors/AppError';
-import { CustomerModel } from '../customer/customer.model';
+import { CLIENT_POPULATE_SELECT } from '../../../utils/partyUser';
+import { validateDocumentParties } from '../../../utils/documentPartyValidation';
 import { TBill } from './bill.interface';
 import { ProductModel } from '../product/product.model';
 import { ServiceModel } from '../service/service.model';
@@ -12,12 +13,7 @@ import { BillModel } from './bill.model';
 import queryBuilder from '../../../builder/queryBuilder';
 
 const createDB = async (payload: TBill) => {
-  if (payload.customer_id) {
-    const isCustomerExist = await CustomerModel.findById(payload.customer_id);
-    if (!isCustomerExist) {
-      throw new AppError(httpStatus.NOT_FOUND, 'Customer not found');
-    }
-  }
+  await validateDocumentParties(payload);
   if (Array.isArray(payload.product)) {
     for (const item of payload.product) {
       const product = (await ProductModel.findById(item.product_id)) as TProduct;
@@ -44,6 +40,8 @@ const createDB = async (payload: TBill) => {
   }
   const result = await calculateInvoice(payload);
   const data = { ...payload, ...result };
+  data.paid_amount = data.paid_amount ?? 0;
+  data.balance_amount = data.balance_amount ?? data.total ?? 0;
   const createdRecord = await BillModel.create(data);
   return createdRecord;
 };
@@ -69,7 +67,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       isDeleted: false,
     }).populate({
       path: 'customer_id',
-      select: 'firstName lastName',
+      select: CLIENT_POPULATE_SELECT,
     }),
     query
   )
@@ -92,3 +90,5 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
 };
 
 export const billService = { createDB, getSingleDB, getAllDB };
+
+

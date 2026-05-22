@@ -5,6 +5,7 @@ import { TReturnPurchase } from "./returnPurchase.interface";
 import { ReturnPurchaseModel } from "./returnPurchase.model";
 import { PurchaseOrderModel } from "../purchaseOrder.model";
 import { WarehouseModel } from "../../warehouse/warehouse.model";
+import { createDebitNoteFromPurchaseReturn } from "../../account/noteFromReturn.service";
 
 const createReturnPurchaseDB = async (payload: TReturnPurchase) => {
   const purchaseOrder = await PurchaseOrderModel.findById(payload.purchase_order_id);
@@ -90,10 +91,27 @@ const deleteReturnPurchaseDB = async (id: string, user_id: string) => {
   return doc;
 };
 
+/** Approve return → draft debit note (Laravel: ApprovePurchaseReturn → CreateDebitNoteFromReturn). */
+const approveReturnPurchaseDB = async (id: string, user_id: string) => {
+  const purchaseReturn = await ReturnPurchaseModel.findOne({ _id: id, user_id, isDeleted: false });
+  if (!purchaseReturn) {
+    throw new AppError(httpStatus.NOT_FOUND, "Return purchase not found");
+  }
+  if (purchaseReturn.status === "Approved") {
+    throw new AppError(httpStatus.BAD_REQUEST, "Purchase return is already approved");
+  }
+  const debitNote = await createDebitNoteFromPurchaseReturn(user_id, purchaseReturn);
+  purchaseReturn.status = "Approved";
+  purchaseReturn.debit_note_id = debitNote._id;
+  await purchaseReturn.save();
+  return { purchaseReturn, debitNote };
+};
+
 export const returnPurchaseService = {
   createReturnPurchaseDB,
   getAllReturnPurchaseDB,
   getSingleReturnPurchaseDB,
   updateReturnPurchaseDB,
   deleteReturnPurchaseDB,
+  approveReturnPurchaseDB,
 };

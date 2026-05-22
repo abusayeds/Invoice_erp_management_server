@@ -15,7 +15,8 @@ import {
 import queryBuilder from "../../../builder/queryBuilder";
 import { TPayment } from "../addPayment/payment.interface";
 import { PaymentModel } from "../addPayment/payment.model";
-import { CustomerModel } from "../customer/customer.model";
+import { UserModel } from "../../basic_modules/user/user.model";
+import { role } from "../../../utils/role";
 import { InvoiceModel } from "../invoice/invoice.model";
 import { EstimateModel } from "../estimate/estimate.model";
 import { SalesReceiptModel } from "../salesReceipt/salesReceipt.model";
@@ -81,7 +82,7 @@ const getStatusDataDB = async (
   }
 
   const allCustomerQuery = new queryBuilder(
-    CustomerModel.find({ user_id }),
+    UserModel.find({ companyId: user_id, role: { $in: ["customer", "client"] }, isDeleted: false }),
     query
   ).filter();
   const allCustomer = await allCustomerQuery.modelQuery.exec();
@@ -293,7 +294,7 @@ const topCustomerDB = async (user_id: string) => {
     // Step 5: Populate customer details
     {
       $lookup: {
-        from: "customers",
+        from: "users",
         localField: "_id",
         foreignField: "_id",
         as: "customerInfo",
@@ -312,10 +313,11 @@ const topCustomerDB = async (user_id: string) => {
     customer_id: "$_id",
     totalPayment: 1,
     paymentCount: 1,
-    "customerInfo.firstName": 1,
-    "customerInfo.lastName": 1,
     "customerInfo.email": 1,
-    "customerInfo.companyName": 1,
+    "customerInfo.name": 1,
+    "customerInfo.businessProfile.firstName": 1,
+    "customerInfo.businessProfile.lastName": 1,
+    "customerInfo.businessProfile.companyName": 1,
   },
 },
   ]);

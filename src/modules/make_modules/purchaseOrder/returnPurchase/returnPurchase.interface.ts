@@ -19,6 +19,7 @@ export type TReturnPurchase = {
   return_reason: ReturnReason;
   notes?: string;
   status?: string;
+  debit_note_id?: Types.ObjectId;
   isDeleted: boolean;
   archive: boolean;
   createdAt?: Date;

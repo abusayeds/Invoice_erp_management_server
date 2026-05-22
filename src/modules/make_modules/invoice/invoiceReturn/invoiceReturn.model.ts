@@ -20,6 +20,7 @@ const invoiceReturnSchema = new Schema<TInvoiceReturn>(
     return_reason: { type: String, enum: returnReasons, required: true },
     notes: { type: String },
     status: { type: String, default: "Returned" },
+    credit_note_id: { type: Schema.Types.ObjectId, ref: "CreditNote" },
     isDeleted: { type: Boolean, default: false },
     archive: { type: Boolean, default: false },
   },

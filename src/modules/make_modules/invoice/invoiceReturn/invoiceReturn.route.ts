@@ -23,6 +23,12 @@ router.get(
   invoiceReturnController.getSingleReturn
 );
 
+router.post(
+  "/approve/:id",
+  authMiddleware(role.company),
+  invoiceReturnController.approveReturn
+);
+
 router.patch(
   "/edit/:id",
   authMiddleware(role.company),

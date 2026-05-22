@@ -23,7 +23,7 @@ router.post("/create-user-by-company", authMiddleware(role.company), userControl
 router.post("/create-company-by-superadmin", authMiddleware(role.superadmin), userController.createCompanyBySuperadmin);
 router.get("/all-user-for-company", authMiddleware(role.company), userController.allUserForCompany);
 router.get("/all-role", authMiddleware(role.company), userController.allRole);
-router.get("/my-profile", authMiddleware(role.superadmin , role.company), userController.myProfile);
+router.get("/my-profile", authMiddleware(role.superadmin , role.company , role.hr , role.staff), userController.myProfile);
 router.get("/all-user", authMiddleware(role.superadmin), userController.getAllUsers);
 router.post("/block-user", authMiddleware(role.superadmin), BlockUser);
 router.post("/delete", authMiddleware(role.superadmin), deleteUser);

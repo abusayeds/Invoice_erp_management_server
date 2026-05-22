@@ -18,6 +18,7 @@ const returnPurchaseSchema = new Schema<TReturnPurchase>(
     return_reason: { type: String, enum: returnReasons, required: true },
     notes: { type: String },
     status: { type: String, default: "Returned" },
+    debit_note_id: { type: Schema.Types.ObjectId, ref: "DebitNote" },
     isDeleted: { type: Boolean, default: false },
     archive: { type: Boolean, default: false },
   },

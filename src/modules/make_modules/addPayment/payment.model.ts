@@ -12,7 +12,7 @@ const paymentSchema = new Schema<TPayment>(
     customer_id: {
       type: Schema.Types.ObjectId,
       required: [true, "Customer ID is required"],
-      ref: "Customer",
+      ref: "User",
     },
 
     payment_date: {

@@ -23,6 +23,12 @@ router.get(
   returnPurchaseController.getSingleReturn
 );
 
+router.post(
+  "/approve/:id",
+  authMiddleware(role.company),
+  returnPurchaseController.approveReturn
+);
+
 router.patch(
   "/edit/:id",
   authMiddleware(role.company),

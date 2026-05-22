@@ -40,8 +40,12 @@ const serviceSchema = new Schema(
 const debitNoteSchema = new Schema<TDebitNote>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customer_id: { type: Schema.Types.ObjectId, ref: 'Customer' },
-    vendor_id: { type: Schema.Types.ObjectId, ref: 'Vendor' },
+    customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    source: { type: String, enum: ['manual', 'return'], default: 'manual' },
+    return_id: { type: Schema.Types.ObjectId, ref: 'ReturnPurchase' },
+    source_invoice_id: { type: Schema.Types.ObjectId },
+    return_reason: { type: String },
     invoice_number: { type: String },
     currency: { type: String },
     date: { type: Date },
@@ -67,6 +71,8 @@ const debitNoteSchema = new Schema<TDebitNote>(
     inline_discount: { type: Number, default: 0 },
     tax: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
+    applied_amount: { type: Number, default: 0 },
+    balance_amount: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },
     archive: { type: Boolean, default: false },
   },

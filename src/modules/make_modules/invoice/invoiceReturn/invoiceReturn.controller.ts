@@ -87,10 +87,29 @@ const deleteReturn = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+const approveReturn = catchAsync(async (req: AuthRequest, res) => {
+  const result = await invoiceReturnService.approveInvoiceReturnDB(
+    req.params.id,
+    req?.user?._id as string
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Invoice return approved; draft credit note created",
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: "Invoice Return Approved",
+  });
+});
+
 export const invoiceReturnController = {
   createReturn,
   getAllReturn,
   getSingleReturn,
   updateReturn,
   deleteReturn,
+  approveReturn,
 };
