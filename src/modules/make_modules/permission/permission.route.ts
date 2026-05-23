@@ -11,10 +11,18 @@ router.patch(
   permissionController.updatePermission
 );
 
+router.patch(
+  "/update-user-permission",
+  authMiddleware(role.company),
+  permissionController.updateUserPermission
+);
+
 router.get(
   "/my-permissions",
   authMiddleware(role.company),
   permissionController.getPermissionsByCompany
 );
+
+ router.get("/all-permissions", authMiddleware(role.superadmin  , role.company), permissionController.getAllPermissions);
 
 export const permissionRoutes = router;
