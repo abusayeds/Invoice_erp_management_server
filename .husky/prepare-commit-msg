@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-node git-hooks/strip-cursor-git-attribution.mjs "$1"
+node git-hooks/strip-coauthor-trailers.mjs "$1"
