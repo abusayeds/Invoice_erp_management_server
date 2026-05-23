@@ -4,6 +4,7 @@ import AppError from "../../../../errors/AppError";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { role, TRole } from "../../../../utils/role";
 import { IUser } from "../../../basic_modules/user/user.interface";
+const normalizePermission = (key: string) => key.replace(/-/g, "_");
 
 export const companyObjectId = (id: string | Types.ObjectId) =>
   id instanceof Types.ObjectId ? id : new Types.ObjectId(String(id));
@@ -38,9 +39,14 @@ export const isCompanyOrHr = (user: IUser) =>
 export const isEmployeeRole = (user: IUser) =>
   user.role === role.staff || user.role === role.hr;
 
-export const hasPermission = (user: IUser, permission: string) =>
-  user.role === role.superadmin ||
-  (Array.isArray(user.permissions) && user.permissions.includes(permission));
+export const hasPermission = (user: IUser, permission: string) => {
+  const key = normalizePermission(permission);
+  return (
+    user.role === role.superadmin ||
+    (Array.isArray(user.permissions) &&
+      user.permissions.some((p) => normalizePermission(String(p)) === key))
+  );
+};
 
 export const assertPermission = (req: AuthRequest, permission: string) => {
   if (!req.user || !hasPermission(req.user, permission)) {
