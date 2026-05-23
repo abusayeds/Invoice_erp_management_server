@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+node git-hooks/strip-cursor-git-attribution.mjs "$1"
