@@ -267,7 +267,9 @@ const createUserByCompanyDB = async (companyId: string, payload: IUser) => {
     role: payload.role,
   });
   if (rolePermissions) {
-    payload.permissions = rolePermissions.permissions;
+    payload.permissions = rolePermissions.permissions ;
+  } else {
+    payload.permissions = [];
   }
   payload.companyId = new Types.ObjectId(companyId);
   payload.isVerify = true; 
