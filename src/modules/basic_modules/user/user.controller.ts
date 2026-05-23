@@ -29,7 +29,7 @@ import {
   setting_seed_data,
 } from "../../../utils/seedData";
 import { EditTitleModel } from "../../make_modules/editTitles/editTitles.model";
-import { ROLE_PERMISSIONS } from "../../../utils/permissions";
+import { permissions } from "../../../utils/rolePermission";
 import { CategoryModel } from "../../make_modules/product/category/category.model";
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
@@ -596,7 +596,7 @@ const createUserByCompany = catchAsync(async (req: AuthRequest, res: Response) =
   });
 });
 const createCompanyBySuperadmin = catchAsync(async (req: AuthRequest, res: Response) => {
-  req.body.permissions = ROLE_PERMISSIONS.company
+  req.body.permissions = permissions;
   const result = await userService.createCompanyBySuperadminDB(req.body);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
