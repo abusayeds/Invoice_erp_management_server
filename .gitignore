@@ -4,3 +4,7 @@ dist/
 /logs
 .env
 .tmp_*
+.cursor/
+docs/
+scripts/
+postman/
