@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
 import AppError from "../../../../errors/AppError";
 import { HrmAllowanceModel, HrmDeductionModel, HrmEmployeeModel, HrmLoanModel, HrmOvertimeModel } from "../models";
-import { assertPermission, companyScope, creatorObjectId, parseDate, resolveCompanyId } from "../shared/hrm.utils";
+import { companyScope, creatorObjectId, parseDate, resolveCompanyId } from "../shared/hrm.utils";
 import { AuthRequest } from "../../../../middlewares/auth";
 
 const getEmployeeUserId = async (companyId: string, profileId: string) => {
@@ -12,7 +12,6 @@ const getEmployeeUserId = async (companyId: string, profileId: string) => {
 
 export const salaryComponentsService = {
   async createAllowance(req: AuthRequest, profileId: string, body: Record<string, unknown>) {
-    assertPermission(req, "create-allowances");
     const companyId = resolveCompanyId(req);
     const doc = await HrmAllowanceModel.create({
       employee_id: await getEmployeeUserId(companyId, profileId),
@@ -26,7 +25,6 @@ export const salaryComponentsService = {
     return doc;
   },
   async updateAllowance(req: AuthRequest, id: string, body: Record<string, unknown>) {
-    assertPermission(req, "edit-allowances");
     return HrmAllowanceModel.findOneAndUpdate(
       { _id: id, ...companyScope(resolveCompanyId(req)) },
       { $set: body },
@@ -34,12 +32,10 @@ export const salaryComponentsService = {
     );
   },
   async deleteAllowance(req: AuthRequest, id: string) {
-    assertPermission(req, "delete-allowances");
     await HrmAllowanceModel.findOneAndUpdate({ _id: id, ...companyScope(resolveCompanyId(req)) }, { isDeleted: true });
     return { _id: id };
   },
   async createDeduction(req: AuthRequest, profileId: string, body: Record<string, unknown>) {
-    assertPermission(req, "create-deductions");
     const companyId = resolveCompanyId(req);
     return HrmDeductionModel.create({
       employee_id: await getEmployeeUserId(companyId, profileId),
@@ -52,7 +48,6 @@ export const salaryComponentsService = {
     });
   },
   async updateDeduction(req: AuthRequest, id: string, body: Record<string, unknown>) {
-    assertPermission(req, "edit-deductions");
     return HrmDeductionModel.findOneAndUpdate(
       { _id: id, ...companyScope(resolveCompanyId(req)) },
       { $set: body },
@@ -60,7 +55,6 @@ export const salaryComponentsService = {
     );
   },
   async deleteDeduction(req: AuthRequest, id: string, profileId: string) {
-    assertPermission(req, "delete-deductions");
     await HrmDeductionModel.findOneAndUpdate(
       { _id: id, employee_id: await getEmployeeUserId(resolveCompanyId(req), profileId), ...companyScope(resolveCompanyId(req)) },
       { isDeleted: true }
@@ -68,7 +62,6 @@ export const salaryComponentsService = {
     return { _id: id };
   },
   async createLoan(req: AuthRequest, profileId: string, body: Record<string, unknown>) {
-    assertPermission(req, "create-loans");
     const companyId = resolveCompanyId(req);
     return HrmLoanModel.create({
       title: body.title,
@@ -85,7 +78,6 @@ export const salaryComponentsService = {
     });
   },
   async updateLoan(req: AuthRequest, id: string, body: Record<string, unknown>) {
-    assertPermission(req, "edit-loans");
     const patch = { ...body };
     if (body.start_date) patch.start_date = parseDate(body.start_date);
     if (body.end_date) patch.end_date = parseDate(body.end_date);
@@ -96,7 +88,6 @@ export const salaryComponentsService = {
     );
   },
   async deleteLoan(req: AuthRequest, id: string, profileId: string) {
-    assertPermission(req, "delete-loans");
     await HrmLoanModel.findOneAndUpdate(
       { _id: id, employee_id: await getEmployeeUserId(resolveCompanyId(req), profileId), ...companyScope(resolveCompanyId(req)) },
       { isDeleted: true }
@@ -104,7 +95,6 @@ export const salaryComponentsService = {
     return { _id: id };
   },
   async createOvertime(req: AuthRequest, profileId: string, body: Record<string, unknown>) {
-    assertPermission(req, "create-overtimes");
     const companyId = resolveCompanyId(req);
     return HrmOvertimeModel.create({
       title: body.title,
@@ -121,7 +111,6 @@ export const salaryComponentsService = {
     });
   },
   async updateOvertime(req: AuthRequest, id: string, body: Record<string, unknown>) {
-    assertPermission(req, "edit-overtimes");
     const patch = { ...body };
     if (body.start_date) patch.start_date = parseDate(body.start_date);
     if (body.end_date) patch.end_date = parseDate(body.end_date);
@@ -132,7 +121,6 @@ export const salaryComponentsService = {
     );
   },
   async deleteOvertime(req: AuthRequest, id: string, profileId: string) {
-    assertPermission(req, "delete-overtimes");
     await HrmOvertimeModel.findOneAndUpdate(
       { _id: id, employee_id: await getEmployeeUserId(resolveCompanyId(req), profileId), ...companyScope(resolveCompanyId(req)) },
       { isDeleted: true }
