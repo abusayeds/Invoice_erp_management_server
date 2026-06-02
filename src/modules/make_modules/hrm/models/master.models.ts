@@ -57,7 +57,7 @@ export const HrmEmployeeDocumentTypeModel = model<THrmEmployeeDocumentType>(
 );
 
 export type THrmAwardType = Doc<{ name: string; description?: string }>;
-export const HrmAwardTypeModel = model<THrmAwardType>("HrmAwardType", new Schema({ ...hrmBaseSchemaFields, name: { type: String, required: true }, description: String }, { timestamps: true }), "hrmawardtypes");
+export const HrmAwardTypeModel = model<THrmAwardType>("HrmAwardType", new Schema({ ...hrmBaseSchemaFields, name: { type: String, required: true }, description: String ,  }, { timestamps: true }), "hrmawardtypes");
 
 export type THrmTerminationType = Doc<{ termination_type: string }>;
 export const HrmTerminationTypeModel = model<THrmTerminationType>("HrmTerminationType", new Schema({ ...hrmBaseSchemaFields, termination_type: { type: String, required: true } }, { timestamps: true }), "hrmterminationtypes");
