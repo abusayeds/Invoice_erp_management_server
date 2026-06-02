@@ -4,7 +4,7 @@ import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { permissionService } from "./permission.service";
 import { AuthRequest } from "../../../middlewares/auth";
-import {  rolePermission } from "../../../utils/rolePermission";
+import { rolePermission } from "../../../utils/permissions";
 
 const updatePermission = catchAsync(async (req: AuthRequest, res: Response) => {
   const companyId = req.user?._id;
