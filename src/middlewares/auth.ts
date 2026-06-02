@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { TPermissionKey } from "../utils/permission";
 import { role, TRole } from "../utils/role";
 import AppError from "../errors/AppError";
 import httpStatus from "http-status";
 import { UserModel } from "../modules/basic_modules/user/user.model";
 import { IUser, TPermissions } from "../modules/basic_modules/user/user.interface";
+import { permissionMiddleware } from "./permissionMiddleware";
 
 export interface AuthRequest extends Request {
   user?: IUser;
@@ -64,21 +66,5 @@ export const authMiddleware = (...requiredRoles: TRole[]) => {
   };
 };
 
-export const checkPermission = (permission: string) => {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const user = req.user;
-    if (!user) {
-      return next(new AppError(httpStatus.UNAUTHORIZED, "User not found"));
-    }
-
-    if (user.role === role.superadmin) {
-      return next();
-    }
-
-    if (user.permissions && user.permissions.includes(permission)) {
-      return next();
-    }
-
-    return next(new AppError(httpStatus.FORBIDDEN, "Permission denied"));
-  };
-};
+/** @deprecated Prefer permissionMiddleware — kept for non-HRM routes. */
+export const checkPermission = (permission: TPermissionKey) => permissionMiddleware(permission);
