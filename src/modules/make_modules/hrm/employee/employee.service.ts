@@ -16,7 +16,6 @@ import {
 import { employeeListSearchNested } from "../shared/hrm.employeeSearch";
 import {
   applyOwnershipToQuery,
-  assertPermission,
   companyObjectId,
   companyScope,
   creatorObjectId,
@@ -25,6 +24,9 @@ import {
   resolveOwnership,
 } from "../shared/hrm.utils";
 import { AuthRequest } from "../../../../middlewares/auth";
+import { permModule } from "../../../../utils/permissionModule";
+import { validateEmployeeProfileRefs } from "./employee.validation";
+import { parseOptionalObjectId } from "../shared/hrm.refValidation";
 
 const lean = (doc: Record<string, unknown>) => ({
   ...doc,
@@ -61,14 +63,16 @@ const assertStaffUser = async (companyId: string, userId: string) => {
 
 export const employeeService = {
   async generateId(req: AuthRequest) {
-    assertPermission(req, "create-employees");
     return { employee_id: await generateEmployeeId(resolveCompanyId(req)) };
   },
 
   async list(req: AuthRequest, query: Record<string, unknown>) {
-    assertPermission(req, "manage-employees");
     const companyId = resolveCompanyId(req);
-    const ownership = resolveOwnership(req, "manage-any-employees", "manage-own-employees");
+    const ownership = resolveOwnership(
+      req,
+      permModule.manageAny("employees"),
+      permModule.manageOwn("employees"),
+    );
     const base = applyOwnershipToQuery(companyScope(companyId), ownership);
     if (query.branch_id) (base as Record<string, unknown>).branch_id = query.branch_id;
     if (query.department_id) (base as Record<string, unknown>).department_id = query.department_id;
@@ -97,7 +101,6 @@ export const employeeService = {
   },
 
   async get(req: AuthRequest, id: string) {
-    assertPermission(req, "view-employees");
     const companyId = resolveCompanyId(req);
     const doc = await HrmEmployeeModel.findOne({ _id: id, ...companyScope(companyId) })
       .populate("employee_user_id", "name email image phone")
@@ -118,11 +121,13 @@ export const employeeService = {
   },
 
   async create(req: AuthRequest, body: Record<string, unknown>) {
-    assertPermission(req, "create-employees");
     const companyId = resolveCompanyId(req);
     const userId = String(body.user_id ?? body.employee_user_id ?? "");
     if (!userId) throw new AppError(httpStatus.BAD_REQUEST, "user_id is required");
-    await assertStaffUser(companyId, userId);
+    const userOid = parseOptionalObjectId(userId, "user_id", "Employee user");
+    if (!userOid) throw new AppError(httpStatus.BAD_REQUEST, "user_id is required");
+    await assertStaffUser(companyId, userOid);
+    await validateEmployeeProfileRefs(companyId, body);
     const exists = await HrmEmployeeModel.findOne({
       ...companyScope(companyId),
       employee_user_id: userId,
@@ -148,10 +153,10 @@ export const employeeService = {
   },
 
   async update(req: AuthRequest, id: string, body: Record<string, unknown>) {
-    assertPermission(req, "edit-employees");
     const companyId = resolveCompanyId(req);
     delete body.user_id;
     delete body.employee_user_id;
+    await validateEmployeeProfileRefs(companyId, body, { partial: true });
     const updated = await HrmEmployeeModel.findOneAndUpdate(
       { _id: id, ...companyScope(companyId) },
       {
@@ -168,14 +173,12 @@ export const employeeService = {
   },
 
   async remove(req: AuthRequest, id: string) {
-    assertPermission(req, "delete-employees");
     const companyId = resolveCompanyId(req);
     await HrmEmployeeModel.findOneAndUpdate({ _id: id, ...companyScope(companyId) }, { isDeleted: true });
     return { _id: id };
   },
 
   async eligibleUsers(req: AuthRequest) {
-    assertPermission(req, "create-employees");
     const companyId = resolveCompanyId(req);
     const linked = await HrmEmployeeModel.find({ ...companyScope(companyId), isDeleted: false }).distinct(
       "employee_user_id"
@@ -204,7 +207,6 @@ export const employeeService = {
   },
 
   async deleteDocument(req: AuthRequest, employeeProfileId: string, documentId: string) {
-    assertPermission(req, "edit-employees");
     const companyId = resolveCompanyId(req);
     const updated = await HrmEmployeeDocumentModel.findOneAndUpdate(
       { _id: documentId, employee_profile_id: employeeProfileId, ...companyScope(companyId), isDeleted: false },
