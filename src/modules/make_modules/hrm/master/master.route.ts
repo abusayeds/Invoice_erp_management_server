@@ -1,10 +1,9 @@
 import express from "express";
-import { authMiddleware } from "../../../../middlewares/auth";
-import { role } from "../../../../utils/role";
 import { masterController, workingDaysGet, workingDaysUpdate, ipRestrictToggle } from "./master.controller";
+import { crudPerms, hrmAuth, perm, permission } from "../shared/hrm.routeAuth";
 
 const router = express.Router();
-const auth = authMiddleware(role.company, role.hr, role.staff);
+const hrm = permission.hrm;
 
 const resources = [
   "branches",
@@ -28,15 +27,16 @@ const resources = [
 ] as const;
 
 for (const r of resources) {
-  router.get(`/${r}`, auth, masterController.list(r));
-  router.get(`/${r}/:id`, auth, masterController.get(r));
-  router.post(`/${r}`, auth, masterController.create(r));
-  router.put(`/${r}/:id`, auth, masterController.update(r));
-  router.delete(`/${r}/:id`, auth, masterController.remove(r));
+  const p = crudPerms(r);
+  router.get(`/${r}`, hrmAuth, p.list, masterController.list(r));
+  router.get(`/${r}/:id`, hrmAuth, p.get, masterController.get(r));
+  router.post(`/${r}`, hrmAuth, p.create, masterController.create(r));
+  router.put(`/${r}/:id`, hrmAuth, p.edit, masterController.update(r));
+  router.delete(`/${r}/:id`, hrmAuth, p.delete, masterController.remove(r));
 }
 
-router.get("/working-days", auth, workingDaysGet);
-router.put("/working-days", auth, workingDaysUpdate);
-router.post("/ip-restricts/toggle-setting", auth, ipRestrictToggle);
+router.get("/working-days", hrmAuth, perm(hrm.working_days.manage_working_days), workingDaysGet);
+router.put("/working-days", hrmAuth, perm(hrm.working_days.edit_working_days), workingDaysUpdate);
+router.post("/ip-restricts/toggle-setting", hrmAuth, perm(hrm.ip_restricts.manage_ip_restricts), ipRestrictToggle);
 
 export const masterRoutes = router;
