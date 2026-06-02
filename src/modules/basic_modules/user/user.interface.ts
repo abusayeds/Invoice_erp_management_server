@@ -1,4 +1,5 @@
 import { Document, Types } from "mongoose";
+import { TPermissionKey } from "../../../utils/permission";
 import { TRole } from "../../../utils/role";
 import { TBusinessProfile } from "./user.business.interface";
 
@@ -10,7 +11,7 @@ export type IPendingUser = {
   role: TRole;
 } & Document;
 
-export type TPermissions = string[];
+export type TPermissions = TPermissionKey[];
 
 export type IUser = {
   name?: string;
