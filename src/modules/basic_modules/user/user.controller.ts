@@ -29,7 +29,7 @@ import {
   setting_seed_data,
 } from "../../../utils/seedData";
 import { EditTitleModel } from "../../make_modules/editTitles/editTitles.model";
-import { permissions } from "../../../utils/rolePermission";
+import { permissions } from "../../../utils/permissions";
 import { CategoryModel } from "../../make_modules/product/category/category.model";
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
