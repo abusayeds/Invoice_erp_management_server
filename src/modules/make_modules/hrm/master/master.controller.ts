@@ -3,7 +3,7 @@ import catchAsync from "../../../../utils/catchAsync";
 import sendResponse from "../../../../utils/sendResponse";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { masterServices, MasterResourceKey } from "./master.registry";
-import { assertPermission, resolveCompanyId } from "../shared/hrm.utils";
+import { resolveCompanyId } from "../shared/hrm.utils";
 import { getHrmCompanySettings, toggleIpRestrict, updateWorkingDays } from "../shared/hrm.settings.service";
 import AppError from "../../../../errors/AppError";
 import { sendHrmPaginatedList } from "../shared/hrm.response";
@@ -47,13 +47,11 @@ const remove = (resource: string) =>
 export const masterController = { list, get, create, update, remove };
 
 export const workingDaysGet = catchAsync(async (req: AuthRequest, res) => {
-  assertPermission(req, "manage-working-days");
   const data = await getHrmCompanySettings(resolveCompanyId(req));
   sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Working days", data });
 });
 
 export const workingDaysUpdate = catchAsync(async (req: AuthRequest, res) => {
-  assertPermission(req, "edit-working-days");
   const companyId = resolveCompanyId(req);
   await updateWorkingDays(companyId, req.body.working_days);
   const data = await getHrmCompanySettings(companyId);
@@ -61,7 +59,6 @@ export const workingDaysUpdate = catchAsync(async (req: AuthRequest, res) => {
 });
 
 export const ipRestrictToggle = catchAsync(async (req: AuthRequest, res) => {
-  assertPermission(req, "manage-ip-restricts");
   const companyId = resolveCompanyId(req);
   await toggleIpRestrict(companyId, Boolean(req.body.enabled));
   const data = await getHrmCompanySettings(companyId);
