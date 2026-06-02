@@ -14,7 +14,6 @@ import {
 } from "../models";
 import { employeeListSearchNested } from "../shared/hrm.employeeSearch";
 import {
-  assertPermission,
   companyScope,
   creatorObjectId,
   parseDate,
@@ -23,6 +22,7 @@ import {
 } from "../shared/hrm.utils";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { getHrmCompanySettings } from "../shared/hrm.settings.service";
+import { assertEnumValue, PAYROLL_STATUS } from "../shared/hrm.statusValidation";
 
 const calcComponent = (items: { type: string; amount: number }[], base: number) => {
   let total = 0;
@@ -50,7 +50,6 @@ const countWorkingDays = (start: Date, end: Date, workingDays: number[]) => {
 
 export const payrollService = {
   async list(req: AuthRequest, query: Record<string, unknown>) {
-    assertPermission(req, "manage-payrolls");
     const companyId = resolveCompanyId(req);
     const base = companyScope(companyId);
     const qb = new queryBuilder(HrmPayrollModel.find(base), query).search(["title"]).filter().sort().fields();
@@ -65,7 +64,6 @@ export const payrollService = {
   },
 
   async create(req: AuthRequest, body: Record<string, unknown>) {
-    assertPermission(req, "create-payrolls");
     const companyId = resolveCompanyId(req);
     const doc = await HrmPayrollModel.create({
       title: body.title,
@@ -83,7 +81,6 @@ export const payrollService = {
   },
 
   async get(req: AuthRequest, id: string) {
-    assertPermission(req, "view-payrolls");
     const companyId = resolveCompanyId(req);
     const payroll = await HrmPayrollModel.findOne({ _id: id, ...companyScope(companyId) }).lean();
     if (!payroll) throw new AppError(httpStatus.NOT_FOUND, "Payroll not found");
@@ -94,7 +91,6 @@ export const payrollService = {
   },
 
   async run(req: AuthRequest, id: string) {
-    assertPermission(req, "run-payrolls");
     const companyId = resolveCompanyId(req);
     const payroll = await HrmPayrollModel.findOne({ _id: id, ...companyScope(companyId) });
     if (!payroll) throw new AppError(httpStatus.NOT_FOUND, "Payroll not found");
@@ -244,7 +240,6 @@ export const payrollService = {
   },
 
   async payEntry(req: AuthRequest, entryId: string) {
-    assertPermission(req, "pay-payslip");
     const companyId = resolveCompanyId(req);
     const entry = await HrmPayrollEntryModel.findOneAndUpdate(
       { _id: entryId, ...companyScope(companyId) },
@@ -256,7 +251,6 @@ export const payrollService = {
   },
 
   async update(req: AuthRequest, id: string, body: Record<string, unknown>) {
-    assertPermission(req, "edit-payrolls");
     const companyId = resolveCompanyId(req);
     const patch: Record<string, unknown> = {};
     if (body.title !== undefined) patch.title = body.title;
@@ -265,18 +259,19 @@ export const payrollService = {
     if (body.pay_period_end) patch.pay_period_end = parseDate(body.pay_period_end, "pay_period_end");
     if (body.pay_date) patch.pay_date = parseDate(body.pay_date);
     if (body.notes !== undefined) patch.notes = body.notes;
-    if (body.status !== undefined) patch.status = body.status;
+    if (body.status !== undefined) {
+      patch.status = assertEnumValue(body.status, PAYROLL_STATUS, "status");
+    }
     const updated = await HrmPayrollModel.findOneAndUpdate(
       { _id: id, ...companyScope(companyId) },
       { $set: patch },
-      { new: true }
+      { new: true, runValidators: true },
     ).lean();
     if (!updated) throw new AppError(httpStatus.NOT_FOUND, "Payroll not found");
     return updated;
   },
 
   async remove(req: AuthRequest, id: string) {
-    assertPermission(req, "delete-payrolls");
     const companyId = resolveCompanyId(req);
     const payroll = await HrmPayrollModel.findOne({ _id: id, ...companyScope(companyId) });
     if (!payroll) throw new AppError(httpStatus.NOT_FOUND, "Payroll not found");
@@ -287,7 +282,6 @@ export const payrollService = {
   },
 
   async deleteEntry(req: AuthRequest, entryId: string) {
-    assertPermission(req, "delete-payslip");
     const companyId = resolveCompanyId(req);
     const entry = await HrmPayrollEntryModel.findOne({ _id: entryId, ...companyScope(companyId) });
     if (!entry) throw new AppError(httpStatus.NOT_FOUND, "Payslip not found");
@@ -307,7 +301,6 @@ export const payrollService = {
   },
 
   async printPayslip(req: AuthRequest, entryId: string) {
-    assertPermission(req, "download-payslip");
     const companyId = resolveCompanyId(req);
     const entry = await HrmPayrollEntryModel.findOne({ _id: entryId, ...companyScope(companyId) })
       .populate("employee_id", "name email image phone")
@@ -328,7 +321,6 @@ export const payrollService = {
 
 export const setSalaryService = {
   async listEmployees(req: AuthRequest, query: Record<string, unknown>) {
-    assertPermission(req, "manage-set-salary");
     const companyId = resolveCompanyId(req);
     const base = companyScope(companyId);
     if (query.branch_id) (base as Record<string, unknown>).branch_id = query.branch_id;
@@ -367,7 +359,6 @@ export const setSalaryService = {
   },
 
   async getEmployeeSalary(req: AuthRequest, employeeProfileId: string) {
-    assertPermission(req, "view-set-salary");
     const companyId = resolveCompanyId(req);
     const emp = await HrmEmployeeModel.findOne({ _id: employeeProfileId, ...companyScope(companyId) })
       .select("employee_id basic_salary employee_user_id branch_id department_id designation_id")
@@ -387,7 +378,6 @@ export const setSalaryService = {
   },
 
   async updateEmployeeSalary(req: AuthRequest, employeeProfileId: string, body: Record<string, unknown>) {
-    assertPermission(req, "edit-set-salary");
     const companyId = resolveCompanyId(req);
     const updated = await HrmEmployeeModel.findOneAndUpdate(
       { _id: employeeProfileId, ...companyScope(companyId) },
