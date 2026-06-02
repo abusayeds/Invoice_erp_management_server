@@ -1,3 +1,10 @@
+/**
+ * Permission catalog — single source of truth (edit this file manually).
+ *
+ * Tab (addOn) → modules → permissions
+ * - value: snake_case stored on User.permissions and sent in API bodies (e.g. manage_users)
+ */
+
 export type PermissionTreeItem = {
   value: string;
   label: string;
@@ -17,7 +24,7 @@ export type PermissionTreeAddOn = {
   modules: PermissionTreeModule[];
 };
 
-export const rolePermission: PermissionTreeAddOn[] = [
+export const rolePermission = [
   {
     "addOn": "general",
     "label": "General",
@@ -7205,514 +7212,514 @@ export const rolePermission: PermissionTreeAddOn[] = [
         ]
       }
     ]
-  },
-  {
-    "addOn": "Stripe",
-    "label": "Stripe",
-    "packageName": "Stripe",
-    "modules": [
-      {
-        "module": "stripe",
-        "moduleLabel": "Stripe",
-        "permissions": [
-          {
-            "value": "edit_stripe_settings",
-            "label": "Edit Stripe Settings",
-            "module": "stripe"
-          },
-          {
-            "value": "manage_stripe_settings",
-            "label": "Manage Stripe Settings",
-            "module": "stripe"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Paypal",
-    "label": "Paypal",
-    "packageName": "Paypal",
-    "modules": [
-      {
-        "module": "paypal",
-        "moduleLabel": "Paypal",
-        "permissions": [
-          {
-            "value": "edit_paypal_settings",
-            "label": "Edit PayPal Settings",
-            "module": "paypal"
-          },
-          {
-            "value": "manage_paypal_settings",
-            "label": "Manage PayPal Settings",
-            "module": "paypal"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Flutterwave",
-    "label": "Flutterwave",
-    "packageName": "Flutterwave",
-    "modules": [
-      {
-        "module": "flutterwave",
-        "moduleLabel": "Flutterwave",
-        "permissions": [
-          {
-            "value": "edit_flutterwave_settings",
-            "label": "Edit Flutterwave Settings",
-            "module": "flutterwave"
-          },
-          {
-            "value": "manage_flutterwave_settings",
-            "label": "Manage Flutterwave Settings",
-            "module": "flutterwave"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Paystack",
-    "label": "Paystack",
-    "packageName": "Paystack",
-    "modules": [
-      {
-        "module": "paystack",
-        "moduleLabel": "Paystack",
-        "permissions": [
-          {
-            "value": "edit_paystack_settings",
-            "label": "Edit Paystack Settings",
-            "module": "paystack"
-          },
-          {
-            "value": "manage_paystack_settings",
-            "label": "Manage Paystack Settings",
-            "module": "paystack"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Mollie",
-    "label": "Mollie",
-    "packageName": "Mollie",
-    "modules": [
-      {
-        "module": "mollie",
-        "moduleLabel": "Mollie",
-        "permissions": [
-          {
-            "value": "manage_mollie_settings",
-            "label": "Manage Mollie Settings",
-            "module": "mollie"
-          },
-          {
-            "value": "edit_mollie_settings",
-            "label": "Edit Mollie Settings",
-            "module": "mollie"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Razorpay",
-    "label": "Razorpay",
-    "packageName": "Razorpay",
-    "modules": [
-      {
-        "module": "razorpay",
-        "moduleLabel": "Razorpay",
-        "permissions": [
-          {
-            "value": "edit_razorpay_settings",
-            "label": "Edit Razorpay Settings",
-            "module": "razorpay"
-          },
-          {
-            "value": "manage_razorpay_settings",
-            "label": "Manage Razorpay Settings",
-            "module": "razorpay"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Payfast",
-    "label": "Payfast",
-    "packageName": "Payfast",
-    "modules": [
-      {
-        "module": "payfast",
-        "moduleLabel": "Payfast",
-        "permissions": [
-          {
-            "value": "manage_payfast_settings",
-            "label": "Manage Payfast Settings",
-            "module": "payfast"
-          },
-          {
-            "value": "edit_payfast_settings",
-            "label": "Edit Payfast Settings",
-            "module": "payfast"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "YooKassa",
-    "label": "YooKassa",
-    "packageName": "YooKassa",
-    "modules": [
-      {
-        "module": "yookassa",
-        "moduleLabel": "Yookassa",
-        "permissions": [
-          {
-            "value": "manage_yookassa_settings",
-            "label": "Manage YooKassa Settings",
-            "module": "yookassa"
-          },
-          {
-            "value": "edit_yookassa_settings",
-            "label": "Edit YooKassa Settings",
-            "module": "yookassa"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "PayTab",
-    "label": "PayTabs",
-    "packageName": "PayTab",
-    "modules": [
-      {
-        "module": "pay-tab",
-        "moduleLabel": "Pay Tab",
-        "permissions": [
-          {
-            "value": "edit_paytab_settings",
-            "label": "Edit PayTab Settings",
-            "module": "pay-tab"
-          },
-          {
-            "value": "manage_paytab_settings",
-            "label": "Manage PayTab Settings",
-            "module": "pay-tab"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Toyyibpay",
-    "label": "Toyyibpay",
-    "packageName": "Toyyibpay",
-    "modules": [
-      {
-        "module": "toyyibpay",
-        "moduleLabel": "Toyyibpay",
-        "permissions": [
-          {
-            "value": "manage_toyyibpay_settings",
-            "label": "Manage Toyyibpay Settings",
-            "module": "toyyibpay"
-          },
-          {
-            "value": "edit_toyyibpay_settings",
-            "label": "Edit Toyyibpay Settings",
-            "module": "toyyibpay"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Iyzipay",
-    "label": "Iyzipay",
-    "packageName": "Iyzipay",
-    "modules": [
-      {
-        "module": "iyzipay",
-        "moduleLabel": "Iyzipay",
-        "permissions": [
-          {
-            "value": "manage_iyzipay_settings",
-            "label": "Manage Iyzipay Settings",
-            "module": "iyzipay"
-          },
-          {
-            "value": "edit_iyzipay_settings",
-            "label": "Edit Iyzipay Settings",
-            "module": "iyzipay"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "PayTR",
-    "label": "PayTR",
-    "packageName": "PayTR",
-    "modules": [
-      {
-        "module": "paytr",
-        "moduleLabel": "Paytr",
-        "permissions": [
-          {
-            "value": "edit_paytr_settings",
-            "label": "Edit PayTR Settings",
-            "module": "paytr"
-          },
-          {
-            "value": "manage_paytr_settings",
-            "label": "Manage PayTR Settings",
-            "module": "paytr"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Aamarpay",
-    "label": "AamarPay",
-    "packageName": "Aamarpay",
-    "modules": [
-      {
-        "module": "aamarpay",
-        "moduleLabel": "Aamarpay",
-        "permissions": [
-          {
-            "value": "edit_aamarpay_settings",
-            "label": "Edit Aamarpay Settings",
-            "module": "aamarpay"
-          },
-          {
-            "value": "manage_aamarpay_settings",
-            "label": "Manage Aamarpay Settings",
-            "module": "aamarpay"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Benefit",
-    "label": "Benefit",
-    "packageName": "Benefit",
-    "modules": [
-      {
-        "module": "benefit",
-        "moduleLabel": "Benefit",
-        "permissions": [
-          {
-            "value": "manage_benefit_settings",
-            "label": "Manage Benefit Settings",
-            "module": "benefit"
-          },
-          {
-            "value": "edit_benefit_settings",
-            "label": "Edit Benefit Settings",
-            "module": "benefit"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Cashfree",
-    "label": "Cashfree",
-    "packageName": "Cashfree",
-    "modules": [
-      {
-        "module": "cashfree",
-        "moduleLabel": "Cashfree",
-        "permissions": [
-          {
-            "value": "manage_cashfree_settings",
-            "label": "Manage Cashfree Settings",
-            "module": "cashfree"
-          },
-          {
-            "value": "edit_cashfree_settings",
-            "label": "Edit Cashfree Settings",
-            "module": "cashfree"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Coingate",
-    "label": "Coingate",
-    "packageName": "Coingate",
-    "modules": [
-      {
-        "module": "coingate",
-        "moduleLabel": "Coingate",
-        "permissions": [
-          {
-            "value": "manage_coingate_settings",
-            "label": "Manage Coingate Settings",
-            "module": "coingate"
-          },
-          {
-            "value": "edit_coingate_settings",
-            "label": "Edit Coingate Settings",
-            "module": "coingate"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Midtrans",
-    "label": "Midtrans",
-    "packageName": "Midtrans",
-    "modules": [
-      {
-        "module": "midtrans",
-        "moduleLabel": "Midtrans",
-        "permissions": [
-          {
-            "value": "manage_midtrans_settings",
-            "label": "Manage Midtrans Settings",
-            "module": "midtrans"
-          },
-          {
-            "value": "edit_midtrans_settings",
-            "label": "Edit Midtrans Settings",
-            "module": "midtrans"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Xendit",
-    "label": "Xendit",
-    "packageName": "Xendit",
-    "modules": [
-      {
-        "module": "xendit",
-        "moduleLabel": "Xendit",
-        "permissions": [
-          {
-            "value": "manage_xendit_settings",
-            "label": "Manage Xendit Settings",
-            "module": "xendit"
-          },
-          {
-            "value": "edit_xendit_settings",
-            "label": "Edit Xendit Settings",
-            "module": "xendit"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Tap",
-    "label": "Tap",
-    "packageName": "Tap",
-    "modules": [
-      {
-        "module": "tap",
-        "moduleLabel": "Tap",
-        "permissions": [
-          {
-            "value": "manage_tap_settings",
-            "label": "Manage Tap Settings",
-            "module": "tap"
-          },
-          {
-            "value": "edit_tap_settings",
-            "label": "Edit Tap Settings",
-            "module": "tap"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "AuthorizeNet",
-    "label": "AuthorizeNet",
-    "packageName": "AuthorizeNet",
-    "modules": [
-      {
-        "module": "authorizenet",
-        "moduleLabel": "Authorizenet",
-        "permissions": [
-          {
-            "value": "edit_authorizenet_settings",
-            "label": "Edit AuthorizeNet Settings",
-            "module": "authorizenet"
-          },
-          {
-            "value": "manage_authorizenet_settings",
-            "label": "Manage AuthorizeNet Settings",
-            "module": "authorizenet"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "Fedapay",
-    "label": "Fedapay",
-    "packageName": "Fedapay",
-    "modules": [
-      {
-        "module": "fedapay",
-        "moduleLabel": "Fedapay",
-        "permissions": [
-          {
-            "value": "manage_fedapay_settings",
-            "label": "Manage FedaPay Settings",
-            "module": "fedapay"
-          },
-          {
-            "value": "edit_fedapay_settings",
-            "label": "Edit FedaPay Settings",
-            "module": "fedapay"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "addOn": "CinetPay",
-    "label": "CinetPay",
-    "packageName": "CinetPay",
-    "modules": [
-      {
-        "module": "cinetpay",
-        "moduleLabel": "Cinetpay",
-        "permissions": [
-          {
-            "value": "manage_cinetpay_settings",
-            "label": "Manage CinetPay Settings",
-            "module": "cinetpay"
-          },
-          {
-            "value": "edit_cinetpay_settings",
-            "label": "Edit CinetPay Settings",
-            "module": "cinetpay"
-          }
-        ]
-      }
-    ]
+  // },
+  // {
+  //   "addOn": "Stripe",
+  //   "label": "Stripe",
+  //   "packageName": "Stripe",
+  //   "modules": [
+  //     {
+  //       "module": "stripe",
+  //       "moduleLabel": "Stripe",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_stripe_settings",
+  //           "label": "Edit Stripe Settings",
+  //           "module": "stripe"
+  //         },
+  //         {
+  //           "value": "manage_stripe_settings",
+  //           "label": "Manage Stripe Settings",
+  //           "module": "stripe"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Paypal",
+  //   "label": "Paypal",
+  //   "packageName": "Paypal",
+  //   "modules": [
+  //     {
+  //       "module": "paypal",
+  //       "moduleLabel": "Paypal",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_paypal_settings",
+  //           "label": "Edit PayPal Settings",
+  //           "module": "paypal"
+  //         },
+  //         {
+  //           "value": "manage_paypal_settings",
+  //           "label": "Manage PayPal Settings",
+  //           "module": "paypal"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Flutterwave",
+  //   "label": "Flutterwave",
+  //   "packageName": "Flutterwave",
+  //   "modules": [
+  //     {
+  //       "module": "flutterwave",
+  //       "moduleLabel": "Flutterwave",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_flutterwave_settings",
+  //           "label": "Edit Flutterwave Settings",
+  //           "module": "flutterwave"
+  //         },
+  //         {
+  //           "value": "manage_flutterwave_settings",
+  //           "label": "Manage Flutterwave Settings",
+  //           "module": "flutterwave"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Paystack",
+  //   "label": "Paystack",
+  //   "packageName": "Paystack",
+  //   "modules": [
+  //     {
+  //       "module": "paystack",
+  //       "moduleLabel": "Paystack",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_paystack_settings",
+  //           "label": "Edit Paystack Settings",
+  //           "module": "paystack"
+  //         },
+  //         {
+  //           "value": "manage_paystack_settings",
+  //           "label": "Manage Paystack Settings",
+  //           "module": "paystack"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Mollie",
+  //   "label": "Mollie",
+  //   "packageName": "Mollie",
+  //   "modules": [
+  //     {
+  //       "module": "mollie",
+  //       "moduleLabel": "Mollie",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_mollie_settings",
+  //           "label": "Manage Mollie Settings",
+  //           "module": "mollie"
+  //         },
+  //         {
+  //           "value": "edit_mollie_settings",
+  //           "label": "Edit Mollie Settings",
+  //           "module": "mollie"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Razorpay",
+  //   "label": "Razorpay",
+  //   "packageName": "Razorpay",
+  //   "modules": [
+  //     {
+  //       "module": "razorpay",
+  //       "moduleLabel": "Razorpay",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_razorpay_settings",
+  //           "label": "Edit Razorpay Settings",
+  //           "module": "razorpay"
+  //         },
+  //         {
+  //           "value": "manage_razorpay_settings",
+  //           "label": "Manage Razorpay Settings",
+  //           "module": "razorpay"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Payfast",
+  //   "label": "Payfast",
+  //   "packageName": "Payfast",
+  //   "modules": [
+  //     {
+  //       "module": "payfast",
+  //       "moduleLabel": "Payfast",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_payfast_settings",
+  //           "label": "Manage Payfast Settings",
+  //           "module": "payfast"
+  //         },
+  //         {
+  //           "value": "edit_payfast_settings",
+  //           "label": "Edit Payfast Settings",
+  //           "module": "payfast"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "YooKassa",
+  //   "label": "YooKassa",
+  //   "packageName": "YooKassa",
+  //   "modules": [
+  //     {
+  //       "module": "yookassa",
+  //       "moduleLabel": "Yookassa",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_yookassa_settings",
+  //           "label": "Manage YooKassa Settings",
+  //           "module": "yookassa"
+  //         },
+  //         {
+  //           "value": "edit_yookassa_settings",
+  //           "label": "Edit YooKassa Settings",
+  //           "module": "yookassa"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "PayTab",
+  //   "label": "PayTabs",
+  //   "packageName": "PayTab",
+  //   "modules": [
+  //     {
+  //       "module": "pay-tab",
+  //       "moduleLabel": "Pay Tab",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_paytab_settings",
+  //           "label": "Edit PayTab Settings",
+  //           "module": "pay-tab"
+  //         },
+  //         {
+  //           "value": "manage_paytab_settings",
+  //           "label": "Manage PayTab Settings",
+  //           "module": "pay-tab"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Toyyibpay",
+  //   "label": "Toyyibpay",
+  //   "packageName": "Toyyibpay",
+  //   "modules": [
+  //     {
+  //       "module": "toyyibpay",
+  //       "moduleLabel": "Toyyibpay",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_toyyibpay_settings",
+  //           "label": "Manage Toyyibpay Settings",
+  //           "module": "toyyibpay"
+  //         },
+  //         {
+  //           "value": "edit_toyyibpay_settings",
+  //           "label": "Edit Toyyibpay Settings",
+  //           "module": "toyyibpay"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Iyzipay",
+  //   "label": "Iyzipay",
+  //   "packageName": "Iyzipay",
+  //   "modules": [
+  //     {
+  //       "module": "iyzipay",
+  //       "moduleLabel": "Iyzipay",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_iyzipay_settings",
+  //           "label": "Manage Iyzipay Settings",
+  //           "module": "iyzipay"
+  //         },
+  //         {
+  //           "value": "edit_iyzipay_settings",
+  //           "label": "Edit Iyzipay Settings",
+  //           "module": "iyzipay"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "PayTR",
+  //   "label": "PayTR",
+  //   "packageName": "PayTR",
+  //   "modules": [
+  //     {
+  //       "module": "paytr",
+  //       "moduleLabel": "Paytr",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_paytr_settings",
+  //           "label": "Edit PayTR Settings",
+  //           "module": "paytr"
+  //         },
+  //         {
+  //           "value": "manage_paytr_settings",
+  //           "label": "Manage PayTR Settings",
+  //           "module": "paytr"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Aamarpay",
+  //   "label": "AamarPay",
+  //   "packageName": "Aamarpay",
+  //   "modules": [
+  //     {
+  //       "module": "aamarpay",
+  //       "moduleLabel": "Aamarpay",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_aamarpay_settings",
+  //           "label": "Edit Aamarpay Settings",
+  //           "module": "aamarpay"
+  //         },
+  //         {
+  //           "value": "manage_aamarpay_settings",
+  //           "label": "Manage Aamarpay Settings",
+  //           "module": "aamarpay"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Benefit",
+  //   "label": "Benefit",
+  //   "packageName": "Benefit",
+  //   "modules": [
+  //     {
+  //       "module": "benefit",
+  //       "moduleLabel": "Benefit",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_benefit_settings",
+  //           "label": "Manage Benefit Settings",
+  //           "module": "benefit"
+  //         },
+  //         {
+  //           "value": "edit_benefit_settings",
+  //           "label": "Edit Benefit Settings",
+  //           "module": "benefit"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Cashfree",
+  //   "label": "Cashfree",
+  //   "packageName": "Cashfree",
+  //   "modules": [
+  //     {
+  //       "module": "cashfree",
+  //       "moduleLabel": "Cashfree",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_cashfree_settings",
+  //           "label": "Manage Cashfree Settings",
+  //           "module": "cashfree"
+  //         },
+  //         {
+  //           "value": "edit_cashfree_settings",
+  //           "label": "Edit Cashfree Settings",
+  //           "module": "cashfree"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Coingate",
+  //   "label": "Coingate",
+  //   "packageName": "Coingate",
+  //   "modules": [
+  //     {
+  //       "module": "coingate",
+  //       "moduleLabel": "Coingate",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_coingate_settings",
+  //           "label": "Manage Coingate Settings",
+  //           "module": "coingate"
+  //         },
+  //         {
+  //           "value": "edit_coingate_settings",
+  //           "label": "Edit Coingate Settings",
+  //           "module": "coingate"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Midtrans",
+  //   "label": "Midtrans",
+  //   "packageName": "Midtrans",
+  //   "modules": [
+  //     {
+  //       "module": "midtrans",
+  //       "moduleLabel": "Midtrans",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_midtrans_settings",
+  //           "label": "Manage Midtrans Settings",
+  //           "module": "midtrans"
+  //         },
+  //         {
+  //           "value": "edit_midtrans_settings",
+  //           "label": "Edit Midtrans Settings",
+  //           "module": "midtrans"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Xendit",
+  //   "label": "Xendit",
+  //   "packageName": "Xendit",
+  //   "modules": [
+  //     {
+  //       "module": "xendit",
+  //       "moduleLabel": "Xendit",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_xendit_settings",
+  //           "label": "Manage Xendit Settings",
+  //           "module": "xendit"
+  //         },
+  //         {
+  //           "value": "edit_xendit_settings",
+  //           "label": "Edit Xendit Settings",
+  //           "module": "xendit"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Tap",
+  //   "label": "Tap",
+  //   "packageName": "Tap",
+  //   "modules": [
+  //     {
+  //       "module": "tap",
+  //       "moduleLabel": "Tap",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_tap_settings",
+  //           "label": "Manage Tap Settings",
+  //           "module": "tap"
+  //         },
+  //         {
+  //           "value": "edit_tap_settings",
+  //           "label": "Edit Tap Settings",
+  //           "module": "tap"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "AuthorizeNet",
+  //   "label": "AuthorizeNet",
+  //   "packageName": "AuthorizeNet",
+  //   "modules": [
+  //     {
+  //       "module": "authorizenet",
+  //       "moduleLabel": "Authorizenet",
+  //       "permissions": [
+  //         {
+  //           "value": "edit_authorizenet_settings",
+  //           "label": "Edit AuthorizeNet Settings",
+  //           "module": "authorizenet"
+  //         },
+  //         {
+  //           "value": "manage_authorizenet_settings",
+  //           "label": "Manage AuthorizeNet Settings",
+  //           "module": "authorizenet"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "Fedapay",
+  //   "label": "Fedapay",
+  //   "packageName": "Fedapay",
+  //   "modules": [
+  //     {
+  //       "module": "fedapay",
+  //       "moduleLabel": "Fedapay",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_fedapay_settings",
+  //           "label": "Manage FedaPay Settings",
+  //           "module": "fedapay"
+  //         },
+  //         {
+  //           "value": "edit_fedapay_settings",
+  //           "label": "Edit FedaPay Settings",
+  //           "module": "fedapay"
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
+  // {
+  //   "addOn": "CinetPay",
+  //   "label": "CinetPay",
+  //   "packageName": "CinetPay",
+  //   "modules": [
+  //     {
+  //       "module": "cinetpay",
+  //       "moduleLabel": "Cinetpay",
+  //       "permissions": [
+  //         {
+  //           "value": "manage_cinetpay_settings",
+  //           "label": "Manage CinetPay Settings",
+  //           "module": "cinetpay"
+  //         },
+  //         {
+  //           "value": "edit_cinetpay_settings",
+  //           "label": "Edit CinetPay Settings",
+  //           "module": "cinetpay"
+  //         }
+  //       ]
+  //     }
+  //   ]
   }
-] as PermissionTreeAddOn[];
+] as const satisfies readonly PermissionTreeAddOn[];
 
 export const permissions = rolePermission.flatMap((addOn) =>
   addOn.modules.flatMap((module) =>
