@@ -1,7 +1,7 @@
 import { UserModel } from "../modules/basic_modules/user/user.model";
 import { PermissionModel } from "../modules/make_modules/permission/permission.model";
 import { role } from "../utils/role";
-import { permissions } from "../utils/rolePermission";
+import { permissions } from "../utils/permissions";
 
 const superAdminData = {
   name: "Super Admin",
