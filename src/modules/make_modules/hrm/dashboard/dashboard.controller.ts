@@ -4,8 +4,8 @@ import sendResponse from "../../../../utils/sendResponse";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { hrmDashboardService } from "./dashboard.service";
 import { workflowServices } from "../workflow/workflow.registry";
-import { masterServices } from "../master/master.registry";
 import { leaveService } from "../leave/leave.service";
+import { resolveActorUserId } from "../shared/hrm.utils";
 import { attendanceService } from "../attendance/attendance.service";
 import { sendHrmPaginatedList } from "../shared/hrm.response";
 
@@ -28,10 +28,15 @@ export const mobileController = {
     sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Attendance history", data });
   }),
   clockInOut: catchAsync(async (req: AuthRequest, res) => {
-    const type = String(req.body.type).toLowerCase() === "clockout" ? "clockout" : "clockin";
     const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip;
-    const data = await attendanceService.clockInOut(req, type, ip);
-    sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Clock updated", data });
+    const { action, data } = await attendanceService.clockInOut(req, ip);
+    const message = action === "clock_out" ? "Clock out successful" : "Clock in successful";
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message,
+      data: { action, attendance: data },
+    });
   }),
   getLeaves: catchAsync(async (req: AuthRequest, res) => {
     const result = await leaveService.list(req, req.query as Record<string, unknown>);
@@ -42,8 +47,8 @@ export const mobileController = {
     sendResponse(res, { success: true, statusCode: httpStatus.CREATED, message: "Leave requested", data });
   }),
   leaveTypes: catchAsync(async (req: AuthRequest, res) => {
-    const result = await masterServices["leave-types"].list(req, req.query as Record<string, unknown>);
-    sendHrmPaginatedList(res, "Leave types", result);
+    const data = await leaveService.leaveTypesForEmployee(req, resolveActorUserId(req));
+    sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Leave types with balance", data });
   }),
 };
 
