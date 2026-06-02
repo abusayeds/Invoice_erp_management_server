@@ -1,19 +1,21 @@
 import express from "express";
-import { authMiddleware } from "../../../../middlewares/auth";
-import { role } from "../../../../utils/role";
 import { attendanceController } from "./attendance.controller";
+import { hrmAuth, perm, permission } from "../shared/hrm.routeAuth";
 
 const router = express.Router();
-const auth = authMiddleware(role.company, role.hr, role.staff);
+const a = permission.hrm.attendances;
 
-router.get("/", auth, attendanceController.list);
-router.post("/", auth, attendanceController.create);
-router.get("/clock-status", auth, attendanceController.clockStatus);
-router.post("/clock-in", auth, attendanceController.clockIn);
-router.post("/clock-out", auth, attendanceController.clockOut);
-router.post("/clock-in-out", auth, attendanceController.clockInOut);
-router.post("/history", auth, attendanceController.history);
-router.put("/:id", auth, attendanceController.update);
-router.delete("/:id", auth, attendanceController.remove);
+router.get("/", hrmAuth, perm(a.manage_attendances), attendanceController.list);
+router.post("/", hrmAuth, perm(a.create_attendances), attendanceController.create);
+router.get(
+  "/clock-status",
+  hrmAuth,
+  perm(a.clock_in, a.clock_out, a.manage_own_attendances),
+  attendanceController.clockStatus,
+);
+router.post("/clock-in-out", hrmAuth, perm(a.clock_in, a.clock_out), attendanceController.clockInOut);
+router.post("/history", hrmAuth, perm(a.manage_own_attendances), attendanceController.history);
+router.put("/:id", hrmAuth, perm(a.edit_attendances), attendanceController.update);
+router.delete("/:id", hrmAuth, perm(a.delete_attendances), attendanceController.remove);
 
 export const attendanceRoutes = router;
