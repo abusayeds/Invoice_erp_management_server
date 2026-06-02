@@ -27,6 +27,13 @@ export const leaveController = {
     const data = await leaveService.balanceReport(req, req.query as Record<string, unknown>);
     sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Leave balance report", data });
   }),
+  balanceAllEmployees: catchAsync(async (req: AuthRequest, res) => {
+    const result = await leaveService.balanceAllEmployees(req, req.query as Record<string, unknown>);
+    sendHrmPaginatedList(res, `All employees leave balance (${result.year})`, {
+      data: result.data,
+      pagination: result.pagination,
+    });
+  }),
   types: catchAsync(async (req: AuthRequest, res) => {
     const result = await masterServices["leave-types"].list(req, req.query as Record<string, unknown>);
     sendHrmPaginatedList(res, "Leave types", result);
