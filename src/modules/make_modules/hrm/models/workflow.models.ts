@@ -91,10 +91,26 @@ export const HrmHolidayModel = model<THrmHoliday>("HrmHoliday", new Schema({
   is_sync_outlook_calendar: { type: Boolean, default: false },
 }, { timestamps: true }), "hrmholidays");
 
-export type THrmAward = Doc<{ employee_id: Types.ObjectId; award_type_id?: Types.ObjectId; date?: Date; gift?: string; description?: string }>;
+export type THrmAward = Doc<{
+  employee_id: Types.ObjectId;
+  award_type_id: Types.ObjectId;
+  award_date: Date;
+  description?: string;
+  certificate?: string;
+  /** @deprecated use certificate */
+  gift?: string;
+  /** @deprecated use award_date */
+  date?: Date;
+}>;
 export const HrmAwardModel = model<THrmAward>("HrmAward", new Schema({
-  ...hrmBaseSchemaFields, employee_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  award_type_id: { type: Schema.Types.ObjectId, ref: "HrmAwardType" }, date: Date, gift: String, description: String,
+  ...hrmBaseSchemaFields,
+  employee_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  award_type_id: { type: Schema.Types.ObjectId, ref: "HrmAwardType", required: true },
+  award_date: { type: Date, required: true },
+  description: String,
+  certificate: String,
+  gift: String,
+  date: Date,
 }, { timestamps: true }), "hrmawards");
 
 export type THrmPromotion = Doc<{
@@ -105,7 +121,7 @@ export type THrmPromotion = Doc<{
   current_branch_id?: Types.ObjectId;
   current_department_id?: Types.ObjectId;
   current_designation_id?: Types.ObjectId;
-  effective_date?: string;
+  effective_date: Date;
   reason?: string;
   document?: string;
   status: "pending" | "approved" | "rejected";
@@ -119,16 +135,31 @@ export const HrmPromotionModel = model<THrmPromotion>("HrmPromotion", new Schema
   current_branch_id: { type: Schema.Types.ObjectId, ref: "HrmBranch" },
   current_department_id: { type: Schema.Types.ObjectId, ref: "HrmDepartment" },
   current_designation_id: { type: Schema.Types.ObjectId, ref: "HrmDesignation" },
-  effective_date: String, reason: String, document: String,
+  effective_date: { type: Date, required: true },
+  reason: String,
+  document: String,
   status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
   approved_by: { type: Schema.Types.ObjectId, ref: "User" },
 }, { timestamps: true }), "hrmpromotions");
 
-export type THrmResignation = Doc<{ employee_id?: Types.ObjectId; notice_date?: Date; resignation_date?: Date; reason?: string; status: "pending" | "accepted" | "rejected" }>;
+export type THrmResignation = Doc<{
+  employee_id: Types.ObjectId;
+  last_working_date: Date;
+  reason: string;
+  description?: string;
+  document?: string;
+  status: "pending" | "accepted" | "rejected";
+  approved_by?: Types.ObjectId;
+}>;
 export const HrmResignationModel = model<THrmResignation>("HrmResignation", new Schema({
-  ...hrmBaseSchemaFields, employee_id: { type: Schema.Types.ObjectId, ref: "User" },
-  notice_date: Date, resignation_date: Date, reason: String,
+  ...hrmBaseSchemaFields,
+  employee_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  last_working_date: { type: Date, required: true },
+  reason: { type: String, required: true },
+  description: String,
+  document: String,
   status: { type: String, enum: ["pending", "accepted", "rejected"], default: "pending" },
+  approved_by: { type: Schema.Types.ObjectId, ref: "User" },
 }, { timestamps: true }), "hrmresignations");
 
 export type THrmTermination = Doc<{
@@ -204,7 +235,7 @@ export type THrmEmployeeTransfer = Doc<{
   to_designation_id?: Types.ObjectId;
   transfer_date?: Date;
   effective_date: Date;
-  reason?: string;
+  reason: string;
   status: "pending" | "approved" | "in progress" | "rejected" | "cancelled";
   document?: string;
   approved_by?: Types.ObjectId;
@@ -217,7 +248,9 @@ export const HrmEmployeeTransferModel = model<THrmEmployeeTransfer>("HrmEmployee
   to_branch_id: { type: Schema.Types.ObjectId, ref: "HrmBranch" },
   to_department_id: { type: Schema.Types.ObjectId, ref: "HrmDepartment" },
   to_designation_id: { type: Schema.Types.ObjectId, ref: "HrmDesignation" },
-  transfer_date: Date, effective_date: { type: Date, required: true }, reason: String,
+  transfer_date: Date,
+  effective_date: { type: Date, required: true },
+  reason: { type: String, required: true },
   status: { type: String, enum: ["pending", "approved", "in progress", "rejected", "cancelled"], default: "pending" },
   document: String, approved_by: { type: Schema.Types.ObjectId, ref: "User" },
 }, { timestamps: true }), "hrmemployeetransfers");
