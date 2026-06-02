@@ -1,20 +1,16 @@
 import httpStatus from "http-status";
 import AppError from "../errors/AppError";
-import { permissions as catalogPermissions } from "./rolePermission";
+import { PERMISSION_VALUE_SET, PERMISSION_VALUES, type TPermissionKey } from "./permission";
 
-const VALID_PERMISSION_SET = new Set(catalogPermissions);
-
+const VALID_PERMISSION_SET = PERMISSION_VALUE_SET;
+export { PERMISSION_VALUES as catalogPermissions };
 export const normalizePermission = (key: string) => key.replace(/-/g, "_");
-
-/** Only values from rolePermission `permissions` catalog (snake_case stored). */
-export const parseValidPermissions = (input: unknown): string[] => {
+export const parseValidPermissions = (input: unknown): TPermissionKey[] => {
   if (!Array.isArray(input)) {
     throw new AppError(httpStatus.BAD_REQUEST, "permissions must be an array");
   }
-
   const normalized: string[] = [];
   const invalid: string[] = [];
-
   for (const raw of input) {
     if (typeof raw !== "string" || !raw.trim()) {
       invalid.push(String(raw));
@@ -25,7 +21,7 @@ export const parseValidPermissions = (input: unknown): string[] => {
       invalid.push(raw);
       continue;
     }
-    normalized.push(key);
+    normalized.push(key as TPermissionKey);
   }
 
   if (invalid.length) {
@@ -35,5 +31,5 @@ export const parseValidPermissions = (input: unknown): string[] => {
     );
   }
 
-  return [...new Set(normalized)];
+  return [...new Set(normalized)] as TPermissionKey[];
 };
