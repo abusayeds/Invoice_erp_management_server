@@ -9,7 +9,14 @@ import {
   HrmPromotionModel,
   HrmTerminationModel,
 } from "../models";
-import { companyScope, isCompanyOrHr, isEmployeeRole, resolveActorUserId, resolveCompanyId } from "../shared/hrm.utils";
+import {
+  companyScope,
+  isCompanyOrHr,
+  isEmployeeRole,
+  resolveActorUserId,
+  resolveCompanyId,
+  spansCalendarDay,
+} from "../shared/hrm.utils";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { attendanceService } from "../attendance/attendance.service";
 
@@ -34,8 +41,7 @@ export const hrmDashboardService = {
         ...scope,
         employee_id: employeeId,
         status: "approved",
-        start_date: { $lte: today },
-        end_date: { $gte: today },
+        ...spansCalendarDay(today),
       }).lean();
       const announcements = await HrmEventModel.find({ ...scope, status: "approved" }).limit(5).lean();
       return { view: "employee", clock, on_leave: onLeave, events: announcements };
@@ -55,8 +61,7 @@ export const hrmDashboardService = {
     const onLeave = await HrmLeaveApplicationModel.countDocuments({
       ...scope,
       status: "approved",
-      start_date: { $lte: today },
-      end_date: { $gte: today },
+      ...spansCalendarDay(today),
     });
     const pendingLeaves = await HrmLeaveApplicationModel.countDocuments({
       ...scope,
