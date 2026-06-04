@@ -8,3 +8,8 @@ dist/
 docs/
 scripts/
 postman/
+
+# Claude rules & reference (local only — never push)
+CLAUDE.md
+claude-rules/
+main-files/

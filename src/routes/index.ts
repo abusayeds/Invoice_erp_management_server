@@ -38,6 +38,7 @@ import { doubleEntryRoutes } from "../modules/make_modules/doubleEntry/doubleEnt
 import { hrmRoutes } from "../modules/make_modules/hrm/hrm.route";
 import { categoryRoutes } from "../modules/make_modules/product/category/category.route";
 import { taxRoutes } from "../modules/make_modules/product/tax/tax.route";
+import { performanceRoutes } from "../modules/make_modules/performance/performance.route";
 
 const router = express.Router();
 router.use("/api/v1/file-upload", uploadRouter);
@@ -80,5 +81,6 @@ router.use("/api/v1/goal", goalRoutes);
 router.use("/api/v1/budget-planner", budgetPlannerRoutes);
 router.use("/api/v1/double-entry", doubleEntryRoutes);
 router.use("/api/v1/hrm", hrmRoutes);
+router.use("/api/v1/performance", performanceRoutes);
 
 export default router;

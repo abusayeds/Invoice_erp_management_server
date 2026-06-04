@@ -1,0 +1,145 @@
+import httpStatus from "http-status";
+import { FilterQuery, Model, PopulateOptions, Types } from "mongoose";
+import AppError from "../../../errors/AppError";
+import queryBuilder from "../../../builder/queryBuilder";
+import { AuthRequest } from "../../../middlewares/auth";
+import { TPermissionKey } from "../../../utils/permission";
+import {
+  applyOwnershipToQuery,
+  companyObjectId,
+  companyScope,
+  creatorObjectId,
+  resolveCompanyId,
+  resolveOwnership,
+} from "./performance.utils";
+
+export type PerfCrudConfig<T> = {
+  model: Model<T>;
+  label: string;
+  perms: { manageAny: TPermissionKey; manageOwn: TPermissionKey };
+  searchFields: string[];
+  populate?: PopulateOptions | PopulateOptions[] | string | string[];
+  /** employee_id also grants ownership (employee goals). */
+  employeeField?: boolean;
+  /** unique-name guard within the same company. */
+  nameField?: string;
+  /* eslint-disable no-unused-vars */
+  /** Validate / normalise the body before insert (ref checks, date parsing). */
+  beforeCreate?: (
+    body: Record<string, unknown>,
+    req: AuthRequest
+  ) => Promise<Record<string, unknown>> | Record<string, unknown>;
+  /** Validate / normalise the body before update. */
+  beforeUpdate?: (
+    body: Record<string, unknown>,
+    req: AuthRequest
+  ) => Promise<Record<string, unknown>> | Record<string, unknown>;
+  /* eslint-enable no-unused-vars */
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const withPopulate = (q: any, populate?: PerfCrudConfig<unknown>["populate"]) =>
+  populate ? q.populate(populate as PopulateOptions | (string | PopulateOptions)[]) : q;
+
+/** Generic company-scoped + ownership-aware CRUD, mirroring the Laravel Performance controllers. */
+export const createPerformanceCrudService = <T>(config: PerfCrudConfig<T>) => {
+  const { model, label, perms, searchFields, populate, employeeField, nameField } = config;
+
+  const ownershipOf = (req: AuthRequest) =>
+    resolveOwnership(req, perms.manageAny, perms.manageOwn);
+
+  const getOwned = async (req: AuthRequest, id: string) => {
+    const companyId = resolveCompanyId(req);
+    const ownership = ownershipOf(req);
+    const base = applyOwnershipToQuery(
+      { _id: id, ...companyScope(companyId) } as FilterQuery<T>,
+      ownership,
+      { employeeField }
+    );
+    let q = model.findOne(base);
+    q = withPopulate(q, populate);
+    const doc = await q;
+    if (!doc) throw new AppError(httpStatus.NOT_FOUND, `${label} not found`);
+    return doc;
+  };
+
+  const create = async (req: AuthRequest, body: Record<string, unknown>) => {
+    const companyId = resolveCompanyId(req);
+    let payload = { ...body };
+    if (config.beforeCreate) payload = await config.beforeCreate(payload, req);
+    if (nameField && payload[nameField] !== undefined) {
+      const name = String(payload[nameField]).trim();
+      if (!name) throw new AppError(httpStatus.BAD_REQUEST, `${nameField} is required`);
+      const dup = await model.findOne({
+        ...companyScope(companyId),
+        [nameField]: name,
+      } as FilterQuery<T>);
+      if (dup) throw new AppError(httpStatus.CONFLICT, `${label} already exists`);
+    }
+    const doc = await model.create({
+      ...payload,
+      user_id: companyObjectId(companyId),
+      creator_id: creatorObjectId(req),
+      isDeleted: false,
+    });
+    return doc;
+  };
+
+  const list = async (req: AuthRequest, query: Record<string, unknown>) => {
+    const companyId = resolveCompanyId(req);
+    const ownership = ownershipOf(req);
+    const base = applyOwnershipToQuery(
+      companyScope(companyId) as FilterQuery<T>,
+      ownership,
+      { employeeField }
+    );
+    let mq = model.find(base);
+    mq = withPopulate(mq, populate);
+    const qb = new queryBuilder(mq, query)
+      .search(searchFields as never)
+      .filter()
+      .sort()
+      .fields();
+    const { totalData } = await qb.paginate(model.find(base));
+    const data = await qb.modelQuery.exec();
+    const currentPage = Number(query?.page) || 1;
+    const limit = Number(query?.limit) || 10;
+    const pagination = qb.calculatePagination({ totalData, currentPage, limit });
+    return { data, pagination };
+  };
+
+  const single = (req: AuthRequest, id: string) => getOwned(req, id);
+
+  const update = async (req: AuthRequest, id: string, body: Record<string, unknown>) => {
+    await getOwned(req, id);
+    let payload = { ...body };
+    delete payload.user_id;
+    delete payload.creator_id;
+    delete payload.isDeleted;
+    if (config.beforeUpdate) payload = await config.beforeUpdate(payload, req);
+    const companyId = resolveCompanyId(req);
+    let q = model.findOneAndUpdate(
+      { _id: id, ...companyScope(companyId) } as FilterQuery<T>,
+      { $set: payload } as never,
+      { new: true, runValidators: true }
+    );
+    q = withPopulate(q, populate);
+    const updated = await q;
+    if (!updated) throw new AppError(httpStatus.NOT_FOUND, `${label} not found`);
+    return updated;
+  };
+
+  const remove = async (req: AuthRequest, id: string) => {
+    await getOwned(req, id);
+    const companyId = resolveCompanyId(req);
+    await model.findOneAndUpdate(
+      { _id: id, ...companyScope(companyId) } as FilterQuery<T>,
+      { isDeleted: true } as never
+    );
+    return { _id: id };
+  };
+
+  return { create, list, single, update, remove, getOwned, ownershipOf };
+};
+
+export type ObjectIdLike = Types.ObjectId;

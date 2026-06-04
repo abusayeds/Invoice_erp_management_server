@@ -66,7 +66,7 @@ class queryBuilder<T> {
    */
   async searchNested(options: SearchNestedOptions<T> = {}): Promise<this> {
     const searchTerm = this.query.searchTerm;
-    if (typeof searchTerm !== "string") return this;
+    if (typeof searchTerm !== "string") return this; 
 
     const keywords = searchTerm.trim().split(/\s+/).filter(Boolean);
     if (keywords.length === 0) return this;
