@@ -34,6 +34,8 @@ export type PerfCrudConfig<T> = {
     body: Record<string, unknown>,
     req: AuthRequest
   ) => Promise<Record<string, unknown>> | Record<string, unknown>;
+  /** Shape the response to only the fields the UI needs (drops user_id/creator_id/isDeleted/__v). */
+  formatItem?: (doc: T) => unknown;
   /* eslint-enable no-unused-vars */
 };
 
@@ -47,6 +49,8 @@ export const createPerformanceCrudService = <T>(config: PerfCrudConfig<T>) => {
 
   const ownershipOf = (req: AuthRequest) =>
     resolveOwnership(req, perms.manageAny, perms.manageOwn);
+
+  const fmt = (doc: T) => (config.formatItem ? config.formatItem(doc) : doc);
 
   const getOwned = async (req: AuthRequest, id: string) => {
     const companyId = resolveCompanyId(req);
@@ -82,7 +86,9 @@ export const createPerformanceCrudService = <T>(config: PerfCrudConfig<T>) => {
       creator_id: creatorObjectId(req),
       isDeleted: false,
     });
-    return doc;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const created = populate ? await (doc as any).populate(populate) : doc;
+    return fmt(created as T);
   };
 
   const list = async (req: AuthRequest, query: Record<string, unknown>) => {
@@ -101,14 +107,15 @@ export const createPerformanceCrudService = <T>(config: PerfCrudConfig<T>) => {
       .sort()
       .fields();
     const { totalData } = await qb.paginate(model.find(base));
-    const data = await qb.modelQuery.exec();
+    const rows = await qb.modelQuery.exec();
+    const data = rows.map((d) => fmt(d as T));
     const currentPage = Number(query?.page) || 1;
     const limit = Number(query?.limit) || 10;
     const pagination = qb.calculatePagination({ totalData, currentPage, limit });
     return { data, pagination };
   };
 
-  const single = (req: AuthRequest, id: string) => getOwned(req, id);
+  const single = async (req: AuthRequest, id: string) => fmt(await getOwned(req, id));
 
   const update = async (req: AuthRequest, id: string, body: Record<string, unknown>) => {
     await getOwned(req, id);
@@ -126,7 +133,7 @@ export const createPerformanceCrudService = <T>(config: PerfCrudConfig<T>) => {
     q = withPopulate(q, populate);
     const updated = await q;
     if (!updated) throw new AppError(httpStatus.NOT_FOUND, `${label} not found`);
-    return updated;
+    return fmt(updated as T);
   };
 
   const remove = async (req: AuthRequest, id: string) => {
