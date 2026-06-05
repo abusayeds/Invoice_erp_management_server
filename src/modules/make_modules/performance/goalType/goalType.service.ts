@@ -14,4 +14,11 @@ export const goalTypeService = createPerformanceCrudService<TPerformanceGoalType
   },
   searchFields: ["name", "description"],
   nameField: "name",
+  formatItem: (d) => ({
+    _id: d._id,
+    name: d.name,
+    description: d.description ?? null,
+    status: d.status,
+    createdAt: d.createdAt,
+  }),
 });
