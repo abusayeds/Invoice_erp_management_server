@@ -14,4 +14,11 @@ export const indicatorCategoryService = createPerformanceCrudService<TIndicatorC
   },
   searchFields: ["name", "description"],
   nameField: "name",
+  formatItem: (d) => ({
+    _id: d._id,
+    name: d.name,
+    description: d.description ?? null,
+    status: d.status,
+    createdAt: d.createdAt,
+  }),
 });
