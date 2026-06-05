@@ -4,7 +4,7 @@ import AppError from "../../../../errors/AppError";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { permission } from "../../../../utils/permission";
 import { createPerformanceCrudService } from "../performance.crud.service";
-import { companyScope, resolveCompanyId } from "../performance.utils";
+import { companyScope, refName, resolveCompanyId } from "../performance.utils";
 import { IndicatorCategoryModel } from "../indicatorCategory/indicatorCategory.model";
 import { PerformanceIndicatorModel } from "./indicator.model";
 import { TPerformanceIndicator } from "./indicator.interface";
@@ -37,7 +37,18 @@ export const indicatorService = createPerformanceCrudService<TPerformanceIndicat
     manageOwn: P.manage_own_performance_indicators,
   },
   searchFields: ["name", "description", "measurement_unit"],
-  populate: { path: "category_id", select: "name status" },
+  populate: { path: "category_id", select: "name" },
   beforeCreate: validateCategory,
   beforeUpdate: validateCategory,
+  formatItem: (d) => ({
+    _id: d._id,
+    name: d.name,
+    description: d.description ?? null,
+    measurement_unit: d.measurement_unit ?? null,
+    target_value: d.target_value ?? null,
+    status: d.status,
+    category: refName(d.category_id),
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+  }),
 });
