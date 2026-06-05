@@ -11,6 +11,7 @@ import {
   companyObjectId,
   companyScope,
   creatorObjectId,
+  refName,
   resolveCompanyId,
   resolveOwnership,
 } from "../performance.utils";
@@ -25,10 +26,35 @@ import {
 const P = permission.performance.employee_review;
 
 const POPULATE = [
-  { path: "employee_user_id", select: "name email image" },
-  { path: "reviewer_id", select: "name email image" },
-  { path: "review_cycle_id", select: "name frequency status" },
+  { path: "employee_user_id", select: "name" },
+  { path: "reviewer_id", select: "name" },
+  { path: "review_cycle_id", select: "name" },
 ];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const reviewListItem = (r: any) => ({
+  _id: r._id,
+  user: refName(r.employee_user_id),
+  reviewer: refName(r.reviewer_id),
+  review_cycle: refName(r.review_cycle_id),
+  review_date: r.review_date,
+  status: r.status,
+  average_rating: r.average_rating ?? null,
+  createdAt: r.createdAt,
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const reviewDetail = (r: any) => ({
+  _id: r._id,
+  user: refName(r.employee_user_id),
+  reviewer: refName(r.reviewer_id),
+  review_cycle: refName(r.review_cycle_id),
+  review_date: r.review_date,
+  status: r.status,
+  pros: r.pros ?? null,
+  cons: r.cons ?? null,
+  completion_date: r.completion_date ?? null,
+});
 
 const ownershipOf = (req: AuthRequest) =>
   resolveOwnership(req, P.manage_any_employee_reviews, P.manage_own_employee_reviews);
@@ -45,8 +71,12 @@ const getOwnedReview = async (req: AuthRequest, id: string) => {
   return review;
 };
 
-/** Active indicators (under active categories) grouped by category name, with the user's rating mapped in. */
-const buildIndicatorGroups = async (companyId: string, ratings: TReviewRatings = {}) => {
+/** Active indicators (under active categories) grouped by category name. */
+const buildIndicatorGroups = async (
+  companyId: string,
+  ratings: TReviewRatings = {},
+  withUserRating = false
+) => {
   const indicators = await PerformanceIndicatorModel.find({
     ...companyScope(companyId),
     status: "active",
@@ -62,8 +92,12 @@ const buildIndicatorGroups = async (companyId: string, ratings: TReviewRatings =
     const name = category.name ?? "Uncategorized";
     if (!groups[name]) groups[name] = [];
     groups[name].push({
-      ...indicator,
-      user_rating: Number(ratings?.[String(indicator._id)] ?? 0),
+      _id: indicator._id,
+      name: indicator.name,
+      category: { name: category.name },
+      ...(withUserRating
+        ? { user_rating: Number(ratings?.[String(indicator._id)] ?? 0) }
+        : {}),
     });
   }
   return groups;
@@ -112,7 +146,8 @@ const createDB = async (req: AuthRequest, body: Record<string, unknown>) => {
     creator_id: creatorObjectId(req),
     isDeleted: false,
   });
-  return review.populate(POPULATE);
+  await review.populate(POPULATE);
+  return reviewDetail(review);
 };
 
 const getAllDB = async (req: AuthRequest, query: Record<string, unknown>) => {
@@ -143,7 +178,8 @@ const getAllDB = async (req: AuthRequest, query: Record<string, unknown>) => {
   qb.filter().sort().fields();
 
   const { totalData } = await qb.paginate(PerformanceEmployeeReviewModel.find(base));
-  const data = await qb.modelQuery.exec();
+  const rows = await qb.modelQuery.exec();
+  const data = rows.map(reviewListItem);
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query?.limit) || 10;
   const pagination = qb.calculatePagination({ totalData, currentPage, limit });
@@ -155,9 +191,9 @@ const getSingleDB = async (req: AuthRequest, id: string) => {
   const review = await getOwnedReview(req, id);
   await review.populate(POPULATE);
   const ratings = (review.rating ?? {}) as TReviewRatings;
-  const performanceIndicators = await buildIndicatorGroups(companyId, ratings);
+  const performanceIndicators = await buildIndicatorGroups(companyId, ratings, true);
   return {
-    employeeReview: review,
+    employeeReview: reviewDetail(review),
     performanceIndicators,
     averageRating: averageOf(ratings),
   };
@@ -168,43 +204,47 @@ const conductGetDB = async (req: AuthRequest, id: string) => {
   const review = await getOwnedReview(req, id);
   await review.populate(POPULATE);
   const existingRatings = (review.rating ?? {}) as TReviewRatings;
-  const performanceIndicators = await buildIndicatorGroups(companyId, existingRatings);
-  return { employeeReview: review, performanceIndicators, existingRatings };
+  const performanceIndicators = await buildIndicatorGroups(companyId, existingRatings, false);
+  return { employeeReview: reviewDetail(review), performanceIndicators, existingRatings };
 };
 
 const conductStoreDB = async (req: AuthRequest, id: string, body: Record<string, unknown>) => {
-  await getOwnedReview(req, id);
+  const review = await getOwnedReview(req, id);
   const companyId = resolveCompanyId(req);
 
   const rawRatings = body.ratings;
   if (!rawRatings || typeof rawRatings !== "object" || Array.isArray(rawRatings)) {
     throw new AppError(httpStatus.BAD_REQUEST, "ratings is required");
   }
-  const ratings: TReviewRatings = {};
+  const incoming: TReviewRatings = {};
   for (const [indicatorId, value] of Object.entries(rawRatings as Record<string, unknown>)) {
     const score = Number(value);
     if (!Number.isInteger(score) || score < 1 || score > 5) {
       throw new AppError(httpStatus.BAD_REQUEST, "Each rating must be an integer between 1 and 5");
     }
-    ratings[indicatorId] = score;
+    incoming[indicatorId] = score;
   }
+
+  // Merge with existing ratings: same indicator id → updated, new id → added, others kept.
+  const existing = (review.rating ?? {}) as TReviewRatings;
+  const rating: TReviewRatings = { ...existing, ...incoming };
+
+  const update: Record<string, unknown> = {
+    rating,
+    status: "completed",
+    completion_date: new Date(),
+  };
+  if (typeof body.pros === "string") update.pros = body.pros;
+  if (typeof body.cons === "string") update.cons = body.cons;
 
   const updated = await PerformanceEmployeeReviewModel.findOneAndUpdate(
     { _id: id, ...companyScope(companyId) },
-    {
-      $set: {
-        rating: ratings,
-        pros: typeof body.pros === "string" ? body.pros : null,
-        cons: typeof body.cons === "string" ? body.cons : null,
-        status: "completed",
-        completion_date: new Date(),
-      },
-    },
+    { $set: update },
     { new: true, runValidators: true }
   ).populate(POPULATE);
 
   if (!updated) throw new AppError(httpStatus.NOT_FOUND, "Employee review not found");
-  return updated;
+  return reviewDetail(updated);
 };
 
 const updateDB = async (req: AuthRequest, id: string, body: Record<string, unknown>) => {
@@ -229,7 +269,7 @@ const updateDB = async (req: AuthRequest, id: string, body: Record<string, unkno
     { new: true, runValidators: true }
   ).populate(POPULATE);
   if (!updated) throw new AppError(httpStatus.NOT_FOUND, "Employee review not found");
-  return updated;
+  return reviewDetail(updated);
 };
 
 const removeDB = async (req: AuthRequest, id: string) => {
