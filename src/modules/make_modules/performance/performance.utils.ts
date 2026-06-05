@@ -51,6 +51,15 @@ export const assertEmployeeUser = async (
   return user;
 };
 
+/** Format a populated User/lookup ref down to just `{ _id, name }` (UI only needs the name). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const refName = (ref: any): { _id: string; name: string } | null => {
+  if (ref && typeof ref === "object" && "name" in ref) {
+    return { _id: String(ref._id), name: ref.name ?? "" };
+  }
+  return null;
+};
+
 /** Base fields shared by every performance table (Laravel created_by → user_id, creator_id, soft delete). */
 export const performanceBaseFields = {
   user_id: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
