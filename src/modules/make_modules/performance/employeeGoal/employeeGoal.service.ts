@@ -4,7 +4,7 @@ import AppError from "../../../../errors/AppError";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { permission } from "../../../../utils/permission";
 import { createPerformanceCrudService } from "../performance.crud.service";
-import { assertEmployeeUser, companyScope, resolveCompanyId } from "../performance.utils";
+import { assertEmployeeUser, companyScope, refName, resolveCompanyId } from "../performance.utils";
 import { PerformanceGoalTypeModel } from "../goalType/goalType.model";
 import { PerformanceEmployeeGoalModel } from "./employeeGoal.model";
 import { TPerformanceEmployeeGoal } from "./employeeGoal.interface";
@@ -44,10 +44,24 @@ export const employeeGoalService = createPerformanceCrudService<TPerformanceEmpl
   },
   searchFields: ["title", "description"],
   populate: [
-    { path: "employee_id", select: "name email image" },
-    { path: "goal_type_id", select: "name status" },
+    { path: "employee_id", select: "name" },
+    { path: "goal_type_id", select: "name" },
   ],
   employeeField: true,
   beforeCreate: prepare,
   beforeUpdate: prepare,
+  formatItem: (d) => ({
+    _id: d._id,
+    title: d.title,
+    description: d.description ?? null,
+    start_date: d.start_date,
+    end_date: d.end_date,
+    target: d.target,
+    progress: d.progress,
+    status: d.status,
+    employee: refName(d.employee_id),
+    goal_type: refName(d.goal_type_id),
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+  }),
 });
