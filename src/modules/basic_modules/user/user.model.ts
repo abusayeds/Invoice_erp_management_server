@@ -93,7 +93,7 @@ const UserSchema = new Schema<IUser>(
     },
     isVerify: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     login: {
       type: Boolean,
