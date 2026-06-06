@@ -11,5 +11,5 @@ export type TIndicatorCategory = {
   status: TPerformanceStatus;
   isDeleted: boolean;
   createdAt?: Date;
-  updatedAt?: Date;
+  updatedAt?: Date; 
 };

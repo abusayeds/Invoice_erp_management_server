@@ -293,7 +293,7 @@ const createCompanyBySuperadminDB = async (payload: IUser) => {
 };
 
 const allUserForCompanyDB = async (companyId: string , query: Record<string, unknown>,  ) => {
-  const userQuery = new queryBuilder(UserModel.find({ companyId: companyId }).select("name email role companyId phone login image"), query).search(['name' , 'email']).fields().sort()
+  const userQuery = new queryBuilder(UserModel.find({ companyId: companyId }).select("name email role companyId phone login image"), query).search(['name' , 'email']).filter().fields().sort()
   const { totalData } = await userQuery.paginate(UserModel.find({ companyId: companyId }))
   const user = await userQuery.modelQuery.exec()
   const currentPage = Number(query?.page) || 1;
@@ -349,7 +349,6 @@ const allRoleDB = async (companyId: string) => {
       })),
     };
   });
-
   return result;
 };
 export const userService = {
