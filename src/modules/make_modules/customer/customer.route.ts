@@ -1,6 +1,7 @@
 import express from "express";
 import { authMiddleware } from "../../../middlewares/auth";
 import { role } from "../../../utils/role";
+import { enforcePlanLimit } from "../subscription/guard/subscription.guard";
 import { customerController } from "./customer.controller";
 
 const router = express.Router();
@@ -8,6 +9,7 @@ const router = express.Router();
 router.post(
   "/create",
   authMiddleware(role.company),
+  enforcePlanLimit("users"),
   customerController.customerCreate
 );
 router.get(
