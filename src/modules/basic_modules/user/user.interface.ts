@@ -31,8 +31,10 @@ export type IUser = {
   businessProfile?: TBusinessProfile;
   permissions?: TPermissions;
   isDeleted: boolean;
-  isVerify: boolean; 
+  isVerify: boolean;
   login: boolean;
+  /** True once a company has consumed its one-time plan trial. */
+  is_trial_done?: boolean;
 } & Document;
 
 export type IOTP = {
