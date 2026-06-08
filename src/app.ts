@@ -10,11 +10,11 @@ import globalErrorHandler from "./middlewares/globalErrorHandler";
 import notFound from "./middlewares/notFound";
 import router from "./routes";
 import { logger, logHttpRequests } from "./logger/logger";
-import { paymentController } from "./modules/make_modules/payment/payment.controller";
+import { checkoutController } from "./modules/make_modules/subscription/checkout/checkout.controller";
 
 // Create an Express application
 const app: Application = express();
-app.use("/stripe/webhook", express.raw({ type: "application/json" }), paymentController.webhook);
+app.use("/stripe/webhook", express.raw({ type: "application/json" }), checkoutController.webhook);
 // // Define __dirname manually
 
 //parsers
