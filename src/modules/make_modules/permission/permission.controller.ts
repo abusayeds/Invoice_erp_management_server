@@ -44,8 +44,11 @@ const getPermissionsByCompany = catchAsync(async (req: AuthRequest, res: Respons
 });
 
 const getAllPermissions = catchAsync(async (req: AuthRequest, res: Response) => {
-  const addOn = (req.query.addOn as string) || "general";
-  const result = rolePermission.filter((item) => item.addOn === addOn);
+  // const addOn = (req.query.addOn as string) || "general";
+  // const result = rolePermission.filter((item) => item.addOn === addOn);
+
+  // const addOn = (req.query.addOn as string) || "general";
+  const result = rolePermission
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
