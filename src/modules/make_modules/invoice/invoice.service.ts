@@ -91,6 +91,67 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   return { allRecords, pagination };
 };
 
-export const invoiceService = { createDB, getSingleDB, getAllDB };
+const updateDB = async (id: string, userId: string, payload: TInvoice) => {
+  const existing = await InvoiceModel.findOne({
+    _id: id,
+    user_id: userId,
+    isDeleted: false,
+  });
+  if (!existing) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Invoice not found');
+  }
+
+  await validateDocumentParties(payload);
+  if (Array.isArray(payload.product)) {
+    for (const item of payload.product) {
+      const product = (await ProductModel.findById(item.product_id)) as TProduct;
+      if (!product) {
+        throw new AppError(httpStatus.NOT_FOUND, 'Product not found with id: ' + item.product_id);
+      }
+      if (product.pricing.sellPrice !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': ' + product.pricing.sellPrice + ' vs ' + item.rate);
+      }
+      validateItemAmount(item, 'product');
+    }
+  }
+  if (Array.isArray(payload.service)) {
+    for (const item of payload.service) {
+      const service = (await ServiceModel.findById(item.service_id)) as TService;
+      if (!service) {
+        throw new AppError(httpStatus.NOT_FOUND, 'Service not found with id: ' + item.service_id);
+      }
+      if (service.rate !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Service rate mismatch ' + item.service_id + ': ' + service.rate + ' vs ' + item.rate);
+      }
+      validateItemAmount(item, 'service');
+    }
+  }
+
+  const result = await calculateInvoice(payload);
+  const data = { ...payload, ...result };
+  data.paid_amount = data.paid_amount ?? existing.paid_amount ?? 0;
+  data.balance_amount = data.balance_amount ?? data.total ?? 0;
+
+  const updatedRecord = await InvoiceModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: false },
+    data,
+    { new: true, runValidators: true }
+  );
+  return updatedRecord;
+};
+
+const deleteDB = async (id: string, userId: string) => {
+  const deletedRecord = await InvoiceModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: false },
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!deletedRecord) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Invoice not found');
+  }
+  return deletedRecord;
+};
+
+export const invoiceService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
 
 

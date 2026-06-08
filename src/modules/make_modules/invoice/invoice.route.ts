@@ -23,4 +23,16 @@ router.get(
   invoiceController.getAll
 );
 
+router.post(
+  '/edit/:id',
+  authMiddleware(role.company),
+  invoiceController.update
+);
+
+router.delete(
+  '/delete/:id',
+  authMiddleware(role.company),
+  invoiceController.remove
+);
+
 export const invoiceRoutes = router;

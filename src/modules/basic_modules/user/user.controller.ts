@@ -630,6 +630,18 @@ const allRole = catchAsync(async (req: AuthRequest, res: Response) => {
 });
 
 
+const rolePermissions = catchAsync(async (req: AuthRequest, res: Response) => {
+  const companyId = req.user?._id;
+  const { role: roleName } = req.params;
+  const result = await userService.rolePermissionsDB(companyId as string, roleName);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Role permissions retrieved successfully",
+    data: result,
+  });
+});
+
 export const userController = {
   registerUser,
   loginUser,
@@ -645,8 +657,9 @@ export const userController = {
   verifyOTP,
   createUserByCompany ,
   createCompanyBySuperadmin , 
-  allUserForCompany , 
-  allRole
+  allUserForCompany ,
+  allRole ,
+  rolePermissions
 };
 
 export const BlockUser = catchAsync(async (req: Request, res: Response) => {

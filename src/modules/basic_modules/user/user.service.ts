@@ -351,6 +351,28 @@ const allRoleDB = async (companyId: string) => {
   });
   return result;
 };
+
+const rolePermissionsDB = async (companyId: string, roleName: string) => {
+  const validRoles = Object.values(role).filter(
+    (singleRole) => singleRole !== role.superadmin && singleRole !== role.company
+  );
+  if (!validRoles.includes(roleName as (typeof validRoles)[number])) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Invalid role. Allowed: ${validRoles.join(", ")}`
+    );
+  }
+
+  const permission = await PermissionModel.findOne({ companyId, role: roleName });
+
+  return {
+    name: roleName,
+    label: roleName.charAt(0).toUpperCase() + roleName.slice(1),
+    count: permission?.permissions?.length || 0,
+    permissions: permission?.permissions ?? [],
+  };
+};
+
 export const userService = {
   createUserDB,
   verifyOtpDB,
@@ -366,7 +388,8 @@ export const userService = {
   allUserDB,
   createUserByCompanyDB,
   createCompanyBySuperadminDB , 
-  allRoleDB , 
+  allRoleDB ,
+  rolePermissionsDB ,
   allUserForCompanyDB
 }
 
