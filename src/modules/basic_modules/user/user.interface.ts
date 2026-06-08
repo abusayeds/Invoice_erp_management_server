@@ -26,7 +26,6 @@ export type IUser = {
   image?: string;
   authProvider?: "local" | "google";
   role: TRole;
-  subscriptionId?: Types.ObjectId | null;
   companyId?: Types.ObjectId | null;
   businessProfile?: TBusinessProfile;
   permissions?: TPermissions;
