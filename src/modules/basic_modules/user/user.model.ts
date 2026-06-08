@@ -83,10 +83,6 @@ const UserSchema = new Schema<IUser>(
     },
     businessProfile: { type: businessProfileSchema },
     permissions: [{ type: String }],
-    subscriptionId: {
-      type: Schema.Types.ObjectId,
-      ref: "Purchase",
-    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -98,6 +94,10 @@ const UserSchema = new Schema<IUser>(
     login: {
       type: Boolean,
       default: true,
+    },
+    is_trial_done: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
