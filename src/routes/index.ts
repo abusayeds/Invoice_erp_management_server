@@ -2,7 +2,7 @@ import express from "express";
 import { UserRoutes } from "../modules/basic_modules/user/user.route";
 import { managementRoutes } from "../modules/basic_modules/management/management.route";
 import { subscriptionRoutes } from "../modules/make_modules/subscription/subscription.route";
-import { purchaseRoutes } from "../modules/make_modules/purchasePlan/purchase.route";
+import { subscriptionGateway } from "../modules/make_modules/subscription/guard/subscriptionGateway";
 import uploadRouter from "../fileUpload/route";
 import { statusRoutes } from "../modules/make_modules/status/status.route";
 import { TermsRoutes } from "../modules/make_modules/terms/terms.route";
@@ -41,11 +41,14 @@ import { taxRoutes } from "../modules/make_modules/product/tax/tax.route";
 import { performanceRoutes } from "../modules/make_modules/performance/performance.route";
 
 const router = express.Router();
+
+// Feature-gate every /api/v1/:module/* request by the company's active plan (best-effort; superadmin/legacy bypass).
+router.use(subscriptionGateway);
+
 router.use("/api/v1/file-upload", uploadRouter);
 router.use("/api/v1/user", UserRoutes);
 router.use("/api/v1/management", managementRoutes);
 router.use("/api/v1/subscription", subscriptionRoutes);
-router.use("/api/v1/purchase", purchaseRoutes);
 router.use("/api/v1/status", statusRoutes);
 router.use("/api/v1/terms", TermsRoutes );
 router.use("/api/v1/pdf", PDFSettingRoutes );
