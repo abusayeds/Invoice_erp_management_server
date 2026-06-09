@@ -25,9 +25,9 @@ router.post("/create-company-by-superadmin", authMiddleware(role.superadmin), us
 router.get("/all-user-for-company", authMiddleware(role.company), userController.allUserForCompany);
 router.get("/all-role", authMiddleware(role.company), userController.allRole);
 router.get("/role-permissions/:role", authMiddleware(role.company), userController.rolePermissions);
-router.get("/my-profile", authMiddleware(role.superadmin , role.company , role.hr , role.staff), userController.myProfile);
+router.get("/my-profile", authMiddleware(role.superadmin , role.company , role.hr , role.staff , role.customer), userController.myProfile);
 router.get("/all-user", authMiddleware(role.superadmin), userController.getAllUsers);
 router.post("/block-user", authMiddleware(role.superadmin), BlockUser);
-router.post("/delete", authMiddleware(role.superadmin), deleteUser);
+router.delete("/delete/:id", authMiddleware(role.superadmin , role.company), deleteUser);
 
 export const UserRoutes = router;

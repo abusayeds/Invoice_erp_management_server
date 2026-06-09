@@ -697,7 +697,7 @@ export const BlockUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const deleteUser = catchAsync(async (req: Request, res: Response) => {
-  const id = req.query?.id as string;
+  const id = req.params?.id as string;
 
   const user = await findUserById(id);
 
