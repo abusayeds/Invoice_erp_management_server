@@ -13,6 +13,7 @@ import { role,  } from "../../../utils/role";
 import { Types } from "mongoose";
 import { PermissionModel } from "../../make_modules/permission/permission.model";
 import { TPermission } from "../../make_modules/permission/permission.interface";
+import { resolveEffectivePermissions } from "../../../utils/userPermissions";
 
 export const generateToken = (payload: any): string => {
   return jwt.sign(payload, JWT_SECRET_KEY as string, { expiresIn: "7d" });
@@ -88,7 +89,7 @@ const verifyOtpDB = async (email: string) => {
 }
 
 const loginDB = async (email: string, password: string) => {
-  const user = await UserModel.findOne({ email: email  , authProvider : "local" }).select('+password');
+  const user = await UserModel.findOne({ email: email  , authProvider : "local" }).select('+password +permissionsOverridden');
   if (!user) {throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
   if (!user.login) {throw new AppError(httpStatus.UNAUTHORIZED,"You are not allowed to login.")}
   if (user.isDeleted) { throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
@@ -106,12 +107,15 @@ const loginDB = async (email: string, password: string) => {
   const userSafe = { ...user.toObject ? user.toObject() : user };
   delete userSafe.password;
   delete userSafe.isVerify;
+  delete userSafe.permissionsOverridden;
+  // Return live role-derived permissions (per-user override wins) instead of the stored copy.
+  userSafe.permissions = await resolveEffectivePermissions(user);
 
   return userSafe;
 }
 const googleLoginDB = async (payload : IUser) => {
   const { email } = payload;
-  let user = await UserModel.findOne({ email: email  , authProvider : "google" });
+  let user = await UserModel.findOne({ email: email  , authProvider : "google" }).select('+permissionsOverridden');
   if (!user) { throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
   if (user.isDeleted) {throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
  if (!user) {
@@ -127,6 +131,8 @@ const googleLoginDB = async (payload : IUser) => {
   const userSafe = { ...user.toObject ? user.toObject() : user };
   delete userSafe.password;
   delete userSafe.isVerify;
+  delete userSafe.permissionsOverridden;
+  userSafe.permissions = await resolveEffectivePermissions(user);
 
   return userSafe;
 }
@@ -235,13 +241,17 @@ const updateUserDB = async (payload: IUser, file: any, userId: string) => {
 }
 
 const myProfileDB = async (userId: string) => {
-  const user = await UserModel.findById(userId).select('-password -isVerify');
+  const user = await UserModel.findById(userId).select('-password -isVerify +permissionsOverridden');
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND,
       "User not found.",
     );
   }
-  return user
+  const result = user.toObject();
+  delete result.permissionsOverridden;
+  // Return live role-derived permissions (per-user override wins) instead of the stored copy.
+  result.permissions = await resolveEffectivePermissions(user);
+  return result;
 }
 const allUserDB = async (query: Record<string, unknown>,) => {
   const userQuery = new queryBuilder(UserModel.find({ role: role.company }).select('-password -isVerify'), query).sort()
@@ -395,7 +405,7 @@ export const userService = {
 
 
 export const userDelete = async (id: string): Promise<void> => {
-  await UserModel.findByIdAndUpdate(id, { isDeleted: true });
+  await UserModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
 };
 
 

@@ -7,6 +7,7 @@ import httpStatus from "http-status";
 import { UserModel } from "../modules/basic_modules/user/user.model";
 import { IUser, TPermissions } from "../modules/basic_modules/user/user.interface";
 import { permissionMiddleware } from "./permissionMiddleware";
+import { resolveEffectivePermissions } from "../utils/userPermissions";
 
 export interface AuthRequest extends Request {
   user?: IUser;
@@ -32,7 +33,9 @@ export const authMiddleware = (...requiredRoles: TRole[]) => {
         process.env.JWT_SECRET_KEY as string
       );
 
-      const user: IUser | null = await UserModel.findById(decoded.user._id);
+      const user: IUser | null = await UserModel.findById(decoded.user._id).select(
+        "+permissionsOverridden"
+      );
       if (!user) {
         return next(
           new AppError(httpStatus.UNAUTHORIZED, "User not found or unauthorized.")
@@ -45,6 +48,10 @@ export const authMiddleware = (...requiredRoles: TRole[]) => {
           new AppError(httpStatus.FORBIDDEN, "You are not authorized.")
         );
       }
+
+      // Resolve permissions live from the role (hybrid: per-user override wins). Runtime-only —
+      // not persisted/serialized, so my-profile/login responses keep their stored permissions.
+      user.effectivePermissions = await resolveEffectivePermissions(user);
 
       req.user = user;
       next();

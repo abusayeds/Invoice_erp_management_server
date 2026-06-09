@@ -73,7 +73,7 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: [...Object.values(role), "client"],
+      enum: [...Object.values(role), ],
       required: true,
     },
     companyId: {
@@ -83,6 +83,8 @@ const UserSchema = new Schema<IUser>(
     },
     businessProfile: { type: businessProfileSchema },
     permissions: [{ type: String }],
+    // Hidden by default so existing responses (my-profile/login) stay unchanged; auth loads it explicitly.
+    permissionsOverridden: { type: Boolean, default: false, select: false },
     isDeleted: {
       type: Boolean,
       default: false,

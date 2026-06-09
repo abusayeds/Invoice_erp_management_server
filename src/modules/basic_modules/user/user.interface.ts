@@ -29,6 +29,10 @@ export type IUser = {
   companyId?: Types.ObjectId | null;
   businessProfile?: TBusinessProfile;
   permissions?: TPermissions;
+  /** True when an admin set per-user permissions that override the role default (hybrid). */
+  permissionsOverridden?: boolean;
+  /** Runtime-only: live permissions resolved for authorization checks. Never persisted or serialized. */
+  effectivePermissions?: TPermissions;
   isDeleted: boolean;
   isVerify: boolean;
   login: boolean;

@@ -38,16 +38,12 @@ const updatePermissionDB = async (companyId: string, payload: Partial<TPermissio
 
 const updateUserPermissionsDB = async (
   companyId: string,
-  payload: { userId?: string; permissions?: unknown },
+  payload: { userId?: string; permissions?: unknown; resetToRole?: boolean },
 ) => {
-  const { userId, permissions: rawPermissions } = payload;
+  const { userId, permissions: rawPermissions, resetToRole } = payload;
   if (!userId || !Types.ObjectId.isValid(userId)) {
     throw new AppError(httpStatus.BAD_REQUEST, "Valid userId is required");
   }
-  if (rawPermissions === undefined || rawPermissions === null) {
-    throw new AppError(httpStatus.BAD_REQUEST, "permissions is required");
-  }
-  const permissions = parseValidPermissions(rawPermissions);
   const user = await UserModel.findOne({
     _id: userId,
     companyId,
@@ -62,10 +58,25 @@ const updateUserPermissionsDB = async (
       "Cannot update permissions for superadmin or company users",
     );
   }
-  user.permissions = permissions;
+
+  if (resetToRole) {
+    // Drop the override so this user follows live role permissions again (hybrid).
+    const rolePermissions = await PermissionModel.findOne({ companyId, role: user.role });
+    user.permissions = rolePermissions?.permissions ?? [];
+    user.permissionsOverridden = false;
+  } else {
+    if (rawPermissions === undefined || rawPermissions === null) {
+      throw new AppError(httpStatus.BAD_REQUEST, "permissions is required");
+    }
+    // Explicit per-user override: these win over the role until reset.
+    user.permissions = parseValidPermissions(rawPermissions);
+    user.permissionsOverridden = true;
+  }
+
   await user.save();
   const result = user.toObject();
   delete result.password;
+  delete result.permissionsOverridden;
   return result;
 };
 
