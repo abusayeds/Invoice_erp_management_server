@@ -30,13 +30,32 @@ const singleProductDB = async (user_id :  string , id : string) => {
   const result = await ProductModel.findOne({ user_id, _id: id , isArchive: false , isDeleted : false } );
   return result;
 }
-const deleteProductDB = async (user_id :  string , payload : TProduct) => {
-  const result = await ProductModel.findOneAndUpdate({ user_id, _id: payload._id } , payload , {new : true} );
+const deleteProductDB = async (user_id :  string , id : string) => {
+  const result = await ProductModel.findOneAndUpdate({ user_id, _id: id } , { isDeleted: true } , {new : true} );
+  return result;
+}
+const updateProductDB = async (user_id : string , id : string , payload : TProduct) => {
+  const existing = await ProductModel.findOne({ user_id, _id: id, isDeleted: false });
+  if (!existing) {throw new AppError(httpStatus.NOT_FOUND, "Product not found")}
+  if (payload.category) {
+    const isExistCategory = await CategoryModel.findOne({ _id: payload.category });
+    if (!isExistCategory) {throw new AppError(httpStatus.NOT_FOUND, "Category not found")}
+  }
+  if (payload.tax) {
+    const isExistTax = await TaxModel.findOne({ _id: payload.tax, user_id });
+    if (!isExistTax) {throw new AppError(httpStatus.NOT_FOUND, "Tax not found")}
+  }
+  const result = await ProductModel.findOneAndUpdate(
+    { user_id, _id: id, isDeleted: false },
+    payload,
+    { new: true, runValidators: true }
+  );
   return result;
 }
 export const productService  = {
     productCreateDB,
     allProductDB  ,
     singleProductDB ,
-    deleteProductDB
+    deleteProductDB ,
+    updateProductDB
 }

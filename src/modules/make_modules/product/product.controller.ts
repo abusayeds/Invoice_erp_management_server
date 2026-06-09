@@ -40,7 +40,8 @@ const singleProduct= catchAsync(async (req: AuthRequest, res) => {
   });
 });
 const deleteProduct = catchAsync(async (req: AuthRequest, res) => {
-  const result : TProduct | null = await productService.deleteProductDB(req.user?._id as string, req.body);
+  const { id } = req.params;
+  const result : TProduct | null = await productService.deleteProductDB(req.user?._id as string, id);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -50,11 +51,23 @@ const deleteProduct = catchAsync(async (req: AuthRequest, res) => {
    await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId, type : ActivitiesType.Archived , title: ` ${result?.productName} Product Deleted` } );
 });
 
- 
+const updateProduct = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  req.body.user_id = req?.user?._id;
+  const result : TProduct | null = await productService.updateProductDB(req.user?._id as string, id, req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Product updated successfully.",
+    data: result
+  });
+   await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId, type : ActivitiesType.Updated , title: ` ${result?.productName} Product Updated` } );
+});
 
 export const productController = {
     productCreate,
     allProduct ,
     singleProduct ,
-    deleteProduct
+    deleteProduct ,
+    updateProduct
 }

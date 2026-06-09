@@ -20,11 +20,15 @@ router.get(
   authMiddleware(role.company),
   productController.singleProduct
 );
-router.post(
-  "/delete",
+router.delete(
+  "/delete/:id",
   authMiddleware(role.company),
   productController.deleteProduct
 );
-
+router.patch(
+  "/update/:id",
+  authMiddleware(role.company),
+  productController.updateProduct
+);
 
 export const productRoutes = router;
