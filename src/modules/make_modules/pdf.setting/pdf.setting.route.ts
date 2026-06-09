@@ -5,11 +5,7 @@ import { pdfSettingController } from "./pdf.setting.controller";
 
 const router = express.Router();
 
-router.patch(
-  "/:pdfType",
-  authMiddleware(role.company),
-  pdfSettingController.PdfSettingUpdate
-);
+router.patch("/:pdfType",authMiddleware(role.company), pdfSettingController.PdfSettingUpdate);
 
 
 export const PDFSettingRoutes = router;
