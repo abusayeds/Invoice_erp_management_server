@@ -25,7 +25,6 @@ export const GATED_ROUTE_MODULES: Record<string, string> = {
   quotation: "quotation",
   proposal: "proposal",
   project: "project",
-  warehouse: "warehouse",
   training: "training",
 };
 
