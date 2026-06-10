@@ -4,7 +4,7 @@ import queryBuilder from "../../../../builder/queryBuilder";
 import { TInvoiceReturn } from "./invoiceReturn.interface";
 import { InvoiceReturnModel } from "./invoiceReturn.model";
 import { InvoiceModel } from "../invoice.model";
-import { WarehouseModel } from "../../warehouse/warehouse.model";
+import { WarehouseModel } from "../../purchase/warehouse/warehouse.model";
 import { createCreditNoteFromInvoiceReturn } from "../../account/noteFromReturn.service";
 
 const createInvoiceReturnDB = async (payload: TInvoiceReturn) => {
