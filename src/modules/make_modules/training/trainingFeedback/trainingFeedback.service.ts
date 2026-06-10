@@ -25,8 +25,8 @@ const populateRefs = [
 
 const format = (d: TTrainingFeedback) => ({
   _id: d._id,
-  task: refName(d.training_task_id, "title"),
-  employee: refName(d.employee_user_id),
+  training_task_id: refName(d.training_task_id, "title"),
+  employee_user_id: refName(d.employee_user_id),
   rating: d.rating,
   comments: d.comments ?? null,
   createdAt: d.createdAt,

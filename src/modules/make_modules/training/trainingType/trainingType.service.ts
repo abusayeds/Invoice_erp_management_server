@@ -38,8 +38,8 @@ export const trainingTypeService = createTrainingCrudService<TTrainingType>({
     _id: d._id,
     name: d.name,
     description: d.description ?? null,
-    branch: refName(d.branch_id, "branch_name"),
-    department: refName(d.department_id, "department_name"),
+    branch_id: refName(d.branch_id, "branch_name"),
+    department_id: refName(d.department_id, "department_name"),
     createdAt: d.createdAt,
   }),
 });

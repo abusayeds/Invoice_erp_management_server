@@ -28,7 +28,7 @@ const populateRefs = [
 
 const format = (d: TTrainingTask) => ({
   _id: d._id,
-  training: refName(d.training_id, "title"),
+  training_id: refName(d.training_id, "title"),
   title: d.title,
   description: d.description ?? null,
   status: d.status,
