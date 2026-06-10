@@ -6,10 +6,8 @@ import { DebitNoteModel } from "../debitNote/debitNote.model";
 import { creditNoteService } from "../creditNote/creditNote.service";
 import { debitNoteService } from "../debitNote/debitNote.service";
 import { InvoiceModel } from "../invoice/invoice.model";
-import { BillModel } from "../bill/bill.model";
-import { PurchaseOrderModel } from "../purchaseOrder/purchaseOrder.model";
 import { TInvoiceReturn } from "../invoice/invoiceReturn/invoiceReturn.interface";
-import { TReturnPurchase } from "../purchaseOrder/returnPurchase/returnPurchase.interface";
+import { TPurchaseReturn } from "../purchase/purchaseReturn/purchaseReturn.interface";
 import { TCreditNote } from "../creditNote/creditNote.interface";
 import { TDebitNote } from "../debitNote/debitNote.interface";
 
@@ -80,7 +78,7 @@ export const createCreditNoteFromInvoiceReturn = async (
 /** Laravel: ApprovePurchaseReturn → CreateDebitNoteFromReturn (draft debit note). */
 export const createDebitNoteFromPurchaseReturn = async (
   userId: string,
-  purchaseReturn: TReturnPurchase & { _id: Types.ObjectId }
+  purchaseReturn: TPurchaseReturn & { _id: Types.ObjectId }
 ) => {
   const existing = await DebitNoteModel.findOne({
     user_id: userId,
@@ -91,45 +89,41 @@ export const createDebitNoteFromPurchaseReturn = async (
     throw new AppError(httpStatus.CONFLICT, "Debit note already exists for this purchase return");
   }
 
-  const sourceId = purchaseReturn.purchase_order_id;
-  let doc =
-    (await BillModel.findOne({ _id: sourceId, user_id: userId, isDeleted: false })) ??
-    (await PurchaseOrderModel.findOne({ _id: sourceId, user_id: userId, isDeleted: false }));
-
-  if (!doc) {
-    throw new AppError(httpStatus.NOT_FOUND, "Original purchase bill/order not found");
-  }
-
-  const vendor_id = doc.vendor_id;
+  const vendor_id = purchaseReturn.vendor_id;
   if (!vendor_id) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Purchase document has no vendor; cannot create debit note");
+    throw new AppError(httpStatus.BAD_REQUEST, "Purchase return has no vendor; cannot create debit note");
   }
+
+  // Map the purchase-return line items onto the debit note's product lines.
+  const product = (purchaseReturn.items || []).map((it) => ({
+    product_id: it.product_id,
+    quantity: it.return_quantity,
+    rate: it.unit_price,
+    tax: it.tax_percentage ?? 0,
+    discount: it.discount_percentage ?? 0,
+    amount: it.total_amount ?? 0,
+  }));
 
   const payload: Partial<TDebitNote> = {
     user_id: new Types.ObjectId(userId),
     vendor_id,
     source: "return",
     return_id: purchaseReturn._id,
-    source_invoice_id: doc._id,
-    return_reason: purchaseReturn.return_reason,
+    source_invoice_id: purchaseReturn.original_invoice_id,
+    return_reason: purchaseReturn.reason,
     invoice_number: buildNoteNumber("DN"),
-    currency: doc.currency,
     date: purchaseReturn.return_date ?? new Date(),
-    product: doc.product ? [...doc.product] : undefined,
-    service: doc.service ? [...doc.service] : undefined,
-    billing_address: doc.billing_address,
-    shipping_address: doc.shipping_address,
-    sub_total: doc.sub_total,
-    discount: doc.discount,
-    shipping_cost: doc.shipping_cost,
-    inline_discount: doc.inline_discount,
-    tax: doc.tax,
-    total: doc.total,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    product: product as any,
+    sub_total: purchaseReturn.subtotal,
+    discount: purchaseReturn.discount_amount,
+    tax: purchaseReturn.tax_amount,
+    total: purchaseReturn.total_amount,
     status: "Draft",
     notes: purchaseReturn.notes,
-    internal_notes: `Auto-created from purchase return: ${purchaseReturn.return_reason}`,
+    internal_notes: `Auto-created from purchase return: ${purchaseReturn.reason}`,
     applied_amount: 0,
-    balance_amount: doc.total ?? 0,
+    balance_amount: purchaseReturn.total_amount ?? 0,
   };
 
   return debitNoteService.createDB(payload as TDebitNote);
