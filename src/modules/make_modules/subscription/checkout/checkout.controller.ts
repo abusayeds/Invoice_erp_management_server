@@ -12,10 +12,12 @@ import { assignPlan } from "../companySubscription/assignment.service";
 import { getActiveSubscription, resolveCompanyId } from "../subscription.helpers";
 import { TBillingCycle } from "../subscription.constants";
 import { stripe, createPlanCheckoutSession } from "./checkout.service";
+import { renderSuccessPage, renderCancelPage } from "./checkout.pages";
 
 /** POST /subscription/checkout — company starts a paid subscription (monthly | yearly). */
 const createCheckout = catchAsync(async (req: AuthRequest, res) => {
   const companyId = resolveCompanyId(req);
+  
   const { planId, billing_cycle, successUrl, cancelUrl } = req.body as {
     planId: string;
     billing_cycle: TBillingCycle;
@@ -35,14 +37,21 @@ const createCheckout = catchAsync(async (req: AuthRequest, res) => {
     throw new AppError(httpStatus.BAD_REQUEST, "This is a free plan — use the assign-free endpoint.");
   }
 
+  // Fall back to backend-hosted landing pages when the frontend doesn't supply URLs.
+  const proto = ((req.headers["x-forwarded-proto"] as string) || req.protocol || "https").split(",")[0];
+  const base = `${proto}://${req.get("host")}`;
+  const finalSuccessUrl =
+    successUrl || `${base}/api/v1/subscription/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+  const finalCancelUrl = cancelUrl || `${base}/api/v1/subscription/checkout/cancel`;
+
   const result = await createPlanCheckoutSession({
     planId: String(plan._id),
     planName: plan.name,
     billingCycle: billing_cycle,
     price,
     userId: companyId,
-    successUrl,
-    cancelUrl,
+    successUrl: finalSuccessUrl,
+    cancelUrl: finalCancelUrl,
   });
 
   sendResponse(res, {
@@ -143,4 +152,49 @@ const webhook = async (req: Request, res: Response) => {
   }
 };
 
-export const checkoutController = { createCheckout, assignFree, startTrial, mySubscription, webhook };
+/** GET /subscription/checkout/success — backend-hosted success landing page (browser redirect from Stripe). */
+const checkoutSuccess = async (req: Request, res: Response) => {
+  const sessionId = (req.query.session_id as string) || undefined;
+  const data: {
+    sessionId?: string;
+    date: Date;
+    currency: string;
+    amount?: number | null;
+    email?: string | null;
+    billingCycle?: string | null;
+    planName?: string;
+  } = { sessionId, date: new Date(), currency: "usd" };
+
+  if (sessionId) {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      data.amount = session.amount_total != null ? session.amount_total / 100 : null;
+      data.currency = session.currency || "usd";
+      data.email = session.customer_details?.email || null;
+      data.billingCycle = (session.metadata as any)?.billing_cycle || null;
+      const planId = (session.metadata as any)?.planId;
+      if (planId) {
+        const plan = await PlanModel.findById(planId);
+        if (plan) data.planName = plan.name;
+      }
+    } catch (err: any) {
+      console.error("checkoutSuccess: could not load session", err?.message);
+    }
+  }
+  res.status(httpStatus.OK).type("html").send(renderSuccessPage(data));
+};
+
+/** GET /subscription/checkout/cancel — backend-hosted cancel landing page. */
+const checkoutCancel = async (_req: Request, res: Response) => {
+  res.status(httpStatus.OK).type("html").send(renderCancelPage());
+};
+
+export const checkoutController = {
+  createCheckout,
+  assignFree,
+  startTrial,
+  mySubscription,
+  webhook,
+  checkoutSuccess,
+  checkoutCancel,
+};
