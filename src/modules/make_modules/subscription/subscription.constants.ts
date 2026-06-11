@@ -11,6 +11,7 @@ export const MODULE_CATALOG: { key: string; label: string }[] = [
   { key: "project", label: "Project" },
   { key: "warehouse", label: "Warehouse" },
   { key: "training", label: "Training" },
+  { key: "recruitment", label: "Recruitment" },
 ];
 
 export const MODULE_KEYS = MODULE_CATALOG.map((m) => m.key);
@@ -26,6 +27,7 @@ export const GATED_ROUTE_MODULES: Record<string, string> = {
   proposal: "proposal",
   project: "project",
   training: "training",
+  recruitment: "recruitment",
 };
 
 export const LIMIT_RESOURCES: { key: string; label: string }[] = [];
