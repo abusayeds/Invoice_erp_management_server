@@ -40,13 +40,13 @@ const serviceSchema = new Schema(
 const invoiceSchema = new Schema<TInvoice>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    customer_id: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
     vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
-    warehouse_id: { type: Schema.Types.ObjectId, ref: 'Warehouse' },
+    warehouse_id: { type: Schema.Types.ObjectId, required: true, ref: 'Warehouse' },
     invoice_number: { type: String },
     currency: { type: String },
     date: { type: Date },
-    due_date: { type: Date },
+    due_date: { type: Date, required: true },
     sub_title: { type: String },
     po: { type: Schema.Types.Mixed },
     shipping_method: { type: String },
@@ -54,7 +54,16 @@ const invoiceSchema = new Schema<TInvoice>(
     discount_before_tax: { type: Number, default: 0 },
     billing_address: { type: addressSchema },
     shipping_address: { type: addressSchema },
-    product: [productSchema],
+    product: {
+      type: [productSchema],
+      required: true,
+      validate: {
+        validator: function (v: any[]) {
+          return v.length > 0;
+        },
+        message: 'At least one product is required',
+      },
+    },
     service: [serviceSchema],
     terms_and_conditions: { type: String },
     notes: { type: String },

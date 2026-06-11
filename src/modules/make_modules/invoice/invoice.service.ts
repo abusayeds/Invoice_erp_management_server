@@ -13,8 +13,7 @@ import { InvoiceModel } from './invoice.model';
 import queryBuilder from '../../../builder/queryBuilder';
 
 const createDB = async (payload: TInvoice) => {
-   console.log("hit");
-   
+
   await validateDocumentParties(payload);
   if (Array.isArray(payload.product)) {
     for (const item of payload.product) {
