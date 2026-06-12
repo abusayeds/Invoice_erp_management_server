@@ -15,6 +15,8 @@ import { milestoneService } from "./milestone.service";
 import { taskService } from "./task.service";
 import { bugService } from "./bug.service";
 import { stageService } from "./stage.service";
+import { fileService, UploadedFile } from "./file.service";
+import { reportService } from "./report.service";
 
 const companyId = (req: AuthRequest) => req.user?._id as string;
 const creatorId = (req: AuthRequest) => req.user?._id as Types.ObjectId;
@@ -83,6 +85,27 @@ const listProjects = catchAsync(async (req: AuthRequest, res) => {
     message: "Projects retrieved successfully.",
     data: result.allRecords,
     pagination: result.pagination,
+  });
+});
+
+const reportList = catchAsync(async (req: AuthRequest, res) => {
+  const result = await reportService.reportList(companyId(req), req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Project report retrieved successfully.",
+    data: result.allRecords,
+    pagination: result.pagination,
+  });
+});
+
+const reportDetails = catchAsync(async (req: AuthRequest, res) => {
+  const data = await reportService.reportDetails(companyId(req), req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Project report detail retrieved successfully.",
+    data,
   });
 });
 
@@ -242,6 +265,37 @@ const milestoneList = catchAsync(async (req: AuthRequest, res) => {
     statusCode: httpStatus.OK,
     message: "Milestones retrieved successfully.",
     data,
+  });
+});
+
+const projectFileUpload = catchAsync(async (req: AuthRequest, res) => {
+  const files = (req.files as unknown as UploadedFile[]) || [];
+  const data = await fileService.upload(companyId(req), String(req.body.project_id), files, req);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Files uploaded successfully.",
+    data,
+  });
+});
+
+const projectFileList = catchAsync(async (req: AuthRequest, res) => {
+  const data = await fileService.listByProject(companyId(req), req.params.projectId, req);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Files retrieved successfully.",
+    data,
+  });
+});
+
+const projectFileDelete = catchAsync(async (req: AuthRequest, res) => {
+  await fileService.remove(companyId(req), String(req.body.file_id));
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "File deleted successfully.",
+    data: null,
   });
 });
 
@@ -576,6 +630,8 @@ const bugStageReorder = catchAsync(async (req: AuthRequest, res) => {
 export const projectController = {
   dashboardHome,
   getUsers,
+  reportList,
+  reportDetails,
   listProjects,
   createUpdateProject,
   deleteProject,
@@ -591,6 +647,9 @@ export const projectController = {
   milestoneUpdate,
   milestoneDelete,
   milestoneList,
+  projectFileUpload,
+  projectFileList,
+  projectFileDelete,
   taskList,
   taskCreateUpdate,
   taskDetails,

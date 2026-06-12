@@ -24,6 +24,10 @@ router.get("/users", auth, projectController.getUsers);
 
 router.get("/all", auth, projectController.listProjects);
 
+router.get("/report", auth, projectController.reportList);
+
+router.get("/report/:id", auth, projectController.reportDetails);
+
 router.get("/single/:id", auth, projectController.projectDetails);
 
 router.get("/activity/:projectId", auth, projectController.projectActivity);
@@ -55,6 +59,14 @@ router.post("/milestone/update", auth, projectController.milestoneUpdate);
 router.post("/milestone/delete", auth, projectController.milestoneDelete);
 
 router.get("/milestone/list/:projectId", auth, projectController.milestoneList);
+
+
+
+router.get("/file/all/:projectId", auth, projectController.projectFileList);
+
+router.post("/file/upload", auth, upload.array("files"), projectController.projectFileUpload);
+
+router.post("/file/delete", auth, projectController.projectFileDelete);
 
 
 
