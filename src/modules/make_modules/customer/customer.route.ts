@@ -22,8 +22,8 @@ router.get(
   authMiddleware(role.company),
   customerController.singleCustomer
 );
-router.post(
-  "/delete",
+router.delete(
+  "/delete/:id",
   authMiddleware(role.company),
   customerController.deleteCustomer
 );

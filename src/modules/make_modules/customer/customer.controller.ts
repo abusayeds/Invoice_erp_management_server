@@ -49,9 +49,10 @@ const singleCustomer = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
   const result = await customerService.deleteCustomerDB(
     req?.user?._id as string,
-    req.body,
+    { _id: new Types.ObjectId(id) },
   );
   sendResponse(res, {
     success: true,
