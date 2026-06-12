@@ -31,11 +31,7 @@ export const employeeListSearchNested = (
         foreignField: "employee_user_id",
         model: UserModel,
         fields: ["name", "email", "phone"],
-        dotFields: [
-          "businessProfile.companyName",
-          "businessProfile.firstName",
-          "businessProfile.lastName",
-        ],
+        dotFields: ["businessProfile.companyName"],
         refFilter: {
           companyId: companyObjectId(companyId),
           role: { $in: EMPLOYEE_USER_ROLES },
