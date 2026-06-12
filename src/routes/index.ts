@@ -39,6 +39,7 @@ import { taxRoutes } from "../modules/make_modules/product/tax/tax.route";
 import { performanceRoutes } from "../modules/make_modules/performance/performance.route";
 import { trainingRoutes } from "../modules/make_modules/training/training.route";
 import { recruitmentRoutes } from "../modules/make_modules/recruitment/recruitment.route";
+import { dashboardRoutes } from "../modules/make_modules/dashboard/dashboard.route";
 
 const router = express.Router();
 
@@ -85,5 +86,6 @@ router.use("/api/v1/hrm", hrmRoutes);
 router.use("/api/v1/performance", performanceRoutes);
 router.use("/api/v1/training", trainingRoutes);
 router.use("/api/v1/recruitment", recruitmentRoutes);
+router.use("/api/v1/dashboard", dashboardRoutes);
 
 export default router;
