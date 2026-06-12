@@ -15,7 +15,6 @@ import { interviewRoutes } from "./interview/interview.route";
 import { offerRoutes } from "./offer/offer.route";
 import { candidateOnboardingRoutes } from "./candidateOnboarding/candidateOnboarding.route";
 import { recruitmentSettingRoutes } from "./recruitmentSetting/recruitmentSetting.route";
-import { recruitmentDashboardRoutes } from "./dashboard/dashboard.route";
 import { careersRoutes } from "./careers/careers.route";
 
 const router = express.Router();
@@ -42,8 +41,7 @@ router.use("/interviews", interviewRoutes);
 router.use("/offers", offerRoutes);
 router.use("/candidate-onboardings", candidateOnboardingRoutes);
 
-// Settings + dashboard
+// Settings (dashboard moved to the unified /api/v1/dashboard hub)
 router.use("/settings", recruitmentSettingRoutes);
-router.use("/dashboard", recruitmentDashboardRoutes);
 
 export const recruitmentRoutes = router;
