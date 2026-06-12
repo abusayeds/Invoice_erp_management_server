@@ -22,8 +22,8 @@ router.get(
   authMiddleware(role.company),
   vendorController.singleVendor
 );
-router.post(
-  "/delete",
+router.delete(
+  "/delete/:id",
   authMiddleware(role.company),
   vendorController.deleteVendor
 );

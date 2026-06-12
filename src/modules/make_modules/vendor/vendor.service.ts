@@ -19,7 +19,7 @@ const vendorCreateDB = async (payload: TPartyUserWrite) => {
   if (!companyId) {
     throw new AppError(httpStatus.BAD_REQUEST, "user_id (company) is required");
   }
-  validatePartyCreateBody(payload);
+  validatePartyCreateBody(payload, role.vendor);
   const userData = mapPartyPayloadToUser(payload, companyId, role.vendor);
   const created = await UserModel.create(userData);
   return toPartyUserResponse(created);

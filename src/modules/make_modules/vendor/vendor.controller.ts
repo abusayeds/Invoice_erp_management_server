@@ -43,7 +43,8 @@ const singleVendor = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 const deleteVendor = catchAsync(async (req: AuthRequest, res) => {
-  const result = await vendorService.deleteVendorDB( req?.user?._id as string , req.body);
+  const { id } = req.params;
+  const result = await vendorService.deleteVendorDB( req?.user?._id as string , { _id: new Types.ObjectId(id) });
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
