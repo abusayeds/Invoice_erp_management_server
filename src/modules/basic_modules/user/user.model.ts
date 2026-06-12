@@ -2,41 +2,31 @@ import bcrypt from "bcrypt";
 import mongoose, { Schema } from "mongoose";
 import { IOTP, IUser } from "./user.interface";
 import { role } from "../../../utils/role";
-import { TBusinessAddress } from "./user.business.interface";
+import { TPartyAddress } from "./user.business.interface";
 
-const addressSchema = new Schema<TBusinessAddress>(
+const addressSchema = new Schema<TPartyAddress>(
   {
-    street: { type: String, required: true },
-    zip: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    country: { type: String, required: true },
+    name: { type: String },
+    address_line_1: { type: String },
+    address_line_2: { type: String },
+    city: { type: String },
+    state: { type: String },
+    country: { type: String },
+    zip_code: { type: String },
   },
   { _id: false }
 );
 
+// Customer/Vendor business data — only the fields the Laravel forms collect.
 const businessProfileSchema = new Schema(
   {
     companyName: { type: String, trim: true },
-    reg_no: { type: String },
-    tax_id: { type: String },
-    firstName: { type: String },
-    lastName: { type: String },
-    BusinessPhone: { type: String },
-    fax: { type: String },
-    mobile: { type: String },
-    home_phone: { type: String },
-    address: { type: addressSchema },
-    billingAddress: { type: addressSchema },
-    bank_details: { type: String },
-    tax_service: { type: String },
-    tax_product: { type: String },
-    hourly_rate: { type: String },
-    payment_terms_seles: { type: String },
-    opening_balance: { type: Number, default: 0 },
-    opening_balance_date: { type: Date },
+    tax_number: { type: String },
+    payment_terms: { type: String },
+    billing_address: { type: addressSchema },
+    shipping_address: { type: addressSchema },
+    same_as_billing: { type: Boolean, default: false },
     notes: { type: String },
-    payment_reminder: { type: Boolean, default: false },
     active: { type: Boolean, default: true },
     archive: { type: Boolean, default: false },
   },
@@ -51,6 +41,8 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: function (this: IUser) {
         if (this.authProvider === "google") return false;
+        // Customer/vendor are data records (Laravel collects no password for them).
+        if (this.role === role.customer || this.role === role.vendor) return false;
         return true;
       },
       minlength: 3,

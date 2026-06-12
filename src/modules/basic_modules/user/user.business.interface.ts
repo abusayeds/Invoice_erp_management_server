@@ -1,78 +1,58 @@
 import { Types } from "mongoose";
 
-/** Shared address shape (former Customer/Vendor). */
-export type TBusinessAddress = {
-  street: string;
-  zip: string;
-  city: string;
-  state: string;
-  country: string;
+/** Customer/Vendor address — matches the Laravel `billing_address` / `shipping_address` shape. */
+export type TPartyAddress = {
+  name?: string;
+  address_line_1?: string;
+  address_line_2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zip_code?: string;
 };
 
-/** Role-specific business data for customer and vendor users (same User model). */
+/** @deprecated old name — use TPartyAddress. */
+export type TBusinessAddress = TPartyAddress;
+
+/**
+ * Business data for customer / vendor users (stored on the same User model).
+ * Only the fields the Laravel customer/vendor forms collect — nothing extra.
+ * Common identity fields (name, email, phone) live on the User itself, not here.
+ */
 export type TBusinessProfile = {
-  companyName?: string;
-  reg_no?: string;
-  tax_id?: string;
-  firstName?: string;
-  lastName?: string;
-  BusinessPhone?: string;
-  fax?: string;
-  mobile?: string;
-  home_phone?: string;
-  address?: TBusinessAddress;
-  billingAddress?: TBusinessAddress;
-  bank_details?: string;
-  tax_service?: string;
-  tax_product?: string;
-  hourly_rate?: string;
-  payment_terms_seles?: string;
-  opening_balance?: number;
-  opening_balance_date?: Date;
+  companyName?: string; // company_name
+  tax_number?: string;
+  payment_terms?: string;
+  billing_address?: TPartyAddress;
+  shipping_address?: TPartyAddress;
+  same_as_billing?: boolean;
   notes?: string;
-  payment_reminder?: boolean;
+  /** system flags (soft delete / listing) */
   active?: boolean;
   archive?: boolean;
 };
 
 /**
- * Customer/Vendor API body — IUser + businessProfile.
- * Flat fields (companyName, …) still accepted for backward compatibility.
+ * Customer / Vendor create + update body.
+ * Common identity fields use their natural names (name / email / phone) and map to the User;
+ * the rest map into businessProfile.
  */
 export type TPartyUserWrite = {
   _id?: Types.ObjectId;
-  /** Company (tenant) id — set from auth in controller */
+  /** Company (tenant) id — set from the auth token in the controller, not by the client. */
   user_id?: Types.ObjectId;
   name?: string;
   email?: string;
-  /** Required on create (customer/vendor login) */
-  password?: string;
-  confirmPassword?: string;
   phone?: string;
-  currency?: string;
-  country?: string;
-  businessProfile?: Partial<TBusinessProfile>;
-  isDeleted?: boolean;
-  companyName?: string;
-  reg_no?: string;
-  tax_id?: string;
-  firstName?: string;
-  lastName?: string;
-  BusinessPhone?: string;
-  fax?: string;
-  mobile?: string;
-  home_phone?: string;
-  address?: TBusinessAddress;
-  billingAddress?: TBusinessAddress;
-  bank_details?: string;
-  tax_service?: string;
-  tax_product?: string;
-  hourly_rate?: string;
-  payment_terms_seles?: string;
-  opening_balance?: number;
-  opening_balance_date?: Date;
+  company_name?: string;
+  tax_number?: string;
+  payment_terms?: string;
+  billing_address?: TPartyAddress;
+  shipping_address?: TPartyAddress;
+  same_as_billing?: boolean;
   notes?: string;
-  payment_reminder?: boolean;
+  /** system flags */
+  isDeleted?: boolean;
   active?: boolean;
   archive?: boolean;
 };
