@@ -1,5 +1,9 @@
 import { Types } from "mongoose";
 
+/** Assessment result (readable enum — replaces the old 0 code). */
+export const assessmentPassFailStatuses = ["Pending", "Pass", "Fail"] as const;
+export type TAssessmentPassFailStatus = (typeof assessmentPassFailStatuses)[number];
+
 export type TCandidateAssessment = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
