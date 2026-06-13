@@ -43,7 +43,7 @@ const jobListings = async (companyId: string) => {
   const jobs = await JobPostingModel.find({
     user_id,
     is_published: true,
-    status: "active",
+    status: "Active",
     isDeleted: false,
   })
     .populate([
@@ -117,7 +117,7 @@ const submitApplication = async (companyId: string, jobId: string, body: Record<
     profile_path: body.profilePhoto,
     resume_path: body.resume,
     cover_letter_path: body.coverLetter,
-    status: "0",
+    status: "New",
     application_date: new Date(),
     custom_question: body.custom_question ?? body.customAnswers ?? null,
     job_id: job._id,
@@ -129,12 +129,12 @@ const submitApplication = async (companyId: string, jobId: string, body: Record<
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  "0": "Applied",
-  "1": "Shortlisted",
-  "2": "Interview Scheduled",
-  "3": "Offer Extended",
-  "4": "Hired",
-  "5": "Rejected",
+  New: "New",
+  Shortlisted: "Shortlisted",
+  Interview: "Interview Scheduled",
+  Offer: "Offer Extended",
+  Hired: "Hired",
+  Rejected: "Rejected",
 };
 
 const trackingVerify = async (companyId: string, body: Record<string, unknown>) => {
@@ -189,27 +189,27 @@ const trackingDetails = async (companyId: string, trackingId: string) => {
   };
 };
 
-/** Laravel offerResponse: 2=accepted, 4=declined. */
+/** Public offer response: status must be "Accepted" or "Declined". */
 const offerResponse = async (companyId: string, offerId: string, body: Record<string, unknown>) => {
   const user_id = validCompany(companyId);
   if (!Types.ObjectId.isValid(offerId)) throw new AppError(httpStatus.BAD_REQUEST, "Invalid offer");
   const status = String(body.status);
-  if (!["2", "4"].includes(status)) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Status must be 2 (accepted) or 4 (declined)");
+  if (!["Accepted", "Declined"].includes(status)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Status must be "Accepted" or "Declined"');
   }
   const offer = await OfferModel.findOne({ _id: offerId, user_id, isDeleted: false });
   if (!offer) throw new AppError(httpStatus.NOT_FOUND, "Offer not found");
 
   offer.status = status;
   offer.response_date = new Date();
-  if (status === "4" && body.decline_reason) offer.decline_reason = String(body.decline_reason);
+  if (status === "Declined" && body.decline_reason) offer.decline_reason = String(body.decline_reason);
   await offer.save();
 
   return {
     _id: offer._id,
     status: offer.status,
     response_date: offer.response_date,
-    message: status === "2" ? "Offer accepted successfully" : "Offer declined",
+    message: status === "Accepted" ? "Offer accepted successfully" : "Offer declined",
   };
 };
 

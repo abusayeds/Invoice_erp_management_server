@@ -63,13 +63,13 @@ const companyDashboard = async (companyId: string) => {
   ] = await Promise.all([
     CandidateModel.countDocuments(scope),
     JobPostingModel.countDocuments({ ...scope, is_published: true }),
-    InterviewModel.countDocuments({ ...scope, status: "0" }),
+    InterviewModel.countDocuments({ ...scope, status: "Scheduled" }),
     CandidateOnboardingModel.countDocuments({ ...scope, status: "Completed" }),
-    CandidateModel.countDocuments({ ...scope, status: "0" }),
-    CandidateModel.countDocuments({ ...scope, status: "1" }),
-    CandidateModel.countDocuments({ ...scope, status: "2" }),
-    CandidateModel.countDocuments({ ...scope, status: "4" }),
-    CandidateModel.countDocuments({ ...scope, status: "5" }),
+    CandidateModel.countDocuments({ ...scope, status: "New" }),
+    CandidateModel.countDocuments({ ...scope, status: "Shortlisted" }),
+    CandidateModel.countDocuments({ ...scope, status: "Interview" }),
+    CandidateModel.countDocuments({ ...scope, status: "Hired" }),
+    CandidateModel.countDocuments({ ...scope, status: "Rejected" }),
     CandidateOnboardingModel.countDocuments({ ...scope, status: "Pending" }),
     CandidateOnboardingModel.countDocuments({ ...scope, status: "In Progress" }),
     CandidateOnboardingModel.countDocuments({ ...scope, status: "Completed" }),
@@ -78,7 +78,7 @@ const companyDashboard = async (companyId: string) => {
   const candidatesByStatus = { applied, shortlisted, interviewScheduled, hired, rejected };
 
   const calendarEvents = (
-    await InterviewModel.find({ ...scope, status: "0" })
+    await InterviewModel.find({ ...scope, status: "Scheduled" })
       .populate("candidate_id", "first_name last_name")
       .populate("job_id", "title")
       .lean()
@@ -145,8 +145,8 @@ const staffDashboard = async (companyId: string, userId: string) => {
     conductedAssessmentsCount,
     submittedFeedbacks,
   ] = await Promise.all([
-    InterviewModel.countDocuments({ _id: { $in: allInterviewIds }, status: "0" }),
-    InterviewModel.countDocuments({ _id: { $in: allInterviewIds }, status: "1" }),
+    InterviewModel.countDocuments({ _id: { $in: allInterviewIds }, status: "Scheduled" }),
+    InterviewModel.countDocuments({ _id: { $in: allInterviewIds }, status: "Completed" }),
     CandidateOnboardingModel.countDocuments({ _id: { $in: assignedOnboardings }, status: "Completed" }),
     CandidateOnboardingModel.countDocuments({ _id: { $in: assignedOnboardings }, status: "Pending" }),
     CandidateAssessmentModel.countDocuments({ ...scope, conducted_by: uid }),
@@ -157,7 +157,7 @@ const staffDashboard = async (companyId: string, userId: string) => {
   ]);
 
   const calendarEvents = (
-    await InterviewModel.find({ _id: { $in: allInterviewIds }, status: "0" })
+    await InterviewModel.find({ _id: { $in: allInterviewIds }, status: "Scheduled" })
       .populate("candidate_id", "first_name last_name")
       .populate("job_id", "title")
       .lean()
@@ -203,7 +203,7 @@ const staffDashboard = async (companyId: string, userId: string) => {
   });
   const upcomingInterviews = await InterviewModel.countDocuments({
     _id: { $in: allInterviewIds },
-    status: "0",
+    status: "Scheduled",
   });
 
   return {
