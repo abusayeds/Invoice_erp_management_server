@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { TInterview } from "./interview.interface";
+import { TInterview, interviewStatuses } from "./interview.interface";
 import { recruitmentBaseFields } from "../recruitment.utils";
 
 const interviewSchema = new Schema<TInterview>(
@@ -11,7 +11,7 @@ const interviewSchema = new Schema<TInterview>(
     location: { type: String },
     meeting_link: { type: String },
     interviewer_ids: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    status: { type: String, default: "0" },
+    status: { type: String, enum: interviewStatuses, default: "Scheduled" },
     feedback_submitted: { type: Boolean, default: false },
     candidate_id: { type: Schema.Types.ObjectId, ref: "RecruitmentCandidate", index: true },
     job_id: { type: Schema.Types.ObjectId, ref: "RecruitmentJobPosting", index: true },

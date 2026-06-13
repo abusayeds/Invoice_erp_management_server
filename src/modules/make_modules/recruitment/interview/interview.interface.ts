@@ -1,5 +1,9 @@
 import { Types } from "mongoose";
 
+/** Interview lifecycle (readable enum — replaces the old 0/1 codes). */
+export const interviewStatuses = ["Scheduled", "Completed", "Cancelled"] as const;
+export type TInterviewStatus = (typeof interviewStatuses)[number];
+
 export type TInterview = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
