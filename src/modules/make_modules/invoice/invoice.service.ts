@@ -126,10 +126,21 @@ const updateDB = async (id: string, userId: string, payload: TInvoice) => {
     }
   }
 
-  const result = await calculateInvoice(payload);
-  const data = { ...payload, ...result };
-  data.paid_amount = data.paid_amount ?? existing.paid_amount ?? 0;
-  data.balance_amount = data.balance_amount ?? data.total ?? 0;
+  // Only recompute the money fields when the items actually change. A partial update
+  // (e.g. just flipping status to "Open") must NOT wipe sub_total/total/balance.
+  const recalcTotals = payload.product !== undefined || payload.service !== undefined;
+
+  let data: Record<string, unknown> = { ...payload };
+  if (recalcTotals) {
+    const result = await calculateInvoice({ ...existing.toObject(), ...payload });
+    const paid = payload.paid_amount ?? existing.paid_amount ?? 0;
+    data = {
+      ...payload,
+      ...result,
+      paid_amount: paid,
+      balance_amount: Math.max(0, (result.total ?? 0) - paid),
+    };
+  }
 
   const updatedRecord = await InvoiceModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
