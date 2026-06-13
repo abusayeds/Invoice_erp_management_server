@@ -1,5 +1,11 @@
 import { Types } from "mongoose";
 
+/** Offer lifecycle + approval (readable enums — replace the old 0/pending codes). */
+export const offerStatuses = ["Pending", "Sent", "Accepted", "Declined"] as const;
+export const offerApprovalStatuses = ["Pending", "Approved", "Rejected"] as const;
+export type TOfferStatus = (typeof offerStatuses)[number];
+export type TOfferApprovalStatus = (typeof offerApprovalStatuses)[number];
+
 export type TOffer = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;

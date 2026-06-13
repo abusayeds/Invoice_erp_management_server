@@ -19,7 +19,7 @@ import {
 } from "../recruitment.utils";
 import { CandidateModel } from "../candidate/candidate.model";
 import { OfferModel } from "./offer.model";
-import { TOffer } from "./offer.interface";
+import { TOffer, offerApprovalStatuses } from "./offer.interface";
 import { UserModel } from "../../../basic_modules/user/user.model";
 import { HrmEmployeeModel } from "../../hrm/models/employee.models";
 
@@ -79,11 +79,14 @@ const base = createRecruitmentCrudService<TOffer>({
   formatItem: format,
 });
 
-/** Laravel updateApprovalStatus: approved / rejected. Records approver. */
+/** updateApprovalStatus: Approved / Rejected / Pending. Records approver. */
 const updateApprovalStatus = async (req: AuthRequest, id: string, status: unknown) => {
   const s = String(status);
-  if (!["approved", "rejected", "pending"].includes(s)) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Invalid approval status");
+  if (!(offerApprovalStatuses as readonly string[]).includes(s)) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Invalid approval status. Allowed: ${offerApprovalStatuses.join(", ")}`
+    );
   }
   const doc = await base.getOwned(req, id);
   doc.approval_status = s;
@@ -95,7 +98,7 @@ const updateApprovalStatus = async (req: AuthRequest, id: string, status: unknow
 /** Laravel sendEmail: mark the offer letter as sent (email delivery handled by infra). */
 const sendEmail = async (req: AuthRequest, id: string) => {
   const doc = await base.getOwned(req, id);
-  doc.status = "sent";
+  doc.status = "Sent";
   await doc.save();
   return format(doc as unknown as TOffer);
 };
@@ -157,7 +160,7 @@ const convertToEmployee = async (req: AuthRequest, id: string, body: Record<stri
   offer.employee_id = employee._id as Types.ObjectId;
   await offer.save();
 
-  candidate.status = "4"; // hired
+  candidate.status = "Hired";
   await candidate.save();
 
   return { offer: format(offer as unknown as TOffer), employee };
