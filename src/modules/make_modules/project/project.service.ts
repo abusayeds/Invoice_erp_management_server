@@ -76,6 +76,7 @@ const listProjects = async (
         name: project.name,
         status: project.status,
         description: project.description,
+        budget : project.budget?.toLocaleString() ?? "0",
         total_task: totalTask,
         total_comments: totalComments,
         start_date: formatDate(project.start_date),
