@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { TInterviewFeedback } from "./interviewFeedback.interface";
+import { TInterviewFeedback, feedbackRecommendations } from "./interviewFeedback.interface";
 import { recruitmentBaseFields } from "../recruitment.utils";
 
 const interviewFeedbackSchema = new Schema<TInterviewFeedback>(
@@ -12,7 +12,7 @@ const interviewFeedbackSchema = new Schema<TInterviewFeedback>(
     strengths: { type: String },
     weaknesses: { type: String },
     comments: { type: String },
-    recommendation: { type: String, default: "0" },
+    recommendation: { type: String, enum: feedbackRecommendations, default: "Maybe" },
     interview_id: { type: Schema.Types.ObjectId, ref: "RecruitmentInterview", index: true },
     interviewer_ids: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
