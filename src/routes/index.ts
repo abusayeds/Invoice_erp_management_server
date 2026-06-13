@@ -21,7 +21,6 @@ import { estimateRoutes } from "../modules/make_modules/estimate/estimate.route"
 import { deliveryChallanRoutes } from "../modules/make_modules/deliveryChallan/deliveryChallan.route";
 import { paymentReceivedRoutes } from "../modules/make_modules/paymentReceived/paymentReceived.route";
 import { purchaseRoutes } from "../modules/make_modules/purchase/purchase.route";
-import { billRoutes } from "../modules/make_modules/bill/bill.route";
 import { expensesRoutes } from "../modules/make_modules/expenses/expenses.route";
 import { paymentRoutes } from "../modules/make_modules/addPayment/payment.route";
 import { EditTitlesRoutes } from "../modules/make_modules/editTitles/editTitles.route";
@@ -70,7 +69,6 @@ router.use("/api/v1/delivery-challan", deliveryChallanRoutes);
 // Credit/debit notes: use /api/v1/account/credit-notes and /api/v1/account/debit-notes
 router.use("/api/v1/payment-received", paymentReceivedRoutes);
 router.use("/api/v1/purchase", purchaseRoutes);
-router.use("/api/v1/bill", billRoutes);
 router.use("/api/v1/expenses", expensesRoutes);
 router.use("/api/v1/payment", paymentRoutes);
 router.use("/api/v1/edit-titles", EditTitlesRoutes);

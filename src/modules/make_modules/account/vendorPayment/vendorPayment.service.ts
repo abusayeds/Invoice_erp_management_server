@@ -14,44 +14,45 @@ import {
   TDebitNoteApplication,
 } from "./vendorPayment.interface";
 import { VendorPaymentModel } from "./vendorPayment.model";
-import { BillModel } from "../../bill/bill.model";
+import { PurchaseInvoiceModel } from "../../purchase/purchaseInvoice/purchaseInvoice.model";
 import { DebitNoteModel } from "../../debitNote/debitNote.model";
 import { BankAccountModel } from "../bankAccount/bankAccount.model";
 import { createBankTransaction } from "../accountBank.service";
 
-const OPEN_STATUSES = ["Open", "Partial", "Overdue"];
+// Purchase invoice payable states (Laravel: a posted invoice is the open/payable one).
+const OPEN_STATUSES = ["posted", "partial", "overdue"];
 
-const updateBillBalance = async (
-  billId: Types.ObjectId,
+const updateInvoiceBalance = async (
+  invoiceId: Types.ObjectId,
   userId: string,
   allocatedAmount: number
 ) => {
-  const bill = await BillModel.findOne({
-    _id: billId,
+  const invoice = await PurchaseInvoiceModel.findOne({
+    _id: invoiceId,
     user_id: userId,
     isDeleted: false,
   });
-  if (!bill) throw new AppError(httpStatus.BAD_REQUEST, "Invalid bill in allocation");
+  if (!invoice) throw new AppError(httpStatus.BAD_REQUEST, "Invalid purchase invoice in allocation");
 
-  const total = bill.total ?? 0;
-  const paid = (bill.paid_amount ?? 0) + allocatedAmount;
-  let balance = bill.balance_amount;
+  const total = invoice.total_amount ?? 0;
+  const paid = (invoice.paid_amount ?? 0) + allocatedAmount;
+  let balance = invoice.balance_amount;
   if (balance === undefined || balance === null) {
-    balance = total - (bill.paid_amount ?? 0);
+    balance = total - (invoice.paid_amount ?? 0);
   }
   balance = balance - allocatedAmount;
 
-  bill.paid_amount = paid;
-  bill.balance_amount = Math.max(0, balance);
+  invoice.paid_amount = paid;
+  invoice.balance_amount = Math.max(0, balance);
 
-  if (bill.balance_amount <= 0) {
-    bill.status = "Paid";
-  } else if (bill.paid_amount > 0) {
-    bill.status = "Partial";
+  if (invoice.balance_amount <= 0) {
+    invoice.status = "paid";
+  } else if (invoice.paid_amount > 0) {
+    invoice.status = "partial";
   } else {
-    bill.status = "Open";
+    invoice.status = "posted";
   }
-  await bill.save();
+  await invoice.save();
 };
 
 const validateAllocations = async (
@@ -62,24 +63,27 @@ const validateAllocations = async (
 ) => {
   let totalAllocated = 0;
   for (const alloc of allocations) {
-    const bill = await BillModel.findOne({
+    const invoice = await PurchaseInvoiceModel.findOne({
       _id: alloc.invoice_id,
       user_id: userId,
       vendor_id: vendorId,
       isDeleted: false,
       status: { $in: OPEN_STATUSES },
     });
-    if (!bill) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Invalid or ineligible bill for allocation");
+    if (!invoice) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Invalid or ineligible purchase invoice for allocation"
+      );
     }
     const balance =
-      bill.balance_amount !== undefined && bill.balance_amount !== null
-        ? bill.balance_amount
-        : (bill.total ?? 0) - (bill.paid_amount ?? 0);
+      invoice.balance_amount !== undefined && invoice.balance_amount !== null
+        ? invoice.balance_amount
+        : (invoice.total_amount ?? 0) - (invoice.paid_amount ?? 0);
     if (alloc.allocated_amount > balance + 0.01) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        `Allocation exceeds bill balance for ${bill.invoice_number ?? bill._id}`
+        `Allocation exceeds purchase invoice balance for ${invoice.invoice_number ?? invoice._id}`
       );
     }
     totalAllocated += alloc.allocated_amount;
@@ -144,7 +148,7 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
   const base = VendorPaymentModel.find(companyScope(userId))
     .populate("vendor_id", CLIENT_POPULATE_SELECT)
     .populate("bank_account_id", "account_name account_number")
-    .populate("allocations.invoice_id", "invoice_number total balance_amount status");
+    .populate("allocations.invoice_id", "invoice_number total_amount balance_amount status");
   const build = new queryBuilder(base, query)
     .search(["payment_number", "reference_number", "notes"])
     .filter()
@@ -159,25 +163,25 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
 
 const getOutstandingDB = async (userId: string, vendorId: string) => {
   await assertVendorUser(vendorId);
-  const bills = await BillModel.find({
+  const invoices = await PurchaseInvoiceModel.find({
     user_id: userId,
     vendor_id: vendorId,
     isDeleted: false,
     status: { $in: OPEN_STATUSES },
     $or: [{ balance_amount: { $gt: 0 } }, { balance_amount: { $exists: false } }],
   })
-    .select("_id invoice_number date due_date total paid_amount balance_amount status")
+    .select("_id invoice_number invoice_date due_date total_amount paid_amount balance_amount status")
     .lean();
 
-  const normalized = bills
-    .map((bill) => {
+  const normalized = invoices
+    .map((invoice) => {
       const balance =
-        bill.balance_amount !== undefined && bill.balance_amount !== null
-          ? bill.balance_amount
-          : (bill.total ?? 0) - (bill.paid_amount ?? 0);
-      return { ...bill, balance_amount: balance };
+        invoice.balance_amount !== undefined && invoice.balance_amount !== null
+          ? invoice.balance_amount
+          : (invoice.total_amount ?? 0) - (invoice.paid_amount ?? 0);
+      return { ...invoice, balance_amount: balance };
     })
-    .filter((bill) => bill.balance_amount > 0);
+    .filter((invoice) => invoice.balance_amount > 0);
 
   const debitNotes = await DebitNoteModel.find({
     user_id: userId,
@@ -189,7 +193,7 @@ const getOutstandingDB = async (userId: string, vendorId: string) => {
     .select("_id invoice_number total applied_amount balance_amount status")
     .lean();
 
-  return { bills: normalized, debitNotes };
+  return { invoices: normalized, debitNotes };
 };
 
 const updateStatusDB = async (id: string, userId: string, status: string) => {
@@ -214,7 +218,7 @@ const updateStatusDB = async (id: string, userId: string, status: string) => {
     }
 
     for (const alloc of record.allocations ?? []) {
-      await updateBillBalance(alloc.invoice_id, userId, alloc.allocated_amount);
+      await updateInvoiceBalance(alloc.invoice_id, userId, alloc.allocated_amount);
     }
 
     for (const dnApp of record.debit_notes ?? []) {

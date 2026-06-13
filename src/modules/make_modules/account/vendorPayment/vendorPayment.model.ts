@@ -4,7 +4,7 @@ import { TVendorPayment } from "./vendorPayment.interface";
 
 const allocationSchema = new Schema(
   {
-    invoice_id: { type: Schema.Types.ObjectId, ref: "Bill", required: true },
+    invoice_id: { type: Schema.Types.ObjectId, ref: "PurchaseInvoice", required: true },
     allocated_amount: { type: Number, required: true, min: 0.01 },
   },
   { _id: true }
