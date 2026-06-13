@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { TCandidate } from "./candidate.interface";
+import { TCandidate, candidateStatuses } from "./candidate.interface";
 import { recruitmentBaseFields } from "../recruitment.utils";
 
 const candidateSchema = new Schema<TCandidate>(
@@ -28,7 +28,7 @@ const candidateSchema = new Schema<TCandidate>(
     profile_path: { type: String },
     resume_path: { type: String },
     cover_letter_path: { type: String },
-    status: { type: String, default: "0" },
+    status: { type: String, enum: candidateStatuses, default: "New" },
     application_date: { type: Date },
     custom_question: { type: Schema.Types.Mixed },
     job_id: { type: Schema.Types.ObjectId, ref: "RecruitmentJobPosting", index: true },

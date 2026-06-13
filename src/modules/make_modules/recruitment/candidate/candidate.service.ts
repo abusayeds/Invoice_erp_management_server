@@ -16,7 +16,7 @@ import {
 import { JobPostingModel } from "../jobPosting/jobPosting.model";
 import { CandidateSourceModel } from "../candidateSource/candidateSource.model";
 import { CandidateModel } from "./candidate.model";
-import { TCandidate } from "./candidate.interface";
+import { TCandidate, candidateStatuses } from "./candidate.interface";
 
 const P = permission.recruitment.candidates;
 
@@ -105,12 +105,14 @@ const base = createRecruitmentCrudService<TCandidate>({
   formatItem: format,
 });
 
-/** Laravel updateStatus: status in 0..5. */
+/** updateStatus: candidate pipeline stage (New/Shortlisted/Interview/Offer/Hired/Rejected). */
 const updateStatus = async (req: AuthRequest, id: string, status: unknown) => {
-  const allowed = ["0", "1", "2", "3", "4", "5"];
   const s = String(status);
-  if (!allowed.includes(s)) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Invalid status");
+  if (!(candidateStatuses as readonly string[]).includes(s)) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Invalid status. Allowed: ${candidateStatuses.join(", ")}`
+    );
   }
   const doc = await base.getOwned(req, id);
   doc.status = s;

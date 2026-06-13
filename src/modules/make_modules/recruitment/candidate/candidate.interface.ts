@@ -1,5 +1,16 @@
 import { Types } from "mongoose";
 
+/** Candidate pipeline stages (readable enum — replaces the old 0..5 codes). */
+export const candidateStatuses = [
+  "New",
+  "Shortlisted",
+  "Interview",
+  "Offer",
+  "Hired",
+  "Rejected",
+] as const;
+export type TCandidateStatus = (typeof candidateStatuses)[number];
+
 export type TCandidate = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
