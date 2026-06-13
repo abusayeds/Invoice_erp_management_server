@@ -1,5 +1,9 @@
 import { Types } from "mongoose";
 
+/** Interview round availability (readable enum — replaces the old 0 code). */
+export const interviewRoundStatuses = ["Active", "Inactive"] as const;
+export type TInterviewRoundStatus = (typeof interviewRoundStatuses)[number];
+
 export type TInterviewRound = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
