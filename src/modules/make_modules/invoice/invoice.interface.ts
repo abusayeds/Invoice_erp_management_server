@@ -7,7 +7,6 @@ export type TInvoice = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
   customer_id?: Types.ObjectId;
-  vendor_id?: Types.ObjectId;
   warehouse_id?: Types.ObjectId;
   invoice_number?: string;
   currency?: string;

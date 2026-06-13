@@ -98,7 +98,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       archive: false,
       isDeleted: false,
     }).populate({
-      path: 'customer_id',
+      path: 'vendor_id',
       select: CLIENT_POPULATE_SELECT,
     }),
     query

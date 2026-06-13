@@ -7,7 +7,6 @@ export type TCreditNote = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
   customer_id?: Types.ObjectId;
-  vendor_id?: Types.ObjectId;
   /** manual = API create; return = auto from sales/purchase return approve */
   source?: "manual" | "return";
   return_id?: Types.ObjectId;

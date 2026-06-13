@@ -41,7 +41,6 @@ const creditNoteSchema = new Schema<TCreditNote>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
-    vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
     source: { type: String, enum: ['manual', 'return'], default: 'manual' },
     return_id: { type: Schema.Types.ObjectId, ref: 'InvoiceReturn' },
     source_invoice_id: { type: Schema.Types.ObjectId, ref: 'Invoice' },

@@ -6,7 +6,6 @@ type Status = (typeof debitNoteStatus)[number];
 export type TDebitNote = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
-  customer_id?: Types.ObjectId;
   vendor_id?: Types.ObjectId;
   source?: "manual" | "return";
   return_id?: Types.ObjectId;

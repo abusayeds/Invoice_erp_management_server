@@ -41,7 +41,6 @@ const invoiceSchema = new Schema<TInvoice>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     customer_id: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-    vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
     warehouse_id: { type: Schema.Types.ObjectId, required: true, ref: 'Warehouse' },
     invoice_number: { type: String },
     currency: { type: String },

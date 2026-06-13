@@ -40,7 +40,6 @@ const serviceSchema = new Schema(
 const debitNoteSchema = new Schema<TDebitNote>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
     vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
     source: { type: String, enum: ['manual', 'return'], default: 'manual' },
     return_id: { type: Schema.Types.ObjectId, ref: 'ReturnPurchase' },
