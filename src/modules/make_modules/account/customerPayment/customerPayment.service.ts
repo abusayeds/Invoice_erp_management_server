@@ -60,9 +60,9 @@ const validateAllocations = async (
   allocations: TPaymentAllocation[] = [],
   creditNotes: TCreditNoteApplication[] = []
 ) => {
-  // if (!allocations.length) {
-  //   throw new AppError(httpStatus.BAD_REQUEST, "At least one invoice allocation is required");
-  // }
+  if (!allocations.length) {
+    throw new AppError(httpStatus.BAD_REQUEST, "At least one invoice allocation is required");
+  }
 
   let totalAllocated = 0;
   for (const alloc of allocations) {
