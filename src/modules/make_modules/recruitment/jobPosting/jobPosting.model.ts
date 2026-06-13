@@ -1,5 +1,10 @@
 import { Schema, model } from "mongoose";
-import { TJobPosting } from "./jobPosting.interface";
+import {
+  TJobPosting,
+  jobPostingPriorities,
+  jobPostingStatuses,
+  jobApplicationTypes,
+} from "./jobPosting.interface";
 import { recruitmentBaseFields } from "../recruitment.utils";
 
 const jobPostingSchema = new Schema<TJobPosting>(
@@ -9,8 +14,8 @@ const jobPostingSchema = new Schema<TJobPosting>(
     posting_code: { type: String },
     title: { type: String, required: true, trim: true },
     position: { type: Number },
-    priority: { type: String, default: "0" },
-    job_application: { type: String, default: "existing" },
+    priority: { type: String, enum: jobPostingPriorities, default: "Low" },
+    job_application: { type: String, enum: jobApplicationTypes, default: "existing" },
     application_url: { type: String },
     min_experience: { type: Number },
     max_experience: { type: Number },
@@ -26,7 +31,7 @@ const jobPostingSchema = new Schema<TJobPosting>(
     is_published: { type: Boolean, default: false },
     publish_date: { type: String },
     is_featured: { type: Boolean, default: false },
-    status: { type: String, default: "0" },
+    status: { type: String, enum: jobPostingStatuses, default: "Draft" },
     applicant: { type: [String], default: [] },
     visibility: { type: [String], default: [] },
     custom_questions: [{ type: Schema.Types.ObjectId, ref: "RecruitmentCustomQuestion" }],

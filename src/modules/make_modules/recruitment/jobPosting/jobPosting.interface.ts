@@ -1,5 +1,12 @@
 import { Types } from "mongoose";
 
+/** Job posting enums (readable — replace the old 0/1/2 codes). */
+export const jobPostingPriorities = ["Low", "Medium", "High"] as const;
+export const jobPostingStatuses = ["Draft", "Active", "Closed"] as const;
+export const jobApplicationTypes = ["existing", "custom"] as const;
+export type TJobPostingPriority = (typeof jobPostingPriorities)[number];
+export type TJobPostingStatus = (typeof jobPostingStatuses)[number];
+
 export type TJobPosting = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;

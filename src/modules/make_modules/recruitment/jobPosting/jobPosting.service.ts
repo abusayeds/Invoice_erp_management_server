@@ -100,14 +100,14 @@ const base = createRecruitmentCrudService<TJobPosting>({
   formatItem: format,
 });
 
-/** Laravel togglePublish: draft/0 -> active+published, else -> draft+unpublished. */
+/** togglePublish: Draft -> Active+published, else -> Draft+unpublished. */
 const togglePublish = async (req: AuthRequest, id: string) => {
   const doc = await base.getOwned(req, id);
-  if (doc.status === "draft" || doc.status === "0") {
-    doc.status = "active";
+  if (doc.status === "Draft") {
+    doc.status = "Active";
     doc.is_published = true;
   } else {
-    doc.status = "draft";
+    doc.status = "Draft";
     doc.is_published = false;
   }
   await doc.save();
