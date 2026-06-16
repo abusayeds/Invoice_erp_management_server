@@ -3,10 +3,13 @@ import { AuthRequest } from "../../../../middlewares/auth";
 import catchAsync from "../../../../utils/catchAsync";
 import sendResponse from "../../../../utils/sendResponse";
 import { interviewFeedbackService } from "./interviewFeedback.service";
+import { InterviewModel } from "../interview/interview.model";
 
 const create = catchAsync(async (req: AuthRequest, res) => {
   const result = await interviewFeedbackService.create(req, req.body);
   sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: "Interview feedback created successfully", data: result });
+  const { interview_id } = result as { interview_id?: string };
+  if (interview_id) await InterviewModel.findByIdAndUpdate(interview_id, { feedback_submitted: true });
 });
 
 const getAll = catchAsync(async (req: AuthRequest, res) => {

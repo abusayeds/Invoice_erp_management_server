@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 
 /** Hiring recommendation (readable enum — replaces the old 0 code). */
-export const feedbackRecommendations = ["Hire", "Maybe", "No Hire"] as const;
+export const feedbackRecommendations = ["Strong Hire", "Hire", "No Hire", "Maybe", "Reject" , "Strong Reject"] as const;
 export type TFeedbackRecommendation = (typeof feedbackRecommendations)[number];
 
 export type TInterviewFeedback = {

@@ -12,7 +12,7 @@ const interviewFeedbackSchema = new Schema<TInterviewFeedback>(
     strengths: { type: String },
     weaknesses: { type: String },
     comments: { type: String },
-    recommendation: { type: String, enum: feedbackRecommendations, default: "Maybe" },
+    recommendation: { type: String, enum: feedbackRecommendations, default: "Maybe" , required :  true },
     interview_id: { type: Schema.Types.ObjectId, ref: "RecruitmentInterview", index: true },
     interviewer_ids: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
