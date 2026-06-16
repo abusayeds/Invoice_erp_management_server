@@ -254,11 +254,12 @@ const myProfileDB = async (userId: string) => {
   return result;
 }
 const allUserDB = async (query: Record<string, unknown>,) => {
-  const userQuery = new queryBuilder(UserModel.find({ role: role.company }).select('-password -isVerify'), query).sort()
-  const { totalData } = await userQuery.paginate(UserModel.find({ role: role.company }))
+  const userQuery = new queryBuilder(UserModel.find({ role: role.company , isDeleted: false }).select('-password -isVerify'), query).sort()
+  const { totalData } = await userQuery.paginate(UserModel.find({ role: role.company , isDeleted: false }))
   const user = await userQuery.modelQuery.exec()
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
+  
   const pagination = userQuery.calculatePagination({
     totalData,
     currentPage,
@@ -303,8 +304,8 @@ const createCompanyBySuperadminDB = async (payload: IUser) => {
 };
 
 const allUserForCompanyDB = async (companyId: string , query: Record<string, unknown>,  ) => {
-  const userQuery = new queryBuilder(UserModel.find({ companyId: companyId }).select("name email role companyId phone login image"), query).search(['name' , 'email']).filter().fields().sort()
-  const { totalData } = await userQuery.paginate(UserModel.find({ companyId: companyId }))
+  const userQuery = new queryBuilder(UserModel.find({ companyId: companyId ,isDeleted: false }).select("name email role companyId phone login image"), query).search(['name' , 'email']).filter().fields().sort()
+  const { totalData } = await userQuery.paginate(UserModel.find({ companyId: companyId , isDeleted: false }))
   const user = await userQuery.modelQuery.exec()
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
