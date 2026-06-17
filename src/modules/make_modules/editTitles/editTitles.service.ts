@@ -1,4 +1,4 @@
-import { seedEditTitles } from "../../../utils/seedData";
+import { seedEditTitles } from "../../../utils/seed";
 import { EditTitleModel } from "./editTitles.model";
 
 const updateEditTitleDB = async (
