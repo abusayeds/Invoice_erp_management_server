@@ -1,5 +1,4 @@
 import httpStatus from "http-status";
-import { Response, NextFunction } from "express";
 import { AuthRequest } from "../../../middlewares/auth";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
@@ -27,6 +26,35 @@ const PdfSettingUpdate = catchAsync(async (req: AuthRequest, res) => {
 
 
 
+const PdfSettingGet = catchAsync(async (req: AuthRequest, res) => {
+  const { pdfType } = req.params;
+  const result = await pdfSettingService.PdfSettingGetDB(pdfType, req?.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "PDF setting retrieved successfully.",
+    data: result,
+  });
+});
+
+const PdfSettingReset = catchAsync(async (req: AuthRequest, res) => {
+  const { pdfType } = req.params;
+  const result = await pdfSettingService.PdfSettingResetDB(pdfType, req?.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "PDF setting reset to default successfully.",
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: `PDF Setting Reset`,
+  });
+});
+
 export const pdfSettingController = {
   PdfSettingUpdate,
+  PdfSettingGet,
+  PdfSettingReset,
 };
