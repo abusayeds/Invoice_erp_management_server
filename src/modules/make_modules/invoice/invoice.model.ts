@@ -53,16 +53,7 @@ const invoiceSchema = new Schema<TInvoice>(
     discount_before_tax: { type: Number, default: 0 },
     billing_address: { type: addressSchema },
     shipping_address: { type: addressSchema },
-    product: {
-      type: [productSchema],
-      required: true,
-      validate: {
-        validator: function (v: any[]) {
-          return v.length > 0;
-        },
-        message: 'At least one product is required',
-      },
-    },
+    product:  [productSchema] ,
     service: [serviceSchema],
     terms_and_conditions: { type: String },
     notes: { type: String },
