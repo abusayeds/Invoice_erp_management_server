@@ -19,5 +19,15 @@ router.get(
   authMiddleware(role.company),
   proformaInvoiceController.getAll
 );
+router.post(
+  '/edit/:id',
+  authMiddleware(role.company),
+  proformaInvoiceController.update
+);
+router.delete(
+  '/delete/:id',
+  authMiddleware(role.company),
+  proformaInvoiceController.remove
+);
 
 export const proformaInvoiceRoutes = router;

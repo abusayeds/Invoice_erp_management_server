@@ -87,6 +87,70 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   return { allRecords, pagination };
 };
 
-export const proformaInvoiceService = { createDB, getSingleDB, getAllDB };
+const updateDB = async (id: string, userId: string, payload: TProformaInvoice) => {
+  const existing = await ProformaInvoiceModel.findOne({
+    _id: id,
+    user_id: userId,
+    isDeleted: false,
+  });
+  if (!existing) {
+    throw new AppError(httpStatus.NOT_FOUND, 'ProformaInvoice not found');
+  }
+
+  await validateDocumentParties(payload);
+  if (Array.isArray(payload.product)) {
+    for (const item of payload.product) {
+      const product = (await ProductModel.findById(item.product_id)) as TProduct;
+      if (!product) {
+        throw new AppError(httpStatus.NOT_FOUND, 'Product not found with id: ' + item.product_id);
+      }
+      if (product.pricing.sellPrice !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': ' + product.pricing.sellPrice + ' vs ' + item.rate);
+      }
+      validateItemAmount(item, 'product');
+    }
+  }
+  if (Array.isArray(payload.service)) {
+    for (const item of payload.service) {
+      const service = (await ServiceModel.findById(item.service_id)) as TService;
+      if (!service) {
+        throw new AppError(httpStatus.NOT_FOUND, 'Service not found with id: ' + item.service_id);
+      }
+      if (service.rate !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Service rate mismatch ' + item.service_id + ': ' + service.rate + ' vs ' + item.rate);
+      }
+      validateItemAmount(item, 'service');
+    }
+  }
+
+  // Only recompute the money fields when the items actually change.
+  const recalcTotals = payload.product !== undefined || payload.service !== undefined;
+  let data: Record<string, unknown> = { ...payload };
+  if (recalcTotals) {
+    const result = await calculateInvoice({ ...existing.toObject(), ...payload });
+    data = { ...payload, ...result };
+  }
+
+  const updatedRecord = await ProformaInvoiceModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: false },
+    data,
+    { new: true, runValidators: true }
+  );
+  return updatedRecord;
+};
+
+const deleteDB = async (id: string, userId: string) => {
+  const deletedRecord = await ProformaInvoiceModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: false },
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!deletedRecord) {
+    throw new AppError(httpStatus.NOT_FOUND, 'ProformaInvoice not found');
+  }
+  return deletedRecord;
+};
+
+export const proformaInvoiceService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
 
 

@@ -46,4 +46,37 @@ const getAll = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const proformaInvoiceController = { create, getSingle, getAll };
+const update = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  req.body.user_id = req?.user?._id;
+  const result = await proformaInvoiceService.updateDB(id, req.user?._id as string, req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'ProformaInvoice updated successfully.',
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: 'ProformaInvoice Update',
+  });
+});
+
+const remove = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await proformaInvoiceService.deleteDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'ProformaInvoice deleted successfully.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Archived,
+    title: 'ProformaInvoice Delete',
+  });
+});
+
+export const proformaInvoiceController = { create, getSingle, getAll, update, remove };
