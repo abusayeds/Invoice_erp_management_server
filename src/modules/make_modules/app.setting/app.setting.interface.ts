@@ -1,453 +1,176 @@
-
-
-// export type TSetting = {
-//   general: {
-//     chat: boolean;
-//     default:
-//       | "System Default"
-//       | "Moon Mail Server"
-//       | "Mail App"
-//       | "Outlook App"
-//       | "Airmail App"
-//       | "Postbox App"
-//       | "Gmail"
-//       | "Outlook";
-//   };
-//   modules: {
-//     invoice: "hide" | "show";
-//     bill: "hide" | "show";
-//     sales_receipt: "hide" | "show";
-//     estimate: "hide" | "show";
-//     delivery_challan: "hide" | "show";
-//     proforma_invoice: "hide" | "show";
-//     credit_note: "hide" | "show";
-//     debit_note: "hide" | "show";
-//     payment_received: "hide" | "show";
-//     payment_made: "hide" | "show";
-//     expense: "hide" | "show";
-//     packing_slip: "hide" | "show";
-//     time_log: "hide" | "show";
-//     purchase_order: "hide" | "show";
-//     project: "hide" | "show";
-//     team: "hide" | "show";
-//   };
-//   currency_Format: {
-//     currency_symbol: "on" | "off";
-//     currency_code: "on" | "off";
-//     decimal_places: number;
-//   };
-//   whatsApp: {
-//     whatApp: boolean;
-//     send_via: "moon_invoice";
-//     whatsApp_terms_conditions: boolean;
-//     whatsApp_notes: boolean;
-//   };
-//   invoice: {
-//     general: {
-//       due_date: boolean;
-//       shipping_address: boolean;
-//       shipping_cost_method: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       mark_as_sent_on_print: boolean;
-//       mark_as_sent_on_email_or_whatsApp: boolean;
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   sales_receipt: {
-//     general: {
-//       shipping_address: boolean;
-//       shipping_cost_method: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   estimate: {
-//     general: {
-//       shipping_address: boolean;
-//       shipping_cost_method: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       inline_iscount: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-
-//   delivery_challan: {
-//     general: {
-//       shipping_address: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       inline_iscount: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   purchase_order: {
-//     general: {
-//       shipping_address: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       inline_iscount: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   proforma_invoice: {
-//     general: {
-//       shipping_address: boolean;
-//       shipping_cost_method: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       inline_iscount: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   Bill: {
-//     general: {
-//       shipping_address: boolean;
-//       shipping_cost_method: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       inline_iscount: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   debit_note: {
-//     general: {
-//       shipping_address: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       buy_price_in_suggestion_list: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       inline_iscount: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   credit_note: {
-//     general: {
-//       shipping_address: boolean;
-//       shipping_cost_method: boolean;
-//       apply_discount_before_tax: boolean;
-//       line_option: boolean;
-//     };
-//     columns: {
-//       task_name: boolean;
-//       product_name: boolean;
-//       description: boolean;
-//       quantity: boolean;
-//       discount: boolean;
-//       tax: boolean;
-//       line_description_full_width: boolean;
-//       item_code_in_suggestion_list: boolean;
-//     };
-//     summary: {
-//       total_quantity: boolean;
-//       roundOff: boolean;
-//       negative_value_with: boolean;
-//       contact_note_as_default_note: boolean;
-//       inline_iscount: boolean;
-//       show_line_total_with_tax: boolean;
-//     };
-//     print_email: {
-//       combine_pdf_in_email: boolean;
-//     };
-//   };
-//   expense: {
-//     payment_type: boolean;
-//     pound_Off: boolean;
-//   };
-//   product: {
-//     general  : {
-//         hsn : boolean
-//         product_img_on_line_item : boolean
-//         inventory : boolean
-//     } , 
-//     stock  :  {
-//         product_stock :  boolean
-//     }
-//   };
-//   Services: {};
-// };
-
-
-
 import { Types } from "mongoose";
 
-export type TSettingType ="general"| "modules"| "currency_format" | "whatsApp" | "invoice" | "sales_receipt"| "estimate" | "delivery_challan" | "purchase_order"| "proforma_invoice"| "bill"| "debit_note"| "credit_note"| "expense"| "product";
-export type TDocumentSubType = "general" | "columns" | "summary" | "print_email";
-export type TProductSubType  = "general" | "stock";
-export type TSettingSubType  = TDocumentSubType | TProductSubType;
+export type TSettingType =
+  | "general"
+  | "modules"
+  | "currency_format"
+  | "printer"
+  | "whatsApp"
+  | "invoice"
+  | "proforma_invoice"
+  | "sales_receipt"
+  | "estimate"
+  | "delivery_challan"
+  | "purchase_order"
+  | "bill"
+  | "credit_note"
+  | "debit_note"
+  | "expense"
+  | "product"
+  | "service"
+  | "time_log";
+
+export type TDocumentSubType =
+  | "field_visibility"
+  | "general"
+  | "columns"
+  | "summary"
+  | "print_email";
+export type TProductSubType = "field_visibility" | "general" | "stock";
+export type TTimeLogSubType = "columns" | "summary";
+export type TSettingSubType = TDocumentSubType | TProductSubType | TTimeLogSubType;
+
+export type TDocFieldVisibility = {
+  due_date?: boolean;
+  shipping_address?: boolean;
+  street1?: boolean;
+  street2?: boolean;
+  zip_code?: boolean;
+  city?: boolean;
+  state?: boolean;
+  country?: boolean;
+  sub_title?: boolean;
+  po?: boolean;
+  recipient_name?: boolean;
+  shipping_cost_and_method?: boolean;
+  salesperson?: boolean;
+  payment_methods?: boolean;
+  payment_type?: boolean;
+  apply_discount_before_tax?: boolean;
+  terms_conditions?: boolean;
+  notes?: boolean;
+  attachment?: boolean;
+};
+
+export type TDocColumns = {
+  service_name?: boolean;
+  product_name?: boolean;
+  description?: boolean;
+  quantity?: string;
+  discount?: boolean;
+  mrp?: boolean;
+  tax?: boolean;
+  line_description_full_width?: boolean;
+  stock_in_suggestion_list?: boolean;
+  description_in_suggestion_list?: boolean;
+  buy_price_in_suggestion_list?: boolean;
+  sell_price_in_suggestion_list?: boolean;
+  item_code_in_suggestion_list?: boolean;
+  auto_fit?: boolean;
+};
+
+export type TDocSummary = {
+  total_quantity?: boolean;
+  round_off?: boolean;
+  negative_value_format?: boolean;
+  subtotal_with_tax?: string;
+  contact_note_as_default_note?: boolean;
+  show_line_total_with_tax?: boolean;
+};
+
+export type TDocPrintEmail = {
+  mark_as_sent_on_print?: boolean;
+  mark_as_sent_on_email_or_whatsApp?: boolean;
+  combine_pdf_in_email?: boolean;
+  number_of_copies_on_print?: string;
+};
+
+export type TDocumentConfig = {
+  field_visibility?: TDocFieldVisibility;
+  general?: {
+    line_option?: string;
+    track_purchase_orders_in_stock?: boolean;
+  };
+  columns?: TDocColumns;
+  summary?: TDocSummary;
+  print_email?: TDocPrintEmail;
+};
+
 export type TSetting = {
   user_id: Types.ObjectId;
+
   general: {
-    chat: boolean;
-    default:| "System Default"| "Moon Mail Server"| "Mail App"| "Outlook App"| "Airmail App"| "Postbox App"| "Gmail"| "Outlook";
+    chat?: boolean;
+    create_public_url_in_email?: boolean;
+    appearance?: string;
+    default_mail?: string;
   };
 
-  modules: {
-    invoice: boolean
-    bill: boolean
-    sales_receipt: boolean
-    estimate: boolean
-    delivery_challan: boolean
-    proforma_invoice: boolean
-    credit_note: boolean
-    debit_note: boolean
-    payment_received: boolean
-    payment_made: boolean
-    expense: boolean
-    packing_slip: boolean
-    time_log: boolean
-    purchase_order: boolean
-    project: boolean
-    team: boolean
-  };
+  modules: Record<string, boolean>;
 
   currency_format: {
-    currency_symbol: "on" | "off";
-    currency_code: "on" | "off";
-    decimal_places: number;
+    currency?: string;
+    currency_symbol?: boolean;
+    currency_code?: boolean;
+    multi_currency_display?: boolean;
+    exchange_rates?: boolean;
+    decimal_places?: number;
+    date_number_format?: string;
+    language?: string;
+    timezone?: string;
+  };
+
+  printer: {
+    print_mode?: string;
   };
 
   whatsApp: {
-    enabled: boolean;
-    send_via: "moon_invoice";
-    terms_conditions: boolean;
-    notes: boolean;
+    enabled?: boolean;
+    send_via?: string;
   };
 
-  invoice: {
-    general: {
-      due_date: boolean;
-      shipping_address: boolean;
-      shipping_cost_method: boolean;
-      apply_discount_before_tax: boolean;
-      line_option: boolean;
-    };
-    columns: TColumns;
-    summary: TSummary;
-    print_email: {
-      mark_as_sent_on_print: boolean;
-      mark_as_sent_on_email_or_whatsApp: boolean;
-      combine_pdf_in_email: boolean;
-    };
-  };
-
-  sales_receipt: TDocumentModule;
-  estimate: TDocumentModule;
-  delivery_challan: TDocumentModule;
-  purchase_order: TDocumentModule;
-  proforma_invoice: TDocumentModule;
-  bill: TDocumentModule;
-  debit_note: TDocumentModule;
-  credit_note: TDocumentModule;
+  invoice: TDocumentConfig;
+  proforma_invoice: TDocumentConfig;
+  sales_receipt: TDocumentConfig;
+  estimate: TDocumentConfig;
+  delivery_challan: TDocumentConfig;
+  purchase_order: TDocumentConfig;
+  bill: TDocumentConfig;
+  credit_note: TDocumentConfig;
+  debit_note: TDocumentConfig;
 
   expense: {
-    payment_type: boolean;
-    round_off: boolean;
+    round_off?: boolean;
+    payment_type?: boolean;
   };
 
   product: {
-    general: {
-      hsn: boolean;
-      product_img_on_line_item: boolean;
-      inventory: boolean;
+    field_visibility?: {
+      hsn?: boolean;
+      inventory?: boolean;
+      mrp?: boolean;
     };
-    stock: {
-      product_stock: boolean;
+    general?: {
+      product_img_on_line_item?: boolean;
+      allow_zero_stock?: boolean;
+    };
+    stock?: {
+      product_stock?: boolean;
     };
   };
-};
 
-export type TColumns = {
-  task_name: boolean;
-  product_name: boolean;
-  description: boolean;
-  quantity: boolean;
-  discount: boolean;
-  tax: boolean;
-  line_description_full_width: boolean;
-  buy_price_in_suggestion_list: boolean;
-  item_code_in_suggestion_list: boolean;
-};
-
-export type TSummary = {
-  total_quantity: boolean;
-  roundOff: boolean;
-  negative_value_with: boolean;
-  contact_note_as_default_note: boolean;
-  show_line_total_with_tax: boolean;
-  inline_discount: boolean;
-};
-
-export type TDocumentModule = {
-  general: {
-    shipping_address: boolean;
-    shipping_cost_method: boolean;
-    apply_discount_before_tax: boolean;
-    line_option: boolean;
+  service: {
+    sac?: boolean;
   };
-  columns: TColumns;
-  summary: TSummary;
-  print_email: {
-    combine_pdf_in_email: boolean;
+
+  time_log: {
+    columns?: {
+      include_project_in_create_invoice?: boolean;
+      include_date_in_create_invoice?: boolean;
+      include_notes_in_create_invoice?: boolean;
+    };
+    summary?: {
+      time_log_rounding?: string;
+    };
   };
 };
