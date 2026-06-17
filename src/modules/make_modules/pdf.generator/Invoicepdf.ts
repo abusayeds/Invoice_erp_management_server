@@ -6,72 +6,11 @@ const hexToRgb = (hex: any): [number, number, number] => {
   return r ? [parseInt(r[1], 16), parseInt(r[2], 16), parseInt(r[3], 16)] : [0, 0, 0];
 };
 
-// ─── Dummy Data ───────────────────────────────────────────────────────────────
-const getDummyInvoiceOrderData = () => ({
-  invoiceNumber: "MTPL001619",
-  poNumber:      "852",
-  date:          "Feb 9, 2021",
-  dueDate:       "Feb 9, 2021",
-  total:         "648.53 USD",
-  outstanding:   "98.52 USD",
-
-  company: {
-    name: "info", regNo: "12344", taxId: "123457",
-    address: "dhaka\nDhaka\nDhaka 1234 5728\nBangladesh",
-    phone: "01770075689", mobile: "+8801770075689", fax: "25",
-    email: "info@invoiic.com", website: "https://web.mooninvoice.com",
-  },
-
-  billTo: {
-    name: "Organization", email: "email@moontechiabs.com",
-    phone: "7412589633",  businessPhone: "8523659", poBox: "2501",
-    taxId: "KT-2030",     regNo: "REIS 001",        contactTaxId: "UT147852",
-    address: "A101\nThupai Complex\nAhmedabad Gujarat 259741\nIndia",
-  },
-
-  shipTo: {
-    address: "A101\nThupai Complex\nAhmedabad Gujarat 259741\nIndia",
-    shippingMethod: "Standard Ground",
-  },
-
-  products: [
-    { srNo:  1, name: "Moon Invoice Product 1",  description: "Create FREE unlimited invoices for freelancers, small business owners, and contractors for 7 days.", hsn: "HSN0001", quantity: 1, unitPrice: 160,  discount:  6, gst:  7.5, amount: 146.00  },
-    { srNo:  2, name: "Moon Invoice Product 2",  description: "Create FREE unlimited invoices for freelancers, small business owners, and contractors for 7 days.", hsn: "HSN0001", quantity: 1, unitPrice: 200,  discount: 10, gst: 10.0, amount: 190.00  },
-
-  ],
-
-  services: [
-    { srNo: 1, name: "TR01 - Moon Invoice Task",        description: "Create added attachment feature on Invoice, Estimate, Purchase Order, and Credit Note.", sac: "SAC0001", quantity: 1, rate:  120, discount:  "6%", gst: 6, amount:  114.00  },
-    { srNo: 2, name: "TR02 - UI Redesign",              description: "Complete redesign of dashboard and reporting module with new design system.",            sac: "SAC0002", quantity: 2, rate:  200, discount: "10%", gst: 8, amount:  374.40  },
-    
-  ],
-
-  summary: {
-    subTotal: 449, discount: 44.9, inlineDiscount: 0,
-    shippingCost: 100, gst9on5: 13.5, total: 617.8,
-    amountPaid: 100, returnOrder: 1500, amountDue: 417.8,
-  },
-
-  termsAndConditions: "Changes and new functionality consider as CR.",
-  notes: "1. Newly designed Invoice PDF\n2. Added round off feature.\n3. Revised subtotal amount display.",
-
-  hsnSacSummary: [
-    { hsnSac: "1116542", taxableValue: "100.00 USD", centralRate: "0.00", centralAmount: "0.00 USD", stateRate: "9%", stateAmount: "9.00 USD", totalTax: "9.00 USD" },
-    { hsnSac: "Total",   taxableValue: "100.00 USD", centralRate: "",     centralAmount: "0.00 USD", stateRate: "",   stateAmount: "9.00 USD", totalTax: "9.00 USD" },
-  ],
-
-  signature:  { companyName: "info", subtitle: "Authorized Signatory" },
-  qrCodeData: "https://mooninvoice.com/invoice/MTPL001619",
-   paymentDetails: [
-    { paymentNo: "01", date: "Sep 7, 2023", amount: "100.00 USD", paymentType: "Stripe" },
-  ],
-});
 
 // ════════════════════════════════════════════════════════════════════════════
 // MAIN GENERATOR
 // ════════════════════════════════════════════════════════════════════════════
-export const generateInvoicePDF = async (settings: any, res: any) => {
-  const data = getDummyInvoiceOrderData();
+export const generateInvoicePDF = async (data: any, settings: any, res: any) => {
   const s    = settings || {};
 
   const style     = s.style       || {};
@@ -283,7 +222,7 @@ export const generateInvoicePDF = async (settings: any, res: any) => {
   // ════════════════════════════════════════════════════════════════════════
   if (header.header !== false) {
     setFont(true, 16);
-    doc.fillColor(rgb(textColor)).text("INVOICE", margin.left, y, {
+    doc.fillColor(rgb(textColor)).text(data.docTitle || "INVOICE", margin.left, y, {
       width: CONTENT_W, align: header.title_alignment || "center",
     });
     y += 22;
@@ -338,7 +277,7 @@ export const generateInvoicePDF = async (settings: any, res: any) => {
     let billY   = y;
     let shipY   = y;
 
-    drawText("Invoice To:", billX, billY, { bold: true }); billY += 12;
+    drawText(data.billLabel || "Invoice To:", billX, billY, { bold: true }); billY += 12;
     if (contact.first_last_name !== false) { drawText(data.billTo.name,  billX, billY, { bold: true }); billY += 11; }
     if (contact.email           !== false) { drawText(data.billTo.email, billX, billY, { color: "#0066cc" }); billY += 11; }
     if (contact.home_phone      !== false) { drawText(`Home: ${data.billTo.phone}`,             billX, billY); billY += 11; }
@@ -597,7 +536,7 @@ export const generateInvoicePDF = async (settings: any, res: any) => {
     });
     y += 14;
 
-    data.paymentDetails.forEach((pay , i) => {
+    data.paymentDetails.forEach((pay: any, i: number) => {
       const rh = 14;
       const bg = i % 2 === 0 ? "#ffffff" : "#f9f9f9";
       const vals3 = [pay.paymentNo, pay.date, pay.amount, pay.paymentType];
