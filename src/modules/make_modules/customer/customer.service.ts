@@ -36,6 +36,8 @@ const allCustomerDB = async (user_id: string, query: Record<string, unknown>) =>
   const { totalData } = await customerQuery.paginate(
     UserModel.find(baseFilter).select("-password")
   );
+
+  // check if current page exceeds total pages
   const allCustomer = (await customerQuery.modelQuery.exec()).map(toPartyUserResponse);
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
