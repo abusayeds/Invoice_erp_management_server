@@ -1,5 +1,5 @@
 import { Schema, model, Types } from 'mongoose';
-import { invoiceStatus, TInvoice } from './invoice.interface';
+import { invoiceStatus, invoiceRecurring, TInvoice } from './invoice.interface';
 
 const addressSchema = new Schema(
   {
@@ -48,7 +48,10 @@ const invoiceSchema = new Schema<TInvoice>(
     due_date: { type: Date, required: true },
     sub_title: { type: String },
     po: { type: Schema.Types.Mixed },
+    recipient_name: { type: String },
     shipping_method: { type: String },
+    salesperson: { type: Schema.Types.ObjectId, ref: 'Salesperson' },
+    recurring: { type: String, enum: invoiceRecurring, default: 'Never' },
     payment_method: [{ type: String }],
     discount_before_tax: { type: Number, default: 0 },
     billing_address: { type: addressSchema },

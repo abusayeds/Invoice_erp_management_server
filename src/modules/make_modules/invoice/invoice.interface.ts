@@ -3,6 +3,8 @@ import { Types } from 'mongoose';
 export const invoiceStatus = ['Draft', 'Partial', 'Paid', 'Overdue', 'Recurring', 'Void', 'CreditNotesApplied', 'Open'] as const;
 type Status = (typeof invoiceStatus)[number];
 
+export const invoiceRecurring = ['Never', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Half-Yearly', 'Yearly'] as const;
+
 export type TInvoice = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
@@ -14,7 +16,10 @@ export type TInvoice = {
   due_date?: Date;
   sub_title?: string;
   po?: number | string;
+  recipient_name?: string;
   shipping_method?: string;
+  salesperson?: Types.ObjectId;
+  recurring?: (typeof invoiceRecurring)[number];
   payment_method?: string[];
   discount_before_tax?: number;
   billing_address?: {
