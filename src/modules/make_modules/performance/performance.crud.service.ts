@@ -4,14 +4,7 @@ import AppError from "../../../errors/AppError";
 import queryBuilder from "../../../builder/queryBuilder";
 import { AuthRequest } from "../../../middlewares/auth";
 import { TPermissionKey } from "../../../utils/permission";
-import {
-  applyOwnershipToQuery,
-  companyObjectId,
-  companyScope,
-  creatorObjectId,
-  resolveCompanyId,
-  resolveOwnership,
-} from "./performance.utils";
+import { applyOwnershipToQuery, companyObjectId, companyScope, creatorObjectId, resolveCompanyId, resolveOwnership} from "./performance.utils";
 
 export type PerfCrudConfig<T> = {
   model: Model<T>;
