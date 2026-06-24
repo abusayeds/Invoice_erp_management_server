@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// Import the 'express' module
 const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 dns.setDefaultResultOrder('ipv4first');
@@ -40,9 +39,7 @@ app.use(express.urlencoded({ limit: "16mb", extended: true }));
 //application router
 app.use(router);
 
-// Set the port number for the server
 
-// Define a route for the root path ('/')
 app.get("/", (req: Request, res: Response) => {
   logger.info("Root endpoint hit");
   const template = `<h1 style="text-align:center">Hello</h1>
