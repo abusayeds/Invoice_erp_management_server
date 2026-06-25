@@ -9,4 +9,6 @@ export interface TCustomPage {
   contents?: string;
   description?: string;
   isDeleted?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
