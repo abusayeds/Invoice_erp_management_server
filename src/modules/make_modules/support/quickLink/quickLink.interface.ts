@@ -8,4 +8,6 @@ export interface TQuickLink {
   link?: string;
   order?: number;
   isDeleted?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
