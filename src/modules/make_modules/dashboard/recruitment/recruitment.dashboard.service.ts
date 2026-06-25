@@ -43,7 +43,7 @@ const mapInterviewEvent = (i: any) => ({
   status: i.status || "Scheduled",
 });
 
-/* ----------------------------- COMPANY ----------------------------- */
+
 const companyDashboard = async (companyId: string) => {
   const scope = companyScope(companyId);
 
