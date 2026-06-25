@@ -7,15 +7,28 @@ import { ticketCategoryService } from "./ticketCategory.service";
 
 const ok = (res: Response, message: string, data: unknown) =>
   sendResponse(res, { success: true, statusCode: httpStatus.OK, message, data });
-const uid = (req: AuthRequest) => req?.user?._id as string;
 
-const create = catchAsync(async (req: AuthRequest, res) => {
-  req.body.user_id = req.user?._id;
-  ok(res, "Ticket category created successfully.", await ticketCategoryService.createDB(req.body));
+const create = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Category created successfully.", await ticketCategoryService.create(req, req.body)));
+
+const getAll = catchAsync(async (req: AuthRequest, res) => {
+  const result = await ticketCategoryService.list(req, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Categories retrieved successfully.",
+    data: result.data,
+    pagination: result.pagination,
+  });
 });
-const getAll = catchAsync(async (req: AuthRequest, res) => ok(res, "Ticket categories retrieved successfully.", await ticketCategoryService.getAllDB(uid(req))));
-const getSingle = catchAsync(async (req: AuthRequest, res) => ok(res, "Ticket category retrieved successfully.", await ticketCategoryService.getSingleDB(req.params.id, uid(req))));
-const update = catchAsync(async (req: AuthRequest, res) => ok(res, "Ticket category updated successfully.", await ticketCategoryService.updateDB(req.params.id, req.body, uid(req))));
-const remove = catchAsync(async (req: AuthRequest, res) => ok(res, "Ticket category deleted successfully.", await ticketCategoryService.deleteDB(req.params.id, uid(req))));
+
+const getSingle = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Category retrieved successfully.", await ticketCategoryService.single(req, req.params.id)));
+
+const update = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Category updated successfully.", await ticketCategoryService.update(req, req.params.id, req.body)));
+
+const remove = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Category deleted successfully.", await ticketCategoryService.remove(req, req.params.id)));
 
 export const ticketCategoryController = { create, getAll, getSingle, update, remove };
