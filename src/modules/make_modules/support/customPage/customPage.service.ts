@@ -1,12 +1,22 @@
 import { TCustomPage } from "./customPage.interface";
 import { CustomPageModel } from "./customPage.model";
+import { createSupportCrudService } from "../shared/support.crud.service";
+import { P } from "../shared/support.permissions";
 
-const createDB = async (payload: TCustomPage) => CustomPageModel.create(payload);
-const getAllDB = async (user_id: string) => CustomPageModel.find({ user_id, isDeleted: false }).sort({ createdAt: -1 });
-const getSingleDB = async (id: string, user_id: string) => CustomPageModel.findOne({ _id: id, user_id, isDeleted: false });
-const updateDB = async (id: string, payload: Partial<TCustomPage>, user_id: string) =>
-  CustomPageModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, payload, { new: true });
-const deleteDB = async (id: string, user_id: string) =>
-  CustomPageModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
-
-export const customPageService = { createDB, getAllDB, getSingleDB, updateDB, deleteDB };
+export const customPageService = createSupportCrudService<TCustomPage>({
+  model: CustomPageModel,
+  label: "Custom page",
+  perms: { manageAny: P.customPage.manage_support_ticket_custom_pages, manageOwn: P.customPage.manage_support_ticket_custom_pages },
+  searchFields: ["title", "slug", "description"],
+  nameField: "slug",
+  formatItem: (d) => ({
+    _id: d._id,
+    title: d.title,
+    slug: d.slug,
+    enable_page_footer: d.enable_page_footer ?? false,
+    contents: d.contents ?? null,
+    description: d.description ?? null,
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+  }),
+});
