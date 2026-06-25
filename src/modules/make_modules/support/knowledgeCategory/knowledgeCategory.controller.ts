@@ -4,18 +4,47 @@ import catchAsync from "../../../../utils/catchAsync";
 import sendResponse from "../../../../utils/sendResponse";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { knowledgeCategoryService } from "./knowledgeCategory.service";
+import { importCsvRows } from "../shared/support.import";
 
 const ok = (res: Response, message: string, data: unknown) =>
   sendResponse(res, { success: true, statusCode: httpStatus.OK, message, data });
-const uid = (req: AuthRequest) => req?.user?._id as string;
 
-const create = catchAsync(async (req: AuthRequest, res) => {
-  req.body.user_id = req.user?._id;
-  ok(res, "Knowledge category created successfully.", await knowledgeCategoryService.createDB(req.body));
+const create = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Knowledge category created successfully.", await knowledgeCategoryService.create(req, req.body)));
+
+const getAll = catchAsync(async (req: AuthRequest, res) => {
+  const result = await knowledgeCategoryService.list(req, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Knowledge categories retrieved successfully.",
+    data: result.data,
+    pagination: result.pagination,
+  });
 });
-const getAll = catchAsync(async (req: AuthRequest, res) => ok(res, "Knowledge categories retrieved successfully.", await knowledgeCategoryService.getAllDB(uid(req))));
-const getSingle = catchAsync(async (req: AuthRequest, res) => ok(res, "Knowledge category retrieved successfully.", await knowledgeCategoryService.getSingleDB(req.params.id, uid(req))));
-const update = catchAsync(async (req: AuthRequest, res) => ok(res, "Knowledge category updated successfully.", await knowledgeCategoryService.updateDB(req.params.id, req.body, uid(req))));
-const remove = catchAsync(async (req: AuthRequest, res) => ok(res, "Knowledge category deleted successfully.", await knowledgeCategoryService.deleteDB(req.params.id, uid(req))));
 
-export const knowledgeCategoryController = { create, getAll, getSingle, update, remove };
+const getSingle = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Knowledge category retrieved successfully.", await knowledgeCategoryService.single(req, req.params.id)));
+
+const update = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Knowledge category updated successfully.", await knowledgeCategoryService.update(req, req.params.id, req.body)));
+
+const remove = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Knowledge category deleted successfully.", await knowledgeCategoryService.remove(req, req.params.id)));
+
+const importData = catchAsync(async (req: AuthRequest, res) => {
+  const result = importCsvRows(req.body?.csv as string);
+  if (!result.ok || !result.rows) {
+    return sendResponse(res, { success: false, statusCode: httpStatus.BAD_REQUEST, message: result.error || "Invalid CSV", data: null });
+  }
+  let imported = 0;
+  for (const row of result.rows) {
+    if (row.title) {
+      await knowledgeCategoryService.create(req, { title: row.title });
+      imported++;
+    }
+  }
+  ok(res, `Knowledge categories imported successfully. ${imported} items imported.`, { imported });
+});
+
+export const knowledgeCategoryController = { create, getAll, getSingle, update, remove, importData };
