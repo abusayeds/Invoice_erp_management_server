@@ -1,12 +1,20 @@
 import { TQuickLink } from "./quickLink.interface";
 import { QuickLinkModel } from "./quickLink.model";
+import { createSupportCrudService } from "../shared/support.crud.service";
+import { P } from "../shared/support.permissions";
 
-const createDB = async (payload: TQuickLink) => QuickLinkModel.create(payload);
-const getAllDB = async (user_id: string) => QuickLinkModel.find({ user_id, isDeleted: false }).sort({ order: 1, createdAt: 1 });
-const getSingleDB = async (id: string, user_id: string) => QuickLinkModel.findOne({ _id: id, user_id, isDeleted: false });
-const updateDB = async (id: string, payload: Partial<TQuickLink>, user_id: string) =>
-  QuickLinkModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, payload, { new: true });
-const deleteDB = async (id: string, user_id: string) =>
-  QuickLinkModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
-
-export const quickLinkService = { createDB, getAllDB, getSingleDB, updateDB, deleteDB };
+export const quickLinkService = createSupportCrudService<TQuickLink>({
+  model: QuickLinkModel,
+  label: "Quick link",
+  perms: { manageAny: P.quickLink.manage_support_ticket_quick_links, manageOwn: P.quickLink.manage_support_ticket_quick_links },
+  searchFields: ["title", "link"],
+  formatItem: (d) => ({
+    _id: d._id,
+    title: d.title,
+    icon: d.icon ?? null,
+    link: d.link ?? null,
+    order: d.order ?? 0,
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+  }),
+});
