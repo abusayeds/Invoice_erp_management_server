@@ -7,15 +7,28 @@ import { quickLinkService } from "./quickLink.service";
 
 const ok = (res: Response, message: string, data: unknown) =>
   sendResponse(res, { success: true, statusCode: httpStatus.OK, message, data });
-const uid = (req: AuthRequest) => req?.user?._id as string;
 
-const create = catchAsync(async (req: AuthRequest, res) => {
-  req.body.user_id = req.user?._id;
-  ok(res, "Quick link created successfully.", await quickLinkService.createDB(req.body));
+const create = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Quick link created successfully.", await quickLinkService.create(req, req.body)));
+
+const getAll = catchAsync(async (req: AuthRequest, res) => {
+  const result = await quickLinkService.list(req, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Quick links retrieved successfully.",
+    data: result.data,
+    pagination: result.pagination,
+  });
 });
-const getAll = catchAsync(async (req: AuthRequest, res) => ok(res, "Quick links retrieved successfully.", await quickLinkService.getAllDB(uid(req))));
-const getSingle = catchAsync(async (req: AuthRequest, res) => ok(res, "Quick link retrieved successfully.", await quickLinkService.getSingleDB(req.params.id, uid(req))));
-const update = catchAsync(async (req: AuthRequest, res) => ok(res, "Quick link updated successfully.", await quickLinkService.updateDB(req.params.id, req.body, uid(req))));
-const remove = catchAsync(async (req: AuthRequest, res) => ok(res, "Quick link deleted successfully.", await quickLinkService.deleteDB(req.params.id, uid(req))));
+
+const getSingle = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Quick link retrieved successfully.", await quickLinkService.single(req, req.params.id)));
+
+const update = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Quick link updated successfully.", await quickLinkService.update(req, req.params.id, req.body)));
+
+const remove = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Quick link deleted successfully.", await quickLinkService.remove(req, req.params.id)));
 
 export const quickLinkController = { create, getAll, getSingle, update, remove };
