@@ -1,10 +1,21 @@
 import { TContact } from "./contact.interface";
 import { ContactModel } from "./contact.model";
+import { createSupportCrudService } from "../shared/support.crud.service";
+import { P } from "../shared/support.permissions";
 
-const createDB = async (payload: TContact) => ContactModel.create(payload);
-const getAllDB = async (user_id: string) => ContactModel.find({ user_id, isDeleted: false }).sort({ createdAt: -1 });
-const getSingleDB = async (id: string, user_id: string) => ContactModel.findOne({ _id: id, user_id, isDeleted: false });
-const deleteDB = async (id: string, user_id: string) =>
-  ContactModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
-
-export const contactService = { createDB, getAllDB, getSingleDB, deleteDB };
+export const contactService = createSupportCrudService<TContact>({
+  model: ContactModel,
+  label: "Contact submission",
+  perms: { manageAny: P.contact.manage_any_contact, manageOwn: P.contact.manage_own_contact },
+  searchFields: ["name", "email", "subject", "message", "first_name", "last_name"],
+  formatItem: (d) => ({
+    _id: d._id,
+    name: d.name ?? null,
+    first_name: d.first_name ?? null,
+    last_name: d.last_name ?? null,
+    email: d.email,
+    subject: d.subject ?? null,
+    message: d.message ?? null,
+    createdAt: d.createdAt,
+  }),
+});
