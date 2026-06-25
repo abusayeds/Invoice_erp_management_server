@@ -13,5 +13,8 @@ export interface TTicketField {
   status?: boolean;
   is_required?: boolean;
   options?: string[];
+  custom_id?: number;
   isDeleted?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
