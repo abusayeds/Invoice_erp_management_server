@@ -8,31 +8,38 @@ import { ticketService } from "./ticket.service";
 
 const ok = (res: Response, message: string, data: unknown) =>
   sendResponse(res, { success: true, statusCode: httpStatus.OK, message, data });
-const uid = (req: AuthRequest) => req?.user?._id as string;
 
-const create = catchAsync(async (req: AuthRequest, res) => {
-  req.body.user_id = req.user?._id;
-  req.body.creator_id = req.user?._id;
-  ok(res, "Ticket created successfully.", await ticketService.createDB(req.body));
+const create = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Ticket created successfully.", await ticketService.createDB(req, req.body)));
+
+const getAll = catchAsync(async (req: AuthRequest, res) => {
+  const result = await ticketService.getAllDB(req, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Tickets retrieved successfully.",
+    data: result.data,
+    pagination: result.pagination,
+  });
 });
 
-const getAll = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Tickets retrieved successfully.", await ticketService.getAllDB(uid(req), req.query)));
+const getRequestData = catchAsync(async (req: AuthRequest, res) =>
+  ok(res, "Request data retrieved successfully.", await ticketService.getRequestDataDB(req)));
 
 const getSingle = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Ticket retrieved successfully.", await ticketService.getSingleDB(req.params.id, uid(req))));
+  ok(res, "Ticket retrieved successfully.", await ticketService.getSingleDB(req, req.params.id)));
 
 const update = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Ticket updated successfully.", await ticketService.updateDB(req.params.id, req.body, uid(req))));
+  ok(res, "Ticket updated successfully.", await ticketService.updateDB(req, req.params.id, req.body)));
 
 const remove = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Ticket deleted successfully.", await ticketService.deleteDB(req.params.id, uid(req))));
+  ok(res, "Ticket deleted successfully.", await ticketService.deleteDB(req, req.params.id)));
 
 const changeStatus = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Ticket status updated successfully.", await ticketService.changeStatusDB(req.params.id, uid(req), req.body.status)));
+  ok(res, "Ticket status updated successfully.", await ticketService.changeStatusDB(req, req.params.id, req.body.status)));
 
 const storeNote = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Ticket note saved successfully.", await ticketService.storeNoteDB(req.params.id, uid(req), req.body.note)));
+  ok(res, "Ticket note saved successfully.", await ticketService.storeNoteDB(req, req.params.id, req.body.note)));
 
 const addReply = catchAsync(async (req: AuthRequest, res) => {
   const reply = {
@@ -41,18 +48,29 @@ const addReply = catchAsync(async (req: AuthRequest, res) => {
     attachments: req.body.attachments || [],
     creator_id: req.user?._id as Types.ObjectId,
   };
-  ok(res, "Reply added successfully.", await ticketService.addReplyDB(req.params.id, uid(req), reply));
+  ok(res, "Reply added successfully.", await ticketService.addReplyDB(req, req.params.id, reply));
 });
 
 const updateReply = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Reply updated successfully.", await ticketService.updateReplyDB(req.params.id, uid(req), req.params.replyId, req.body)));
+  ok(res, "Reply updated successfully.", await ticketService.updateReplyDB(req, req.params.id, req.params.replyId, req.body)));
 
 const deleteReply = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Reply deleted successfully.", await ticketService.deleteReplyDB(req.params.id, uid(req), req.params.replyId)));
+  ok(res, "Reply deleted successfully.", await ticketService.deleteReplyDB(req, req.params.id, req.params.replyId)));
 
 const deleteAttachment = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Attachment deleted successfully.", await ticketService.deleteAttachmentDB(req.params.id, uid(req), req.body.path)));
+  ok(res, "Attachment deleted successfully.", await ticketService.deleteAttachmentDB(req, req.params.id, req.body.path)));
 
 export const ticketController = {
-  create, getAll, getSingle, update, remove, changeStatus, storeNote, addReply, updateReply, deleteReply, deleteAttachment,
+  create,
+  getAll,
+  getRequestData,
+  getSingle,
+  update,
+  remove,
+  changeStatus,
+  storeNote,
+  addReply,
+  updateReply,
+  deleteReply,
+  deleteAttachment,
 };
