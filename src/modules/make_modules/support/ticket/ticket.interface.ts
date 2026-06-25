@@ -33,4 +33,5 @@ export type TTicket = {
   conversations?: TTicketConversation[];
   isDeleted?: boolean;
   createdAt?: Date;
+  updatedAt?: Date;
 };
