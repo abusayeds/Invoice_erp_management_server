@@ -12,6 +12,7 @@ const ticketFieldSchema = new Schema<TTicketField>(
     status: { type: Boolean, default: true },
     is_required: { type: Boolean, default: false },
     options: [{ type: String }],
+    custom_id: { type: Number },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
