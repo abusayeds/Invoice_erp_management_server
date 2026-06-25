@@ -1,12 +1,13 @@
 import { TKnowledgeCategory } from "./knowledgeCategory.interface";
 import { KnowledgeCategoryModel } from "./knowledgeCategory.model";
+import { createSupportCrudService } from "../shared/support.crud.service";
+import { P } from "../shared/support.permissions";
 
-const createDB = async (payload: TKnowledgeCategory) => KnowledgeCategoryModel.create(payload);
-const getAllDB = async (user_id: string) => KnowledgeCategoryModel.find({ user_id, isDeleted: false }).sort({ createdAt: -1 });
-const getSingleDB = async (id: string, user_id: string) => KnowledgeCategoryModel.findOne({ _id: id, user_id, isDeleted: false });
-const updateDB = async (id: string, payload: Partial<TKnowledgeCategory>, user_id: string) =>
-  KnowledgeCategoryModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, payload, { new: true });
-const deleteDB = async (id: string, user_id: string) =>
-  KnowledgeCategoryModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
-
-export const knowledgeCategoryService = { createDB, getAllDB, getSingleDB, updateDB, deleteDB };
+export const knowledgeCategoryService = createSupportCrudService<TKnowledgeCategory>({
+  model: KnowledgeCategoryModel,
+  label: "Knowledge category",
+  perms: { manageAny: P.knowledge.manage_any_knowledge_base, manageOwn: P.knowledge.manage_own_knowledge_base },
+  searchFields: ["title"],
+  nameField: "title",
+  formatItem: (d) => ({ _id: d._id, title: d.title, createdAt: d.createdAt, updatedAt: d.updatedAt }),
+});
