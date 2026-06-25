@@ -8,28 +8,24 @@ import { contactRoutes } from "./contact/contact.route";
 import { customPageRoutes } from "./customPage/customPage.route";
 import { quickLinkRoutes } from "./quickLink/quickLink.route";
 import { ticketFieldRoutes } from "./ticketField/ticketField.route";
-import { supportSettingRoutes } from "./settings/settings.route";
+import { setupRoutes } from "./setup/setup.route";
 import { publicSupportRoutes } from "./public/public.route";
 
 const router = express.Router();
 
-// Tickets
+// Main sections (Laravel sidebar order — dashboard skipped)
 router.use("/tickets", ticketRoutes);
-router.use("/ticket-categories", ticketCategoryRoutes);
-router.use("/ticket-fields", ticketFieldRoutes);
-
-// Knowledge base & FAQ
 router.use("/knowledge", knowledgeRoutes);
-router.use("/knowledge-categories", knowledgeCategoryRoutes);
 router.use("/faq", faqRoutes);
-
-// Contact submissions
 router.use("/contact", contactRoutes);
 
-// Portal setup
+// System Setup
+router.use("/setup", setupRoutes);
+router.use("/ticket-categories", ticketCategoryRoutes);
+router.use("/knowledge-categories", knowledgeCategoryRoutes);
 router.use("/custom-pages", customPageRoutes);
 router.use("/quick-links", quickLinkRoutes);
-router.use("/settings", supportSettingRoutes);
+router.use("/ticket-fields", ticketFieldRoutes);
 
 // Public portal (no auth)
 router.use("/public", publicSupportRoutes);
