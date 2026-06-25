@@ -10,4 +10,5 @@ export interface TContact {
   subject?: string;
   message?: string;
   isDeleted?: boolean;
+  createdAt?: Date;
 }
