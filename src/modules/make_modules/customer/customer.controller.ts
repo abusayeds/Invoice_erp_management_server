@@ -8,6 +8,7 @@ import { ActivitiesType } from "../activities/activities.interface";
 import { Types } from "mongoose";
 
 const customerCreate = catchAsync(async (req: AuthRequest, res) => {
+  console.log("check api");
   req.body.user_id = req?.user?._id;
   const result = await customerService.customerCreateDB(req.body);
   sendResponse(res, {
