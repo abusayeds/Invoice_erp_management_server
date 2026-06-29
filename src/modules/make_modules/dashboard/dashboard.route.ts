@@ -5,10 +5,12 @@ import { hrmDashboardRoutes } from "./hrm/hrm.dashboard.route";
 import { recruitmentDashboardRoutes } from "./recruitment/recruitment.dashboard.route";
 import { crmDashboardRoutes } from "./crm/crm.dashboard.route";
 import { supportDashboardRoutes } from "./support/support.dashboard.route";
+import { summaryDashboardRoutes } from "./summary/summary.dashboard.route";
 
 const router = express.Router();
 
 // One dashboard hub mirroring the Laravel "Dashboard" sidebar section.
+router.use("/summary", summaryDashboardRoutes);
 router.use("/project", projectDashboardRoutes);
 router.use("/account", accountDashboardRoutes);
 router.use("/hrm", hrmDashboardRoutes);
