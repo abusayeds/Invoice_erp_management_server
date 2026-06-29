@@ -46,4 +46,37 @@ const getAll = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const salesReceiptController = { create, getSingle, getAll };
+const update = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  req.body.user_id = req?.user?._id;
+  const result = await salesReceiptService.updateDB(id, req.user?._id as string, req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'SalesReceipt updated successfully.',
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: 'SalesReceipt Update',
+  });
+});
+
+const remove = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await salesReceiptService.deleteDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'SalesReceipt deleted successfully.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Archived,
+    title: 'SalesReceipt Delete',
+  });
+});
+
+export const salesReceiptController = { create, getSingle, getAll, update, remove };

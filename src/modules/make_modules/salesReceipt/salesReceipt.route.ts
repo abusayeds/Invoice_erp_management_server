@@ -23,4 +23,16 @@ router.get(
   salesReceiptController.getAll
 );
 
+router.post(
+  '/edit/:id',
+  authMiddleware(role.company),
+  salesReceiptController.update
+);
+
+router.delete(
+  '/delete/:id',
+  authMiddleware(role.company),
+  salesReceiptController.remove
+);
+
 export const salesReceiptRoutes = router;

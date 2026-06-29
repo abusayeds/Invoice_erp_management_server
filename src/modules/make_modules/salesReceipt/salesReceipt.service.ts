@@ -12,6 +12,32 @@ import { validateItemAmount } from '../utils/validateItemAmount';
 import { SalesReceiptModel } from './salesReceipt.model';
 import queryBuilder from '../../../builder/queryBuilder';
 
+const formatListItem = (doc: unknown) => {
+  const row =
+    doc && typeof doc === 'object' && 'toObject' in doc && typeof (doc as { toObject: () => unknown }).toObject === 'function'
+      ? (doc as { toObject: () => Record<string, unknown> }).toObject()
+      : (doc as Record<string, unknown>);
+
+  const customerId =
+    row.customer_id && typeof row.customer_id === 'object' && row.customer_id !== null && '_id' in row.customer_id
+      ? {
+          _id: (row.customer_id as { _id: unknown })._id,
+          name: (row.customer_id as { name?: string }).name ?? null,
+        }
+      : (row.customer_id ?? null);
+
+  return {
+    _id: row._id,
+    invoice_number: row.invoice_number ?? null,
+    customer_id: customerId,
+    terms_and_conditions: row.terms_and_conditions ?? null,
+    notes: row.notes ?? null,
+    total: row.total ?? 0,
+    status: row.status ?? null,
+    createdAt: row.createdAt ?? null,
+  };
+};
+
 const createDB = async (payload: TSalesReceipt) => {
   await validateDocumentParties(payload);
   if (Array.isArray(payload.product)) {
@@ -80,13 +106,76 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       isDeleted: false,
     })
   );
-  const allRecords = await buildQuery.modelQuery.exec();
+  const allRecords = (await buildQuery.modelQuery.exec()).map(formatListItem);
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
   const pagination = buildQuery.calculatePagination({ totalData, currentPage, limit });
   return { allRecords, pagination };
 };
 
-export const salesReceiptService = { createDB, getSingleDB, getAllDB };
+const updateDB = async (id: string, userId: string, payload: TSalesReceipt) => {
+  const existing = await SalesReceiptModel.findOne({
+    _id: id,
+    user_id: userId,
+    isDeleted: false,
+  });
+  if (!existing) {
+    throw new AppError(httpStatus.NOT_FOUND, 'SalesReceipt not found');
+  }
+
+  await validateDocumentParties(payload);
+  if (Array.isArray(payload.product)) {
+    for (const item of payload.product) {
+      const product = (await ProductModel.findById(item.product_id)) as TProduct;
+      if (!product) {
+        throw new AppError(httpStatus.NOT_FOUND, 'Product not found with id: ' + item.product_id);
+      }
+      if (product.pricing.sellPrice !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': ' + product.pricing.sellPrice + ' vs ' + item.rate);
+      }
+      validateItemAmount(item, 'product');
+    }
+  }
+  if (Array.isArray(payload.service)) {
+    for (const item of payload.service) {
+      const service = (await ServiceModel.findById(item.service_id)) as TService;
+      if (!service) {
+        throw new AppError(httpStatus.NOT_FOUND, 'Service not found with id: ' + item.service_id);
+      }
+      if (service.rate !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Service rate mismatch ' + item.service_id + ': ' + service.rate + ' vs ' + item.rate);
+      }
+      validateItemAmount(item, 'service');
+    }
+  }
+
+  const recalcTotals = payload.product !== undefined || payload.service !== undefined;
+  let data: Record<string, unknown> = { ...payload };
+  if (recalcTotals) {
+    const result = await calculateInvoice({ ...existing.toObject(), ...payload });
+    data = { ...payload, ...result };
+  }
+
+  const updatedRecord = await SalesReceiptModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: false },
+    data,
+    { new: true, runValidators: true }
+  );
+  return updatedRecord;
+};
+
+const deleteDB = async (id: string, userId: string) => {
+  const deletedRecord = await SalesReceiptModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: false },
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!deletedRecord) {
+    throw new AppError(httpStatus.NOT_FOUND, 'SalesReceipt not found');
+  }
+  return deletedRecord;
+};
+
+export const salesReceiptService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
 
 

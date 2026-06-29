@@ -62,7 +62,7 @@ export const PARTY_SEARCH_FIELDS = [
   "businessProfile.tax_number",
 ] as const;
 
-export const CLIENT_POPULATE_SELECT = "name email phone role companyId businessProfile";
+export const CLIENT_POPULATE_SELECT = "name ";
 
 const roleQuery = (partyRole: PartyRole) => {
   if (partyRole === roleEnum.customer) {
