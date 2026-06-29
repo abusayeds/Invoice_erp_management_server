@@ -4,6 +4,10 @@ import catchAsync from "../../../../utils/catchAsync";
 import sendResponse from "../../../../utils/sendResponse";
 import { resolveCompanyId } from "../recruitment.utils";
 import { recruitmentSettingService } from "./recruitmentSetting.service";
+import {
+  ensureOfferLetterTemplate,
+  normalizeOfferLetterTemplateValue,
+} from "../offer/offerLetter.template";
 
 const makeGet = (key: string, label: string) =>
   catchAsync(async (req: AuthRequest, res) => {
@@ -17,17 +21,70 @@ const makeUpdate = (key: string, label: string) =>
     sendResponse(res, { statusCode: httpStatus.OK, success: true, message: `${label} updated successfully`, data: value });
   });
 
-const OFFER_LETTER_PLACEHOLDERS = [
-  "{candidate_name}",
-  "{position}",
-  "{department}",
-  "{salary}",
-  "{bonus}",
-  "{start_date}",
-  "{offer_date}",
-  "{expiration_date}",
-  "{company_name}",
-];
+const OFFER_LETTER_PLACEHOLDERS = {
+  "{applicant_name}": "Applicant Name",
+  "{app_name}": "Application Name",
+  "{company_name}": "Company Name",
+  "{job_title}": "Job Title",
+  "{job_type}": "Job Type",
+  "{start_date}": "Start Date",
+  "{workplace_location}": "Workplace Location",
+  "{days_of_week}": "Days Of Week",
+  "{salary}": "Salary",
+  "{salary_type}": "Salary Type",
+  "{salary_duration}": "Salary Duration",
+  "{next_pay_period}": "Next Pay Period",
+  "{offer_expiration_date}": "Offer Expiration Date",
+  "{candidate_name}": "Candidate Name",
+  "{position}": "Position",
+  "{department}": "Department",
+  "{bonus}": "Bonus",
+  "{offer_date}": "Offer Date",
+  "{expiration_date}": "Expiration Date",
+};
+
+const offerLetterTemplateGet = catchAsync(async (req: AuthRequest, res) => {
+  const companyId = resolveCompanyId(req);
+  const raw = await recruitmentSettingService.getValue(companyId, "offer_letter_template");
+  const normalized = ensureOfferLetterTemplate(raw);
+
+  if (!raw) {
+    await recruitmentSettingService.setValue(companyId, "offer_letter_template", normalized);
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Offer letter template retrieved successfully",
+    data: {
+      content: normalized.content,
+    },
+  });
+});
+
+const offerLetterTemplateUpdate = catchAsync(async (req: AuthRequest, res) => {
+  const companyId = resolveCompanyId(req);
+  const incoming = req.body?.settings?.content
+    ? req.body.settings
+    : req.body?.settings?.templates?.en
+      ? { content: req.body.settings.templates.en }
+      : req.body?.content
+        ? req.body
+        : req.body?.templates?.en
+          ? { content: req.body.templates.en }
+          : req.body;
+  const normalized = normalizeOfferLetterTemplateValue(incoming);
+  const value = await recruitmentSettingService.setValue(companyId, "offer_letter_template", normalized);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Offer letter template updated successfully",
+    data: {
+      content: value.content,
+    },
+  });
+});
 
 const getPlaceholders = catchAsync(async (_req: AuthRequest, res) => {
   sendResponse(res, {
@@ -49,8 +106,8 @@ export const recruitmentSettingController = {
   needHelpUpdate: makeUpdate("need_help", "Need help"),
   trackingFaqGet: makeGet("tracking_faq", "Tracking FAQ"),
   trackingFaqUpdate: makeUpdate("tracking_faq", "Tracking FAQ"),
-  offerLetterTemplateGet: makeGet("offer_letter_template", "Offer letter template"),
-  offerLetterTemplateUpdate: makeUpdate("offer_letter_template", "Offer letter template"),
+  offerLetterTemplateGet,
+  offerLetterTemplateUpdate,
   dashboardWelcomeCardGet: makeGet("dashboard_welcome_card", "Dashboard welcome card"),
   dashboardWelcomeCardUpdate: makeUpdate("dashboard_welcome_card", "Dashboard welcome card"),
   getPlaceholders,
