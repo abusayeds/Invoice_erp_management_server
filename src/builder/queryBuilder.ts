@@ -1,5 +1,49 @@
 import { FilterQuery, Model, Query } from "mongoose";
 
+const startOfDay = (d: Date) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
+
+const endOfDay = (d: Date) => {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+};
+
+const QUERY_META_KEYS = new Set([
+  "searchTerm",
+  "sort",
+  "limit",
+  "page",
+  "fields",
+  "startDate",
+  "endDate",
+  "from",
+  "to",
+]);
+
+/** `startDate`/`endDate` or `from`/`to` → createdAt range (inclusive calendar days). */
+const parseCreatedAtRange = (query: Record<string, unknown>) => {
+  const startRaw = query.startDate ?? query.from;
+  const endRaw = query.endDate ?? query.to;
+  const startStr = typeof startRaw === "string" ? startRaw.trim() : "";
+  const endStr = typeof endRaw === "string" ? endRaw.trim() : "";
+  if (!startStr && !endStr) return null;
+
+  const dateFilter: Record<string, Date> = {};
+  if (startStr) {
+    const start = startOfDay(new Date(startStr));
+    if (!Number.isNaN(start.getTime())) dateFilter.$gte = start;
+  }
+  if (endStr) {
+    const end = endOfDay(new Date(endStr));
+    if (!Number.isNaN(end.getTime())) dateFilter.$lte = end;
+  }
+  return Object.keys(dateFilter).length ? dateFilter : null;
+};
+
 /** Search a related collection by text, then match main docs via ObjectId field. */
 export type NestedSearchRef = {
   /** ObjectId field on the main document (e.g. `employee_user_id`). */
@@ -117,26 +161,17 @@ class queryBuilder<T> {
   }
 
   filter() {
-  const copyQuery = { ...this?.query };
-  const excludeField = ["searchTerm", "sort", "limit", "page", "fields", "startDate", "endDate"];
-  excludeField.forEach((el) => delete copyQuery[el]);
-  const startDate = this.query?.startDate as string;
-  const endDate = this.query?.endDate as string;
+    const copyQuery = { ...this?.query };
+    QUERY_META_KEYS.forEach((el) => delete copyQuery[el]);
 
-  if (startDate || endDate) {
-    const dateFilter: Record<string, Date> = {};
-    if (startDate) dateFilter.$gte = new Date(startDate);
-    if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999); 
-      dateFilter.$lte = end;
+    const createdAtRange = parseCreatedAtRange(this.query);
+    if (createdAtRange) {
+      (copyQuery as Record<string, unknown>).createdAt = createdAtRange;
     }
-    (copyQuery as any).createdAt = dateFilter;
-  }
 
-  this.modelQuery = this?.modelQuery?.find(copyQuery as FilterQuery<T>);
-  return this;
-}
+    this.modelQuery = this?.modelQuery?.find(copyQuery as FilterQuery<T>);
+    return this;
+  }
 
   sort() {
     const sort =
@@ -153,11 +188,10 @@ class queryBuilder<T> {
   async paginate(model: any): Promise<{ totalData: number }> {
     const searchTerm = this.query?.searchTerm;
     const sort = this.query?.sort;
-    const filterKeys = Object.keys(this.query || {}).filter(
-      (key) => !["searchTerm", "sort", "limit", "page", "fields"].includes(key)
-    );
+    const filterKeys = Object.keys(this.query || {}).filter((key) => !QUERY_META_KEYS.has(key));
+    const hasCreatedAtRange = Boolean(parseCreatedAtRange(this.query));
     let totalData;
-    if (!searchTerm && !sort && filterKeys.length === 0) {
+    if (!searchTerm && !sort && filterKeys.length === 0 && !hasCreatedAtRange) {
       totalData = await model.countDocuments();
       const page = Number(this?.query?.page) || 1;
       const limit = Number(this?.query?.limit) || 10;
