@@ -4,8 +4,9 @@
   "description": "\"Backed Template\"",
   "main": "index.js",
   "scripts": {
-    "start:prod": "node ./dist/server.js",
+    "start:prod": "node ./scripts/start-prod.js",
     "dev": "nodemon src/server.ts",
+    "prod": "npm run build && npm run start:prod",
     "build": "tsc",
     "lint": "eslint src --ignore-path .eslintignore --ext .ts",
     "lint:fix": "npx eslint src --fix",

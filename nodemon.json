@@ -2,6 +2,7 @@
   "watch": ["src"],
   "ext": "ts,json",
   "env": {
+    "NODE_ENV": "development",
     "PORT": "2002"
   }
 }
