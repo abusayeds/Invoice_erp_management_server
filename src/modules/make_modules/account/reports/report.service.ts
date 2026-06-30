@@ -16,16 +16,16 @@ const BALANCE_STATUSES = ["Open", "Partial", "Paid", "Overdue"];
 const PI_AGING_STATUSES = ["posted", "partial", "overdue"];
 const PI_BALANCE_STATUSES = ["posted", "partial", "paid", "overdue"];
 
-/** Outstanding balance of a purchase invoice (uses total_amount, not total). */
+/** Outstanding balance of a purchase invoice. */
 const resolvePIBalance = (doc: {
-  total_amount?: number;
+  total?: number;
   paid_amount?: number;
   balance_amount?: number;
 }) => {
   if (doc.balance_amount !== undefined && doc.balance_amount !== null) {
     return doc.balance_amount;
   }
-  return (doc.total_amount ?? 0) - (doc.paid_amount ?? 0);
+  return (doc.total ?? 0) - (doc.paid_amount ?? 0);
 };
 
 type AgingBucket = "current" | "1_30_days" | "31_60_days" | "61_90_days" | "over_90_days";
@@ -190,7 +190,7 @@ const taxSummaryDB = async (userId: string, fromDate: string, toDate: string) =>
     user_id: companyObjectId(userId),
     isDeleted: false,
     status: { $in: PI_BALANCE_STATUSES },
-    invoice_date: { $gte: from, $lte: to },
+    date: { $gte: from, $lte: to },
   };
 
   const [collectedAgg, paidAgg] = await Promise.all([
@@ -200,7 +200,7 @@ const taxSummaryDB = async (userId: string, fromDate: string, toDate: string) =>
     ]),
     PurchaseInvoiceModel.aggregate([
       { $match: billMatch },
-      { $group: { _id: null, total: { $sum: "$tax_amount" } } },
+      { $group: { _id: null, total: { $sum: "$tax" } } },
     ]),
   ]);
 
@@ -313,10 +313,10 @@ const vendorBalanceDB = async (
       vendor_id: vendor._id,
       isDeleted: false,
       status: { $in: PI_BALANCE_STATUSES },
-      invoice_date: { $lte: asOf },
+      date: { $lte: asOf },
     }).lean();
 
-    const billed = bills.reduce((s, b) => s + (b.total_amount ?? 0), 0);
+    const billed = bills.reduce((s, b) => s + (b.total ?? 0), 0);
     const balance = bills.reduce((s, b) => s + resolvePIBalance(b), 0);
     const paid = billed - balance;
 
@@ -482,15 +482,15 @@ const vendorDetailDB = async (
     isDeleted: false,
     status: { $in: PI_BALANCE_STATUSES },
   };
-  if (startDate) billFilter.invoice_date = { $gte: new Date(startDate) };
+  if (startDate) billFilter.date = { $gte: new Date(startDate) };
   if (endDate)
-    billFilter.invoice_date = { ...(billFilter.invoice_date as object), $lte: new Date(endDate) };
+    billFilter.date = { ...(billFilter.date as object), $lte: new Date(endDate) };
 
   const bills = await PurchaseInvoiceModel.find(billFilter)
     .select(
-      "invoice_number invoice_date due_date subtotal tax_amount total_amount balance_amount status paid_amount"
+      "invoice_number date due_date sub_total tax total balance_amount status paid_amount"
     )
-    .sort({ invoice_date: -1 })
+    .sort({ date: -1 })
     .lean();
 
   const dnFilter: Record<string, unknown> = {
@@ -540,11 +540,11 @@ const vendorDetailDB = async (
     date_range: { start_date: startDate ?? null, end_date: endDate ?? null },
     invoices: bills.map((b) => ({
       invoice_number: b.invoice_number,
-      date: b.invoice_date,
+      date: b.date,
       due_date: b.due_date,
-      subtotal: b.subtotal,
-      tax_amount: b.tax_amount,
-      total_amount: b.total_amount,
+      subtotal: b.sub_total,
+      tax_amount: b.tax,
+      total_amount: b.total,
       balance_amount: resolvePIBalance(b),
       status: b.status,
     })),
@@ -559,7 +559,7 @@ const vendorDetailDB = async (
     })),
     payments: paymentsMapped,
     summary: {
-      total_invoiced: bills.reduce((s, b) => s + (b.total_amount ?? 0), 0),
+      total_invoiced: bills.reduce((s, b) => s + (b.total ?? 0), 0),
       total_returns: 0,
       total_debit_notes: debitNotes.reduce((s, d) => s + (d.total ?? 0), 0),
       total_payments: payments.reduce((s, p) => s + (p.payment_amount ?? 0), 0),

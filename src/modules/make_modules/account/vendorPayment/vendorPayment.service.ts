@@ -34,7 +34,7 @@ const updateInvoiceBalance = async (
   });
   if (!invoice) throw new AppError(httpStatus.BAD_REQUEST, "Invalid purchase invoice in allocation");
 
-  const total = invoice.total_amount ?? 0;
+  const total = invoice.total ?? 0;
   const paid = (invoice.paid_amount ?? 0) + allocatedAmount;
   let balance = invoice.balance_amount;
   if (balance === undefined || balance === null) {
@@ -79,7 +79,7 @@ const validateAllocations = async (
     const balance =
       invoice.balance_amount !== undefined && invoice.balance_amount !== null
         ? invoice.balance_amount
-        : (invoice.total_amount ?? 0) - (invoice.paid_amount ?? 0);
+        : (invoice.total ?? 0) - (invoice.paid_amount ?? 0);
     if (alloc.allocated_amount > balance + 0.01) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
@@ -148,7 +148,7 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
   const base = VendorPaymentModel.find(companyScope(userId))
     .populate("vendor_id", CLIENT_POPULATE_SELECT)
     .populate("bank_account_id", "account_name account_number")
-    .populate("allocations.invoice_id", "invoice_number total_amount balance_amount status");
+    .populate("allocations.invoice_id", "invoice_number total balance_amount status");
   const build = new queryBuilder(base, query)
     .search(["payment_number", "reference_number", "notes"])
     .filter()
@@ -170,7 +170,7 @@ const getOutstandingDB = async (userId: string, vendorId: string) => {
     status: { $in: OPEN_STATUSES },
     $or: [{ balance_amount: { $gt: 0 } }, { balance_amount: { $exists: false } }],
   })
-    .select("_id invoice_number invoice_date due_date total_amount paid_amount balance_amount status")
+    .select("_id invoice_number date due_date total paid_amount balance_amount status")
     .lean();
 
   const normalized = invoices
@@ -178,7 +178,7 @@ const getOutstandingDB = async (userId: string, vendorId: string) => {
       const balance =
         invoice.balance_amount !== undefined && invoice.balance_amount !== null
           ? invoice.balance_amount
-          : (invoice.total_amount ?? 0) - (invoice.paid_amount ?? 0);
+          : (invoice.total ?? 0) - (invoice.paid_amount ?? 0);
       return { ...invoice, balance_amount: balance };
     })
     .filter((invoice) => invoice.balance_amount > 0);
