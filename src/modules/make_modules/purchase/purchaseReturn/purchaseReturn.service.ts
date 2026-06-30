@@ -11,7 +11,7 @@ import { createDebitNoteFromPurchaseReturn } from "../../account/noteFromReturn.
 const POPULATE = [
   { path: "vendor_id", select: "name email" },
   { path: "warehouse_id", select: "name city" },
-  { path: "original_invoice_id", select: "invoice_number total_amount status" },
+  { path: "original_invoice_id", select: "invoice_number total status" },
   { path: "items.product_id", select: "productName sku" },
 ];
 
@@ -41,17 +41,17 @@ const createDB = async (userId: string, body: Record<string, unknown>) => {
     throw new AppError(httpStatus.BAD_REQUEST, "At least one return item is required");
   }
 
-  // Pull discount/tax % from the matching original invoice item (Laravel calculateReturnTotals).
+  // Pull discount/tax from the matching original purchase invoice product line.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const origItems = originalInvoice.items as any[];
+  const origItems = ((originalInvoice.product as any[]) || []);
   const origMap = new Map(origItems.map((it) => [String(it._id), it]));
   const enriched = rawItems.map((it) => {
     const orig = it.original_invoice_item_id ? origMap.get(String(it.original_invoice_item_id)) : undefined;
     return {
       ...it,
-      unit_price: Number(it.unit_price ?? orig?.unit_price ?? 0),
-      discount_percentage: Number(orig?.discount_percentage ?? it.discount_percentage ?? 0),
-      tax_percentage: Number(orig?.tax_percentage ?? it.tax_percentage ?? 0),
+      unit_price: Number(it.unit_price ?? orig?.rate ?? 0),
+      discount_percentage: Number(orig?.discount ?? it.discount_percentage ?? 0),
+      tax_percentage: Number(orig?.tax ?? it.tax_percentage ?? 0),
       original_quantity: Number(orig?.quantity ?? it.original_quantity ?? 0),
     };
   });
