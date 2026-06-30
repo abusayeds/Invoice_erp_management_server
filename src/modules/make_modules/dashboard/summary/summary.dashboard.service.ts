@@ -126,7 +126,7 @@ const invoiceDateInRange = (range: DateRange) => ({
 });
 
 const purchaseDateInRange = (range: DateRange) => ({
-  invoice_date: { $gte: range.from, $lte: range.to },
+  date: { $gte: range.from, $lte: range.to },
 });
 
 const currencyMatch = (currency?: string) =>
@@ -402,7 +402,7 @@ const buildStats = async (
         ...vendorOnly,
         ...(skipVendor ? noMatch() : {}),
       },
-      "total_amount",
+      "total",
     ),
     sumField(
       VendorPaymentModel,
@@ -675,12 +675,12 @@ const aggregateTopProductsFromPurchases = async (
       $match: {
         ...companyScope(companyId),
         status: { $ne: "draft" },
-        items: { $exists: true, $ne: [] },
+        product: { $exists: true, $ne: [] },
         ...vendorMatch(party),
       },
     },
-    { $unwind: "$items" },
-    { $group: { _id: "$items.product_id", amount: { $sum: "$items.total_amount" } } },
+    { $unwind: "$product" },
+    { $group: { _id: "$product.product_id", amount: { $sum: "$product.amount" } } },
     {
       $lookup: {
         from: ProductModel.collection.name,
