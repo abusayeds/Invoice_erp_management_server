@@ -46,4 +46,37 @@ const getAll = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const deliveryChallanController = { create, getSingle, getAll };
+const update = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  req.body.user_id = req?.user?._id;
+  const result = await deliveryChallanService.updateDB(id, req.user?._id as string, req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'DeliveryChallan updated successfully.',
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: 'DeliveryChallan Update',
+  });
+});
+
+const remove = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await deliveryChallanService.deleteDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'DeliveryChallan deleted successfully.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Archived,
+    title: 'DeliveryChallan Delete',
+  });
+});
+
+export const deliveryChallanController = { create, getSingle, getAll, update, remove };

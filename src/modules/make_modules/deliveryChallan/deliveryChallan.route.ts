@@ -23,4 +23,16 @@ router.get(
   deliveryChallanController.getAll
 );
 
+router.post(
+  '/edit/:id',
+  authMiddleware(role.company),
+  deliveryChallanController.update
+);
+
+router.delete(
+  '/delete/:id',
+  authMiddleware(role.company),
+  deliveryChallanController.remove
+);
+
 export const deliveryChallanRoutes = router;
