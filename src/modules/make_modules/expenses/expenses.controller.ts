@@ -40,10 +40,43 @@ const getAll = catchAsync(async (req: AuthRequest, res) => {
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: 'Expensess retrieved all successfully.',
+    message: 'Expenses retrieved all successfully.',
     data: result.allRecords,
     pagination: result.pagination,
   });
 });
 
-export const expensesController = { create, getSingle, getAll };
+const update = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  req.body.user_id = req?.user?._id;
+  const result = await expensesService.updateDB(id, req.user?._id as string, req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Expenses updated successfully.',
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Updated,
+    title: 'Expenses Update',
+  });
+});
+
+const remove = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await expensesService.deleteDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Expenses deleted successfully.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    user_id: req?.user?._id as Types.ObjectId,
+    type: ActivitiesType.Archived,
+    title: 'Expenses Delete',
+  });
+});
+
+export const expensesController = { create, getSingle, getAll, update, remove };
