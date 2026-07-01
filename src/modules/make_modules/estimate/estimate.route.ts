@@ -23,4 +23,16 @@ router.get(
   estimateController.getAll
 );
 
+router.post(
+  '/edit/:id',
+  authMiddleware(role.company),
+  estimateController.update
+);
+
+router.delete(
+  '/delete/:id',
+  authMiddleware(role.company),
+  estimateController.remove
+);
+
 export const estimateRoutes = router;
