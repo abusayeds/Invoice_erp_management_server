@@ -12,6 +12,35 @@ import { validateItemAmount } from '../utils/validateItemAmount';
 import { ProformaInvoiceModel } from './proformaInvoice.model';
 import queryBuilder from '../../../builder/queryBuilder';
 
+const formatParty = (party: unknown) => {
+  if (party && typeof party === 'object' && party !== null && '_id' in party) {
+    return {
+      _id: (party as { _id: unknown })._id,
+      name: (party as { name?: string }).name ?? null,
+    };
+  }
+  return party ?? null;
+};
+
+const formatListItem = (doc: unknown) => {
+  const row =
+    doc && typeof doc === 'object' && 'toObject' in doc && typeof (doc as { toObject: () => unknown }).toObject === 'function'
+      ? (doc as { toObject: () => Record<string, unknown> }).toObject()
+      : (doc as Record<string, unknown>);
+
+  return {
+    _id: row._id,
+    invoice_number: row.invoice_number ?? null,
+    customer_id: formatParty(row.customer_id),
+    vendor_id: formatParty(row.vendor_id),
+    terms_and_conditions: row.terms_and_conditions ?? null,
+    notes: row.notes ?? null,
+    total: row.total ?? 0,
+    status: row.status ?? null,
+    createdAt: row.createdAt ?? null,
+  };
+};
+
 const createDB = async (payload: TProformaInvoice) => {
   await validateDocumentParties(payload);
   if (Array.isArray(payload.product)) {
@@ -63,10 +92,9 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       user_id: user_id,
       archive: false,
       isDeleted: false,
-    }).populate({
-      path: 'customer_id',
-      select: CLIENT_POPULATE_SELECT,
-    }),
+    })
+      .populate({ path: 'customer_id', select: CLIENT_POPULATE_SELECT })
+      .populate({ path: 'vendor_id', select: CLIENT_POPULATE_SELECT }),
     query
   )
     .search(['internal_notes', 'notes', 'terms_and_conditions', 'invoice_number', 'sub_title'])
@@ -80,7 +108,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       isDeleted: false,
     })
   );
-  const allRecords = await buildQuery.modelQuery.exec();
+  const allRecords = (await buildQuery.modelQuery.exec()).map(formatListItem);
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
   const pagination = buildQuery.calculatePagination({ totalData, currentPage, limit });
