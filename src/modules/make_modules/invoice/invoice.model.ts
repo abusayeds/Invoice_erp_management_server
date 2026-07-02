@@ -13,7 +13,7 @@ const addressSchema = new Schema(
   { _id: false }
 );
 
-const productSchema = new Schema(
+export const productSchema = new Schema(
   {
     product_id: { type: Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, required: true },
@@ -25,7 +25,7 @@ const productSchema = new Schema(
   { _id: false }
 );
 
-const serviceSchema = new Schema(
+export const serviceSchema = new Schema(
   {
     service_id: { type: Types.ObjectId, ref: 'Service' },
     quantity: { type: Number },
