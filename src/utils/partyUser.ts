@@ -9,6 +9,7 @@ import {
   TPartyUserWrite,
 } from "../modules/basic_modules/user/user.business.interface";
 import { role as roleEnum, CUSTOMER_ROLE_VALUES, isCustomerRole } from "./role";
+import { loadStoredRolePermissions } from "./userPermissions";
 export { roleEnum as role, isCustomerRole, CUSTOMER_ROLE_VALUES };
 
 type PartyRole = typeof roleEnum.customer | typeof roleEnum.vendor;
@@ -48,6 +49,9 @@ export const validatePartyCreateBody = (payload: TPartyUserWrite, partyRole: Par
   if (partyRole === roleEnum.customer && !payload.email?.trim()) {
     throw new AppError(httpStatus.BAD_REQUEST, "Email is required");
   }
+  if (payload.password?.trim() && !payload.email?.trim()) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Email is required when setting a password for login");
+  }
   requireAddress(payload.billing_address, "Billing address");
   if (!payload.same_as_billing) {
     requireAddress(payload.shipping_address, "Shipping address");
@@ -60,9 +64,46 @@ export const PARTY_SEARCH_FIELDS = [
   "phone",
   "businessProfile.companyName",
   "businessProfile.tax_number",
+  "businessProfile.registration_number",
+  "businessProfile.business_phone",
 ] as const;
 
 export const CLIENT_POPULATE_SELECT = "name ";
+
+/** List API — only fields needed for customer/vendor table rows. */
+export const PARTY_LIST_SELECT =
+  "name email phone businessProfile.companyName businessProfile.opening_balance businessProfile.opening_balance_date businessProfile.active businessProfile.archive";
+
+export type TPartyListItem = {
+  _id: unknown;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  company_name?: string | null;
+  opening_balance?: number;
+  opening_balance_date?: Date | null;
+  active?: boolean;
+  archive?: boolean;
+};
+
+export const toPartyListItem = (user: IUser): TPartyListItem => {
+  const doc =
+    typeof user.toObject === "function"
+      ? user.toObject()
+      : ({ ...user } as Record<string, unknown>);
+  const profile = (doc.businessProfile ?? {}) as TBusinessProfile;
+  return {
+    _id: doc._id,
+    name: (doc.name as string | undefined) ?? null,
+    email: (doc.email as string | undefined) ?? null,
+    phone: (doc.phone as string | undefined) ?? null,
+    company_name: profile.companyName ?? null,
+    opening_balance: profile.opening_balance ?? 0,
+    opening_balance_date: profile.opening_balance_date ?? null,
+    active: profile.active ?? true,
+    archive: profile.archive ?? false,
+  };
+};
 
 const roleQuery = (partyRole: PartyRole) => {
   if (partyRole === roleEnum.customer) {
@@ -71,13 +112,53 @@ const roleQuery = (partyRole: PartyRole) => {
   return partyRole;
 };
 
+/**
+ * List/filter customers and vendors from the shared User collection.
+ * Team-management users may have no businessProfile — include them unless explicitly archived/inactive.
+ */
 export const partyBaseFilter = (companyId: Types.ObjectId | string, partyRole: PartyRole) => ({
   companyId,
   role: roleQuery(partyRole),
   isDeleted: false,
-  "businessProfile.active": true,
-  "businessProfile.archive": false,
+  $and: [
+    {
+      $or: [
+        { "businessProfile.archive": { $ne: true } },
+        { businessProfile: { $exists: false } },
+      ],
+    },
+    {
+      $or: [
+        { "businessProfile.active": { $ne: false } },
+        { businessProfile: { $exists: false } },
+      ],
+    },
+  ],
 });
+
+/** Base filter for company user list when role is customer or vendor (same as customer/all, vendor/all). */
+export const companyPartyListFilter = (
+  companyId: Types.ObjectId | string,
+  roleParam?: string
+) => {
+  const roleValue = typeof roleParam === "string" ? roleParam.trim() : "";
+  if (roleValue === roleEnum.customer || roleValue === "client") {
+    return partyBaseFilter(companyId, roleEnum.customer);
+  }
+  if (roleValue === roleEnum.vendor) {
+    return partyBaseFilter(companyId, roleEnum.vendor);
+  }
+  return { companyId, isDeleted: false };
+};
+
+export const isCompanyPartyListRole = (roleParam?: string) => {
+  const roleValue = typeof roleParam === "string" ? roleParam.trim() : "";
+  return (
+    roleValue === roleEnum.customer ||
+    roleValue === "client" ||
+    roleValue === roleEnum.vendor
+  );
+};
 
 export const assertPartyUser = async (
   id: Types.ObjectId | string,
@@ -107,8 +188,27 @@ export const assertVendorUser = (id: Types.ObjectId | string) =>
 /** Build the businessProfile sub-document from the create payload. */
 const buildProfile = (payload: TPartyUserWrite): TBusinessProfile => ({
   companyName: payload.company_name,
+  registration_number: payload.registration_number,
   tax_number: payload.tax_number,
+  business_phone: payload.business_phone,
+  fax: payload.fax,
+  home_phone: payload.home_phone,
+  birthday: payload.birthday ? new Date(payload.birthday) : undefined,
+  anniversary: payload.anniversary ? new Date(payload.anniversary) : undefined,
+  bank_details: payload.bank_details,
   payment_terms: payload.payment_terms,
+  default_tax_service_id: payload.default_tax_service_id
+    ? (payload.default_tax_service_id as TBusinessProfile["default_tax_service_id"])
+    : undefined,
+  default_tax_product_id: payload.default_tax_product_id
+    ? (payload.default_tax_product_id as TBusinessProfile["default_tax_product_id"])
+    : undefined,
+  hourly_rate: payload.hourly_rate,
+  opening_balance: payload.opening_balance,
+  opening_balance_date: payload.opening_balance_date
+    ? new Date(payload.opening_balance_date)
+    : undefined,
+  payment_reminder: payload.payment_reminder,
   billing_address: payload.billing_address,
   shipping_address: payload.same_as_billing ? payload.billing_address : payload.shipping_address,
   same_as_billing: payload.same_as_billing ?? false,
@@ -117,22 +217,42 @@ const buildProfile = (payload: TPartyUserWrite): TBusinessProfile => ({
   archive: payload.archive ?? false,
 });
 
+const resolvePartyLogin = (payload: TPartyUserWrite): boolean => {
+  if (typeof payload.login === "boolean") return payload.login;
+  return Boolean(payload.password?.trim());
+};
+
 export const mapPartyPayloadToUser = (
   payload: TPartyUserWrite,
   companyId: Types.ObjectId | string,
   partyRole: PartyRole
-): Partial<IUser> => ({
-  // Common identity fields live on the User itself.
-  name: payload.name,
-  email: payload.email,
-  phone: payload.phone,
-  role: partyRole,
-  companyId: companyId as IUser["companyId"],
-  businessProfile: buildProfile(payload),
-  isDeleted: payload.isDeleted ?? false,
-  isVerify: false,
-  login: false,
-});
+): Partial<IUser> => {
+  const canLogin = resolvePartyLogin(payload);
+  return {
+    name: payload.name,
+    email: payload.email,
+    phone: payload.phone,
+    currency: payload.currency,
+    ...(payload.password ? { password: payload.password } : {}),
+    role: partyRole,
+    companyId: companyId as IUser["companyId"],
+    businessProfile: buildProfile(payload),
+    isDeleted: payload.isDeleted ?? false,
+    isVerify: canLogin,
+    login: canLogin,
+  };
+};
+
+/** Create payload + role permissions from Permission collection (mirrors create-user-by-company). */
+export const buildPartyUserForCreate = async (
+  payload: TPartyUserWrite,
+  companyId: Types.ObjectId | string,
+  partyRole: PartyRole
+): Promise<Partial<IUser>> => {
+  const userData = mapPartyPayloadToUser(payload, companyId, partyRole);
+  userData.permissions = await loadStoredRolePermissions(companyId, partyRole);
+  return userData;
+};
 
 /**
  * Partial update — only the provided keys change. businessProfile fields use dot-notation
@@ -144,13 +264,36 @@ export const applyPartyUpdateToUser = (payload: TPartyUserWrite): Record<string,
   if (payload.name !== undefined) update.name = payload.name;
   if (payload.email !== undefined) update.email = payload.email;
   if (payload.phone !== undefined) update.phone = payload.phone;
+  if (payload.currency !== undefined) update.currency = payload.currency;
+  if (payload.password !== undefined && payload.password.trim()) {
+    update.password = payload.password;
+    if (payload.login === undefined) update.login = true;
+    update.isVerify = true;
+  }
+  if (payload.login !== undefined) update.login = payload.login;
 
   const setProfile = (key: keyof TBusinessProfile, value: unknown) => {
     if (value !== undefined) update[`businessProfile.${key}`] = value;
   };
   setProfile("companyName", payload.company_name);
+  setProfile("registration_number", payload.registration_number);
   setProfile("tax_number", payload.tax_number);
+  setProfile("business_phone", payload.business_phone);
+  setProfile("fax", payload.fax);
+  setProfile("home_phone", payload.home_phone);
+  setProfile("birthday", payload.birthday ? new Date(payload.birthday) : payload.birthday);
+  setProfile("anniversary", payload.anniversary ? new Date(payload.anniversary) : payload.anniversary);
+  setProfile("bank_details", payload.bank_details);
   setProfile("payment_terms", payload.payment_terms);
+  setProfile("default_tax_service_id", payload.default_tax_service_id);
+  setProfile("default_tax_product_id", payload.default_tax_product_id);
+  setProfile("hourly_rate", payload.hourly_rate);
+  setProfile("opening_balance", payload.opening_balance);
+  setProfile(
+    "opening_balance_date",
+    payload.opening_balance_date ? new Date(payload.opening_balance_date) : payload.opening_balance_date
+  );
+  setProfile("payment_reminder", payload.payment_reminder);
   setProfile("billing_address", payload.billing_address);
   setProfile(
     "shipping_address",

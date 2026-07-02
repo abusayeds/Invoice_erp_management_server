@@ -13,7 +13,11 @@ import { role,  } from "../../../utils/role";
 import { Types } from "mongoose";
 import { PermissionModel } from "../../make_modules/permission/permission.model";
 import { TPermission } from "../../make_modules/permission/permission.interface";
-import { resolveEffectivePermissions } from "../../../utils/userPermissions";
+import { resolveEffectivePermissions, loadStoredRolePermissions } from "../../../utils/userPermissions";
+import {
+  companyPartyListFilter,
+  isCompanyPartyListRole,
+} from "../../../utils/partyUser";
 
 export const generateToken = (payload: any): string => {
   return jwt.sign(payload, JWT_SECRET_KEY as string, { expiresIn: "7d" });
@@ -273,15 +277,8 @@ const createUserByCompanyDB = async (companyId: string, payload: IUser) => {
   if (isUserRegistered) {
     throw new AppError(httpStatus.BAD_REQUEST, "User already exists");
   }
-  const rolePermissions = await PermissionModel.findOne({
-    companyId,
-    role: payload.role,
-  });
-  if (rolePermissions) {
-    payload.permissions = rolePermissions.permissions ;
-  } else {
-    payload.permissions = [];
-  }
+  const rolePermissions = await loadStoredRolePermissions(companyId, payload.role);
+  payload.permissions = rolePermissions;
   payload.companyId = new Types.ObjectId(companyId);
   payload.isVerify = true; 
   const result = await UserModel.create(payload);
@@ -303,10 +300,24 @@ const createCompanyBySuperadminDB = async (payload: IUser) => {
   return userObject;
 };
 
-const allUserForCompanyDB = async (companyId: string , query: Record<string, unknown>,  ) => {
-  const userQuery = new queryBuilder(UserModel.find({ companyId: companyId ,isDeleted: false }).select("name email role companyId phone login image"), query).search(['name' , 'email']).filter().fields().sort()
-  const { totalData } = await userQuery.paginate(UserModel.find({ companyId: companyId , isDeleted: false }))
-  const user = await userQuery.modelQuery.exec()
+const allUserForCompanyDB = async (companyId: string, query: Record<string, unknown>) => {
+  const roleParam = typeof query.role === "string" ? query.role : undefined;
+  const baseFilter = companyPartyListFilter(companyId, roleParam);
+  const queryForBuilder = { ...query };
+  if (isCompanyPartyListRole(roleParam)) {
+    delete queryForBuilder.role;
+  }
+
+  const userQuery = new queryBuilder(
+    UserModel.find(baseFilter).select("name email role companyId phone login image"),
+    queryForBuilder
+  )
+    .search(["name", "email"])
+    .filter()
+    .fields()
+    .sort();
+  const { totalData } = await userQuery.paginate(UserModel.find(baseFilter));
+  const user = await userQuery.modelQuery.exec();
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
   const pagination = userQuery.calculatePagination({
@@ -314,8 +325,8 @@ const allUserForCompanyDB = async (companyId: string , query: Record<string, unk
     currentPage,
     limit,
   });
-  return { pagination, user, };
-}
+  return { pagination, user };
+};
 const allRoleDB = async (companyId: string) => {
 
   const allRoles = Object.values(role).filter(

@@ -20,14 +20,26 @@ export type TBusinessAddress = TPartyAddress;
  * Common identity fields (name, email, phone) live on the User itself, not here.
  */
 export type TBusinessProfile = {
-  companyName?: string; // company_name
+  companyName?: string;
+  registration_number?: string;
   tax_number?: string;
+  business_phone?: string;
+  fax?: string;
+  home_phone?: string;
+  birthday?: Date;
+  anniversary?: Date;
+  bank_details?: string;
   payment_terms?: string;
+  default_tax_service_id?: Types.ObjectId;
+  default_tax_product_id?: Types.ObjectId;
+  hourly_rate?: number;
+  opening_balance?: number;
+  opening_balance_date?: Date;
+  payment_reminder?: boolean;
   billing_address?: TPartyAddress;
   shipping_address?: TPartyAddress;
   same_as_billing?: boolean;
   notes?: string;
-  /** system flags (soft delete / listing) */
   active?: boolean;
   archive?: boolean;
 };
@@ -44,9 +56,28 @@ export type TPartyUserWrite = {
   name?: string;
   email?: string;
   phone?: string;
+  /** Portal login — hashed on User; omit on update to keep existing password. */
+  password?: string;
+  /** Allow login when true; defaults to true when password is set on create. */
+  login?: boolean;
   company_name?: string;
+  registration_number?: string;
   tax_number?: string;
+  business_phone?: string;
+  fax?: string;
+  home_phone?: string;
+  birthday?: Date | string;
+  anniversary?: Date | string;
+  bank_details?: string;
   payment_terms?: string;
+  default_tax_service_id?: Types.ObjectId | string;
+  default_tax_product_id?: Types.ObjectId | string;
+  hourly_rate?: number;
+  opening_balance?: number;
+  opening_balance_date?: Date | string;
+  payment_reminder?: boolean;
+  /** Stored on User root (same as before). */
+  currency?: string;
   billing_address?: TPartyAddress;
   shipping_address?: TPartyAddress;
   same_as_billing?: boolean;

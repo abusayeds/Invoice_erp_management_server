@@ -5,13 +5,15 @@ import { IUser } from "../../basic_modules/user/user.interface";
 import { UserModel } from "../../basic_modules/user/user.model";
 import AppError from "../../../errors/AppError";
 import {
-  mapPartyPayloadToUser,
+  buildPartyUserForCreate,
   validatePartyCreateBody,
   applyPartyUpdateToUser,
   partyBaseFilter,
   PARTY_SEARCH_FIELDS,
+  PARTY_LIST_SELECT,
   role,
   toPartyUserResponse,
+  toPartyListItem,
   CUSTOMER_ROLE_VALUES,
 } from "../../../utils/partyUser";
 
@@ -21,24 +23,21 @@ const customerCreateDB = async (payload: TPartyUserWrite) => {
     throw new AppError(httpStatus.BAD_REQUEST, "user_id (company) is required");
   }
   validatePartyCreateBody(payload, role.customer);
-  const userData = mapPartyPayloadToUser(payload, companyId, role.customer);
+  const userData = await buildPartyUserForCreate(payload, companyId, role.customer);
   const created = await UserModel.create(userData);
   return toPartyUserResponse(created);
 };
 
 const allCustomerDB = async (user_id: string, query: Record<string, unknown>) => {
   const baseFilter = partyBaseFilter(user_id, role.customer);
-  const customerQuery = new queryBuilder(UserModel.find(baseFilter).select("-password"), query)
+  const customerQuery = new queryBuilder(UserModel.find(baseFilter).select(PARTY_LIST_SELECT), query)
     .search([...PARTY_SEARCH_FIELDS])
     .filter()
     .sort()
     .fields();
-  const { totalData } = await customerQuery.paginate(
-    UserModel.find(baseFilter).select("-password")
-  );
+  const { totalData } = await customerQuery.paginate(UserModel.find(baseFilter));
 
-  // check if current page exceeds total pages
-  const allCustomer = (await customerQuery.modelQuery.exec()).map(toPartyUserResponse);
+  const allCustomer = (await customerQuery.modelQuery.exec()).map(toPartyListItem);
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
   const pagination = customerQuery.calculatePagination({

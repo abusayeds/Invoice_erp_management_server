@@ -21,8 +21,21 @@ const addressSchema = new Schema<TPartyAddress>(
 const businessProfileSchema = new Schema(
   {
     companyName: { type: String, trim: true },
+    registration_number: { type: String },
     tax_number: { type: String },
+    business_phone: { type: String },
+    fax: { type: String },
+    home_phone: { type: String },
+    birthday: { type: Date },
+    anniversary: { type: Date },
+    bank_details: { type: String },
     payment_terms: { type: String },
+    default_tax_service_id: { type: Schema.Types.ObjectId, ref: "Tax" },
+    default_tax_product_id: { type: Schema.Types.ObjectId, ref: "Tax" },
+    hourly_rate: { type: Number },
+    opening_balance: { type: Number, default: 0 },
+    opening_balance_date: { type: Date },
+    payment_reminder: { type: Boolean, default: false },
     billing_address: { type: addressSchema },
     shipping_address: { type: addressSchema },
     same_as_billing: { type: Boolean, default: false },
@@ -41,7 +54,6 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: function (this: IUser) {
         if (this.authProvider === "google") return false;
-        // Customer/vendor are data records (Laravel collects no password for them).
         if (this.role === role.customer || this.role === role.vendor) return false;
         return true;
       },
@@ -75,7 +87,6 @@ const UserSchema = new Schema<IUser>(
     },
     businessProfile: { type: businessProfileSchema },
     permissions: [{ type: String }],
-    // Hidden by default so existing responses (my-profile/login) stay unchanged; auth loads it explicitly.
     permissionsOverridden: { type: Boolean, default: false, select: false },
     isDeleted: {
       type: Boolean,
