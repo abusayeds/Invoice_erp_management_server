@@ -5,12 +5,17 @@ import { ProductModel } from "./product.model";
 import queryBuilder from "../../../builder/queryBuilder";
 import { CategoryModel } from "./category/category.model";
 import { TaxModel } from "./tax/tax.model";
+import { taxTypesForProduct } from "./tax/tax.interface";
 
 const productCreateDB = async (payload : TProduct) => {
   const isExistCategory = await CategoryModel.findOne({ _id: payload.category });
   if (!isExistCategory) {throw new AppError( httpStatus.NOT_FOUND ,"Category not found")}
   if (payload.tax) {
-    const isExistTax = await TaxModel.findOne({ _id: payload.tax, user_id: payload.user_id });
+    const isExistTax = await TaxModel.findOne({
+      _id: payload.tax,
+      user_id: payload.user_id,
+      type: { $in: [...taxTypesForProduct] },
+    });
     if (!isExistTax) {throw new AppError( httpStatus.NOT_FOUND ,"Tax not found")}
   }
   const result = await ProductModel.create(payload);
@@ -42,7 +47,11 @@ const updateProductDB = async (user_id : string , id : string , payload : TProdu
     if (!isExistCategory) {throw new AppError(httpStatus.NOT_FOUND, "Category not found")}
   }
   if (payload.tax) {
-    const isExistTax = await TaxModel.findOne({ _id: payload.tax, user_id });
+    const isExistTax = await TaxModel.findOne({
+      _id: payload.tax,
+      user_id,
+      type: { $in: [...taxTypesForProduct] },
+    });
     if (!isExistTax) {throw new AppError(httpStatus.NOT_FOUND, "Tax not found")}
   }
   const result = await ProductModel.findOneAndUpdate(

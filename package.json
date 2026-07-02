@@ -13,7 +13,8 @@
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
     "prettier:fix": "npx prettier --write src",
     "prepare": "husky install",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate:tax-type": "npx ts-node --transpile-only src/DB/migrations/migrateTaxType.ts"
   },
   "keywords": [],
   "author": "",
