@@ -4,9 +4,10 @@ import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { productService } from "./product.service";
 import { TProduct } from "./product.interface";
-import { ActivitiesType } from "../activities/activities.interface";
+import { ActivityAction } from "../activities/activities.interface";
 import { activitiesService } from "../activities/activities.service";
-import { Types } from "mongoose";
+import { ActivityModule } from "../../../utils/activityModules";
+import { activityActors } from "../../../utils/activityContext";
 
 const productCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -17,7 +18,13 @@ const productCreate = catchAsync(async (req: AuthRequest, res) => {
     message: "Product created successfully.",
     data: result,
   });
-   await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId, type : ActivitiesType.Created , title: ` ${result.productName}Product Created` } );
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.product,
+    entity_ids: [result._id],
+    action: ActivityAction.created,
+    title: `${result.productName} Product Created`,
+  });
 });
 const allProduct= catchAsync(async (req: AuthRequest, res) => {
   const result = await productService.allProductDB(req.user?._id as string, req.query);
@@ -48,7 +55,13 @@ const deleteProduct = catchAsync(async (req: AuthRequest, res) => {
     message: "Product deleted successfully.",
     data: result
   });
-   await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId, type : ActivitiesType.Archived , title: ` ${result?.productName} Product Deleted` } );
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.product,
+    entity_ids: [result?._id ?? id],
+    action: ActivityAction.archived,
+    title: `${result?.productName ?? "Product"} Deleted`,
+  });
 });
 
 const updateProduct = catchAsync(async (req: AuthRequest, res) => {
@@ -61,7 +74,13 @@ const updateProduct = catchAsync(async (req: AuthRequest, res) => {
     message: "Product updated successfully.",
     data: result
   });
-   await activitiesService.activitiesCreateDB({ user_id: req?.user?._id as Types.ObjectId, type : ActivitiesType.Updated , title: ` ${result?.productName} Product Updated` } );
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.product,
+    entity_ids: [result?._id ?? id],
+    action: ActivityAction.updated,
+    title: `${result?.productName ?? "Product"} Updated`,
+  });
 });
 
 export const productController = {

@@ -3,6 +3,10 @@ import catchAsync from "../../../../utils/catchAsync";
 import sendResponse from "../../../../utils/sendResponse";
 import { AuthRequest } from "../../../../middlewares/auth";
 import { categoryService } from "./category.service";
+import { ActivityAction } from "../../activities/activities.interface";
+import { activitiesService } from "../../activities/activities.service";
+import { ActivityModule } from "../../../../utils/activityModules";
+import { activityActors } from "../../../../utils/activityContext";
 
 // CREATE
 const createCategory = catchAsync(async (req: AuthRequest, res) => {
@@ -13,6 +17,13 @@ const createCategory = catchAsync(async (req: AuthRequest, res) => {
     statusCode: httpStatus.OK,
     message: "Category created successfully.",
     data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.category,
+    entity_ids: [result._id!],
+    action: ActivityAction.created,
+    title: `Category ${result.category} Created`,
   });
 });
 
@@ -54,6 +65,13 @@ const updateCategory = catchAsync(async (req : AuthRequest, res) => {
     message: "Category updated successfully.",
     data: result,
   });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.category,
+    entity_ids: [result?._id ?? id],
+    action: ActivityAction.updated,
+    title: `Category ${result?.category ?? id} Updated`,
+  });
 });
 
 // DELETE
@@ -67,6 +85,13 @@ const deleteCategory = catchAsync(async (req : AuthRequest, res) => {
     statusCode: httpStatus.OK,
     message: "Category deleted successfully.",
     data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.category,
+    entity_ids: [result?._id ?? id],
+    action: ActivityAction.archived,
+    title: `Category ${result?.category ?? id} Deleted`,
   });
 });
 

@@ -3,10 +3,11 @@ import sendResponse from "../../../utils/sendResponse";
 import { ServiceService } from "./service.service";
 import catchAsync from "../../../utils/catchAsync";
 import { AuthRequest } from "../../../middlewares/auth";
-import { ActivitiesType } from "../activities/activities.interface";
+import { ActivityAction } from "../activities/activities.interface";
 import { activitiesService } from "../activities/activities.service";
-import { Types } from "mongoose";
 import { TService } from "./service.interface";
+import { ActivityModule } from "../../../utils/activityModules";
+import { activityActors } from "../../../utils/activityContext";
 
 const createService = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -18,9 +19,11 @@ const createService = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Created,
-    title: ` ${result?.serviceName} Service Created`,
+    ...activityActors(req),
+    module: ActivityModule.service,
+    entity_ids: [result._id!],
+    action: ActivityAction.created,
+    title: `${result.serviceName} Service Created`,
   });
 });
 
@@ -67,9 +70,11 @@ const updateService = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Updated,
-    title: ` ${result?.serviceName} Service Updated`,
+    ...activityActors(req),
+    module: ActivityModule.service,
+    entity_ids: [result?._id ?? req.params.id],
+    action: ActivityAction.updated,
+    title: `${result?.serviceName ?? "Service"} Updated`,
   });
 });
 
@@ -86,9 +91,11 @@ const deleteService = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Archived,
-    title: ` ${result?.serviceName} Service Archived`,
+    ...activityActors(req),
+    module: ActivityModule.service,
+    entity_ids: [result?._id ?? req.params.id],
+    action: ActivityAction.archived,
+    title: `${result?.serviceName ?? "Service"} Archived`,
   });
 });
 

@@ -3,10 +3,11 @@ import { AuthRequest } from '../../../middlewares/auth';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
 import { paymentReceivedService } from './paymentReceived.service';
-import { Types } from 'mongoose';
-import { ActivitiesType } from '../activities/activities.interface';
+import { ActivityAction } from '../activities/activities.interface';
 import { activitiesService } from '../activities/activities.service';
 import { TPaymentReceived } from './paymentReceived.interface';
+import { ActivityModule } from '../../../utils/activityModules';
+import { activityActors } from '../../../utils/activityContext';
 
 const create = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -17,10 +18,12 @@ const create = catchAsync(async (req: AuthRequest, res) => {
     message: 'PaymentReceived created successfully.',
     data: result,
   });
-  await activitiesService.activitiesCreateDB({ 
-    user_id: req?.user?._id as Types.ObjectId, 
-    type: ActivitiesType.Created, 
-    title: 'PaymentReceived Create' 
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.payment_received,
+    entity_ids: [result._id!],
+    action: ActivityAction.created,
+    title: `Payment Received ${result.invoice_number ?? result._id} Created`,
   });
 });
 

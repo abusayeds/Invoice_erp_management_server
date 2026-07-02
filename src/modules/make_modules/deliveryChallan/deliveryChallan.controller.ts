@@ -3,10 +3,11 @@ import { AuthRequest } from '../../../middlewares/auth';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
 import { deliveryChallanService } from './deliveryChallan.service';
-import { Types } from 'mongoose';
-import { ActivitiesType } from '../activities/activities.interface';
+import { ActivityAction } from '../activities/activities.interface';
 import { activitiesService } from '../activities/activities.service';
 import { TDeliveryChallan } from './deliveryChallan.interface';
+import { ActivityModule } from '../../../utils/activityModules';
+import { activityActors } from '../../../utils/activityContext';
 
 const create = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -17,10 +18,12 @@ const create = catchAsync(async (req: AuthRequest, res) => {
     message: 'DeliveryChallan created successfully.',
     data: result,
   });
-  await activitiesService.activitiesCreateDB({ 
-    user_id: req?.user?._id as Types.ObjectId, 
-    type: ActivitiesType.Created, 
-    title: 'DeliveryChallan Create' 
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.delivery_challan,
+    entity_ids: [result._id!],
+    action: ActivityAction.created,
+    title: `Delivery Challan ${result.invoice_number ?? result._id} Created`,
   });
 });
 
@@ -57,9 +60,11 @@ const update = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Updated,
-    title: 'DeliveryChallan Update',
+    ...activityActors(req),
+    module: ActivityModule.delivery_challan,
+    entity_ids: [result?._id ?? id],
+    action: ActivityAction.updated,
+    title: `Delivery Challan ${result?.invoice_number ?? id} Updated`,
   });
 });
 
@@ -73,9 +78,11 @@ const remove = catchAsync(async (req: AuthRequest, res) => {
     data: null,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Archived,
-    title: 'DeliveryChallan Delete',
+    ...activityActors(req),
+    module: ActivityModule.delivery_challan,
+    entity_ids: [id],
+    action: ActivityAction.archived,
+    title: `Delivery Challan ${id} Deleted`,
   });
 });
 

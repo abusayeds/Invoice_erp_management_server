@@ -7,8 +7,10 @@ import sendResponse from "../../../utils/sendResponse";
 import { TProject } from "./project.interface";
 import { toObjectIds } from "./project.model";
 import { applyCompanyUserToBody } from "./project.utils";
-import { ActivitiesType } from "../activities/activities.interface";
+import { ActivityAction } from "../activities/activities.interface";
 import { activitiesService } from "../activities/activities.service";
+import { ActivityModule } from "../../../utils/activityModules";
+import { activityActors } from "../../../utils/activityContext";
 import { dashboardService } from "./dashboard.service";
 import { projectService } from "./project.service";
 import { milestoneService } from "./milestone.service";
@@ -120,9 +122,13 @@ const createUpdateProject = catchAsync(async (req: AuthRequest, res) => {
     data,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: creatorId(req),
-    type: req.body.project_id ? ActivitiesType.Updated : ActivitiesType.Created,
-    title: req.body.project_id ? "Project update" : "Project create",
+    ...activityActors(req),
+    module: ActivityModule.project,
+    entity_ids: [data._id!],
+    action: req.body.project_id ? ActivityAction.updated : ActivityAction.created,
+    title: req.body.project_id
+      ? `Project ${data.name} Updated`
+      : `Project ${data.name} Created`,
   });
 });
 
@@ -135,9 +141,11 @@ const deleteProject = catchAsync(async (req: AuthRequest, res) => {
     data: null,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: creatorId(req),
-    type: ActivitiesType.Archived,
-    title: "Project delete",
+    ...activityActors(req),
+    module: ActivityModule.project,
+    entity_ids: [String(req.body.project_id)],
+    action: ActivityAction.archived,
+    title: "Project Deleted",
   });
 });
 

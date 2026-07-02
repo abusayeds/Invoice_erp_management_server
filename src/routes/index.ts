@@ -43,6 +43,7 @@ import { dashboardRoutes } from "../modules/make_modules/dashboard/dashboard.rou
 import { crmRoutes } from "../modules/make_modules/crm/crm.route";
 import { formBuilderRoutes } from "../modules/make_modules/formBuilder/formBuilder.route";
 import { supportRoutes } from "../modules/make_modules/support/support.route";
+import { activitiesRoutes } from "../modules/make_modules/activities/activities.route";
 
 const router = express.Router();
 
@@ -93,5 +94,6 @@ router.use("/api/v1/dashboard", dashboardRoutes);
 router.use("/api/v1/crm", crmRoutes);
 router.use("/api/v1/form-builder", formBuilderRoutes);
 router.use("/api/v1/support", supportRoutes);
+router.use("/api/v1/activities", activitiesRoutes);
 
 export default router;

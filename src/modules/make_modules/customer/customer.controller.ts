@@ -4,11 +4,12 @@ import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { customerService } from "./customer.service";
 import { activitiesService } from "../activities/activities.service";
-import { ActivitiesType } from "../activities/activities.interface";
+import { ActivityAction } from "../activities/activities.interface";
 import { Types } from "mongoose";
+import { ActivityModule } from "../../../utils/activityModules";
+import { activityActors } from "../../../utils/activityContext";
 
 const customerCreate = catchAsync(async (req: AuthRequest, res) => {
-  console.log("check api");
   req.body.user_id = req?.user?._id;
   const result = await customerService.customerCreateDB(req.body);
   sendResponse(res, {
@@ -18,11 +19,14 @@ const customerCreate = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
   await activitiesService.activitiesCreateDB({
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Created,
-    title: ` ${result?.businessProfile?.companyName || result?.name} Customer Created`,
+    ...activityActors(req),
+    module: ActivityModule.customer,
+    entity_ids: [result._id as Types.ObjectId],
+    action: ActivityAction.created,
+    title: `${result?.businessProfile?.companyName || result?.name} Customer Created`,
   });
 });
+
 const allCustomer = catchAsync(async (req: AuthRequest, res) => {
   const result = await customerService.allCustomerDB(
     req?.user?._id as string,
@@ -36,6 +40,7 @@ const allCustomer = catchAsync(async (req: AuthRequest, res) => {
     data: result.allCustomer,
   });
 });
+
 const singleCustomer = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params;
   const result = await customerService.singleCustomerDB(
@@ -49,6 +54,7 @@ const singleCustomer = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
 });
+
 const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params;
   const result = await customerService.deleteCustomerDB(
@@ -61,12 +67,15 @@ const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
     message: "Oparation successfull.",
     data: result,
   });
-   await activitiesService.activitiesCreateDB({  
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Archived,
-    title: ` ${result?.businessProfile?.companyName || result?.name} Customer Archived`,
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.customer,
+    entity_ids: [id],
+    action: ActivityAction.archived,
+    title: `${result?.businessProfile?.companyName || result?.name || "Customer"} Archived`,
   });
 });
+
 const updateCustomer = catchAsync(async (req: AuthRequest, res) => {
   const result = await customerService.updateCustomerDB(
     req?.user?._id as string,
@@ -78,12 +87,15 @@ const updateCustomer = catchAsync(async (req: AuthRequest, res) => {
     message: "Oparation successfull.",
     data: result,
   });
-    await activitiesService.activitiesCreateDB({  
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Updated,
-    title: ` ${result?.businessProfile?.companyName || result?.name} Customer Updated`,
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.customer,
+    entity_ids: [result._id as Types.ObjectId],
+    action: ActivityAction.updated,
+    title: `${result?.businessProfile?.companyName || result?.name} Customer Updated`,
   });
 });
+
 export const customerController = {
   customerCreate,
   allCustomer,

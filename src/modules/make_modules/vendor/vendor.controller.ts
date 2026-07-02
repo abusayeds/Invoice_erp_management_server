@@ -3,9 +3,11 @@ import { AuthRequest } from "../../../middlewares/auth";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { vendorService } from "./vendor.service";
-import { ActivitiesType } from "../activities/activities.interface";
+import { ActivityAction } from "../activities/activities.interface";
 import { Types } from "mongoose";
 import { activitiesService } from "../activities/activities.service";
+import { ActivityModule } from "../../../utils/activityModules";
+import { activityActors } from "../../../utils/activityContext";
 
 const vendorCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -17,10 +19,12 @@ const vendorCreate = catchAsync(async (req: AuthRequest, res) => {
     data: result,
   });
   await activitiesService.activitiesCreateDB({
-      user_id: req?.user?._id as Types.ObjectId,
-      type: ActivitiesType.Created,
-      title: ` ${result?.businessProfile?.companyName || result?.name} Vendor Created`,
-    });
+    ...activityActors(req),
+    module: ActivityModule.vendor,
+    entity_ids: [(result._id as Types.ObjectId)],
+    action: ActivityAction.created,
+    title: `${result?.businessProfile?.companyName || result?.name} Vendor Created`,
+  });
 });
 const allVendor = catchAsync(async (req: AuthRequest, res) => {
   const result = await vendorService.allVendorDB( req?.user?._id as string , req.query);
@@ -51,10 +55,12 @@ const deleteVendor = catchAsync(async (req: AuthRequest, res) => {
     message: "Oparation successfull.",
     data: result
   });
-  await activitiesService.activitiesCreateDB({  
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Archived,
-    title: ` ${result?.businessProfile?.companyName || result?.name} Vendor Archived`,
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.vendor,
+    entity_ids: [id],
+    action: ActivityAction.archived,
+    title: `${result?.businessProfile?.companyName || result?.name || "Vendor"} Archived`,
   });
 });
 const updateVendor = catchAsync(async (req: AuthRequest, res) => {
@@ -67,10 +73,12 @@ const updateVendor = catchAsync(async (req: AuthRequest, res) => {
     message: "Oparation successfull.",
     data: result
   });
-  await activitiesService.activitiesCreateDB({  
-    user_id: req?.user?._id as Types.ObjectId,
-    type: ActivitiesType.Updated,
-    title: ` ${result?.businessProfile?.companyName || result?.name} Vendor Updated`,
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.vendor,
+    entity_ids: [(result._id as Types.ObjectId)],
+    action: ActivityAction.updated,
+    title: `${result?.businessProfile?.companyName || result?.name} Vendor Updated`,
   });
 });
 export const vendorController = {
