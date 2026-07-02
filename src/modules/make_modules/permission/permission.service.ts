@@ -4,8 +4,9 @@ import AppError from "../../../errors/AppError";
 import { TPermission } from "./permission.interface";
 import { PermissionModel } from "./permission.model";
 import { role } from "../../../utils/role";
-import { parseValidPermissions } from "../../../utils/permissionCatalog";
+import { parseValidPermissions, normalizePermission } from "../../../utils/permissionCatalog";
 import { UserModel } from "../../basic_modules/user/user.model";
+import { resolveEffectivePermissions } from "../../../utils/userPermissions";
 
 const ROLES_BLOCKED_FOR_USER_PERMISSION_UPDATE = new Set<string>([
   role.superadmin,
@@ -60,23 +61,27 @@ const updateUserPermissionsDB = async (
   }
 
   if (resetToRole) {
-    // Drop the override so this user follows live role permissions again (hybrid).
-    const rolePermissions = await PermissionModel.findOne({ companyId, role: user.role });
-    user.permissions = rolePermissions?.permissions ?? [];
+    user.permissions = [];
     user.permissionsOverridden = false;
   } else {
     if (rawPermissions === undefined || rawPermissions === null) {
       throw new AppError(httpStatus.BAD_REQUEST, "permissions is required");
     }
-    // Explicit per-user override: these win over the role until reset.
-    user.permissions = parseValidPermissions(rawPermissions);
-    user.permissionsOverridden = true;
+    const rolePermissions = await PermissionModel.findOne({ companyId, role: user.role });
+    const rolePermList = (rolePermissions?.permissions ?? []) as string[];
+    const roleSet = new Set(rolePermList.map((p) => normalizePermission(String(p))));
+    const sent = parseValidPermissions(rawPermissions);
+    // Store only extras beyond the live role template (role base always applies at resolve time).
+    const extras = sent.filter((p) => !roleSet.has(normalizePermission(String(p))));
+    user.permissions = extras;
+    user.permissionsOverridden = extras.length > 0;
   }
 
   await user.save();
   const result = user.toObject();
   delete result.password;
   delete result.permissionsOverridden;
+  result.permissions = await resolveEffectivePermissions(user);
   return result;
 };
 
