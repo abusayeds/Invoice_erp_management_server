@@ -67,7 +67,7 @@ export type TPurchaseInvoice = {
   balance_amount: number;
   payment_terms?: string;
   isDeleted: boolean;
-  archive: boolean;
+  isArchive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };

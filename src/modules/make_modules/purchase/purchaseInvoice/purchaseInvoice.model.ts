@@ -72,7 +72,7 @@ const purchaseInvoiceSchema = new Schema<TPurchaseInvoice>(
     balance_amount: { type: Number, default: 0 },
     payment_terms: { type: String },
     isDeleted: { type: Boolean, default: false },
-    archive: { type: Boolean, default: false },
+    isArchive: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -109,14 +109,14 @@ const createDB = async (userId: string, body: Record<string, unknown>) => {
     debit_note_applied: 0,
     balance_amount: data.total ?? 0,
     status: "draft",
-    archive: false,
+    isArchive: false,
     isDeleted: false,
   });
   return created.populate(POPULATE);
 };
 
 const getAllDB = async (userId: string, query: Record<string, unknown>) => {
-  const base = { user_id: userId, archive: false, isDeleted: false };
+  const base = { user_id: userId, isArchive: false, isDeleted: false };
   const qb = new queryBuilder(PurchaseInvoiceModel.find(base).populate(POPULATE), query)
     .search([
       "internal_notes",
@@ -141,7 +141,7 @@ const getSingleDB = async (userId: string, id: string) => {
   const doc = await PurchaseInvoiceModel.findOne({
     _id: id,
     user_id: userId,
-    archive: false,
+    isArchive: false,
     isDeleted: false,
   }).populate(POPULATE);
   if (!doc) throw new AppError(httpStatus.NOT_FOUND, "Purchase invoice not found");
@@ -149,7 +149,7 @@ const getSingleDB = async (userId: string, id: string) => {
 };
 
 const updateDB = async (userId: string, id: string, body: Record<string, unknown>) => {
-  const existing = await PurchaseInvoiceModel.findOne({ _id: id, user_id: userId, isDeleted: false });
+  const existing = await PurchaseInvoiceModel.findOne({ _id: id, user_id: userId });
   if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Purchase invoice not found");
   if (existing.status !== "draft") {
     throw new AppError(httpStatus.BAD_REQUEST, "Cannot update a posted invoice");
@@ -170,7 +170,7 @@ const updateDB = async (userId: string, id: string, body: Record<string, unknown
       ...payload,
       ...result,
       paid_amount: paid,
-      balance_amount: Math.max(0, round2((result.total ?? 0) - paid)),
+      balance_amount: Math.max(0, round2((result.total ?? 0) - paid))
     };
   }
 

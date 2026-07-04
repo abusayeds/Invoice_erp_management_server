@@ -36,9 +36,8 @@ const getSingleWarehouseDB = async (id: string, user_id: string) => {
 
 const updateWarehouseDB = async (id: string, user_id: string, payload: Partial<TWarehouse>) => {
   delete payload.user_id;
-  delete payload.isDeleted;
   const warehouse = await WarehouseModel.findOneAndUpdate(
-    { _id: id, user_id, isDeleted: false },
+    { _id: id, user_id },
     payload,
     { new: true, runValidators: true }
   );
