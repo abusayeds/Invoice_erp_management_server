@@ -37,8 +37,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TExpenseCat
     const dup = await ExpenseCategoryModel.findOne({
       user_id: userId,
       category_code: payload.category_code,
-      isDeleted: false,
-      _id: { $ne: id },
+      _id: { $ne: id }
     });
     if (dup) throw new AppError(httpStatus.CONFLICT, "Expense category code already exists");
   }

@@ -24,8 +24,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TAccountCat
     const dup = await AccountCategoryModel.findOne({
       user_id: userId,
       code: payload.code,
-      isDeleted: false,
-      _id: { $ne: id },
+      _id: { $ne: id }
     });
     if (dup) throw new AppError(httpStatus.CONFLICT, "Account category code already exists");
   }

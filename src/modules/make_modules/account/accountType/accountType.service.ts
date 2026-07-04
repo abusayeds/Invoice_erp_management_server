@@ -42,8 +42,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TAccountTyp
     const dup = await AccountTypeModel.findOne({
       user_id: companyObjectId(userId),
       code: payload.code,
-      isDeleted: false,
-      _id: { $ne: id },
+      _id: { $ne: id }
     });
     if (dup) throw new AppError(httpStatus.CONFLICT, "Account type code already exists");
   }

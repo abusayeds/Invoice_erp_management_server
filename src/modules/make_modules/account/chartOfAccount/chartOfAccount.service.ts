@@ -53,8 +53,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TChartOfAcc
     const dup = await ChartOfAccountModel.findOne({
       user_id: userId,
       account_code: payload.account_code,
-      isDeleted: false,
-      _id: { $ne: id },
+      _id: { $ne: id }
     });
     if (dup) throw new AppError(httpStatus.CONFLICT, "Account code already exists");
   }

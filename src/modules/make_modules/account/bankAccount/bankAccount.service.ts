@@ -45,8 +45,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TBankAccoun
     const dup = await BankAccountModel.findOne({
       user_id: userId,
       account_number: payload.account_number,
-      isDeleted: false,
-      _id: { $ne: id },
+      _id: { $ne: id }
     });
     if (dup) throw new AppError(httpStatus.CONFLICT, "Bank account number already exists");
   }

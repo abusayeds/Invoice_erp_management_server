@@ -28,8 +28,7 @@ const updateInvoiceBalance = async (
 ) => {
   const invoice = await InvoiceModel.findOne({
     _id: invoiceId,
-    user_id: userId,
-    isDeleted: false,
+    user_id: userId
   });
   if (!invoice) throw new AppError(httpStatus.BAD_REQUEST, "Invalid invoice in allocation");
 
@@ -213,7 +212,7 @@ const updateStatusDB = async (id: string, userId: string, status: string) => {
         amount: record.payment_amount,
         running_balance: 0,
         transaction_status: "cleared",
-        reconciliation_status: "unreconciled",
+        reconciliation_status: "unreconciled"
       });
     }
 
