@@ -16,7 +16,7 @@ const getSingleDB = async (id: string, user_id: string) => {
 };
 
 const updateDB = async (id: string, payload: Partial<TDealStage>, user_id: string) => {
-  return await DealStageModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, payload, { new: true });
+  return await DealStageModel.findOneAndUpdate({ _id: id, user_id }, payload, { new: true });
 };
 
 const deleteDB = async (id: string, user_id: string) => {
@@ -26,10 +26,10 @@ const deleteDB = async (id: string, user_id: string) => {
 // Bulk-reorder the kanban columns: body { items: [{ id, order }] }.
 const updateOrderDB = async (user_id: string, items: { id: string; order: number }[]) => {
   const ops = (items || []).map((it) => ({
-    updateOne: { filter: { _id: it.id, user_id, isDeleted: false }, update: { order: it.order } },
+    updateOne: { filter: { _id: it.id, user_id }, update: { order: it.order } }
   }));
   if (ops.length) await DealStageModel.bulkWrite(ops);
-  return await DealStageModel.find({ user_id, isDeleted: false }).sort({ order: 1 });
+  return await DealStageModel.find({ user_id }).sort({ order: 1 });
 };
 
 export const dealStageService = { createDB, getAllDB, getSingleDB, updateDB, deleteDB, updateOrderDB };

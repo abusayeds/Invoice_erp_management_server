@@ -33,21 +33,21 @@ const getSingleDB = async (id: string, user_id: string) =>
   LeadModel.findOne({ _id: id, user_id, isDeleted: false }).populate(FULL_POP);
 
 const updateDB = async (id: string, payload: Partial<TLead>, user_id: string) =>
-  LeadModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, payload, { new: true, runValidators: true });
+  LeadModel.findOneAndUpdate({ _id: id, user_id }, payload, { new: true, runValidators: true });
 
 const deleteDB = async (id: string, user_id: string) =>
-  LeadModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
+  LeadModel.findOneAndUpdate({ _id: id, user_id }, { isDeleted: true }, { new: true });
 
 // Kanban move/reorder: items [{ id, stage_id?, order }].
 const orderDB = async (user_id: string, items: { id: string; stage_id?: string; order: number }[]) => {
   const ops = (items || []).map((it) => ({
     updateOne: {
-      filter: { _id: it.id, user_id, isDeleted: false },
-      update: { ...(it.stage_id ? { stage_id: it.stage_id } : {}), order: it.order },
-    },
+      filter: { _id: it.id, user_id },
+      update: { ...(it.stage_id ? { stage_id: it.stage_id } : {}), order: it.order }
+    }
   }));
   if (ops.length) await LeadModel.bulkWrite(ops);
-  return LeadModel.find({ user_id, isDeleted: false }).sort({ order: 1 });
+  return LeadModel.find({ user_id }).sort({ order: 1 });
 };
 
 const setLabelsDB = (id: string, user_id: string, labels: string[]) => setRefs(LeadModel, id, user_id, "labels", labels);

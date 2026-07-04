@@ -31,25 +31,25 @@ const getSingleDB = async (id: string, user_id: string) =>
   DealModel.findOne({ _id: id, user_id, isDeleted: false }).populate(FULL_POP);
 
 const updateDB = async (id: string, payload: Partial<TDeal>, user_id: string) =>
-  DealModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, payload, { new: true, runValidators: true });
+  DealModel.findOneAndUpdate({ _id: id, user_id }, payload, { new: true, runValidators: true });
 
 const deleteDB = async (id: string, user_id: string) =>
-  DealModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
+  DealModel.findOneAndUpdate({ _id: id, user_id }, { isDeleted: true }, { new: true });
 
 // Kanban move/reorder: items [{ id, stage_id?, order }].
 const orderDB = async (user_id: string, items: { id: string; stage_id?: string; order: number }[]) => {
   const ops = (items || []).map((it) => ({
     updateOne: {
-      filter: { _id: it.id, user_id, isDeleted: false },
-      update: { ...(it.stage_id ? { stage_id: it.stage_id } : {}), order: it.order },
-    },
+      filter: { _id: it.id, user_id },
+      update: { ...(it.stage_id ? { stage_id: it.stage_id } : {}), order: it.order }
+    }
   }));
   if (ops.length) await DealModel.bulkWrite(ops);
-  return DealModel.find({ user_id, isDeleted: false }).sort({ order: 1 });
+  return DealModel.find({ user_id }).sort({ order: 1 });
 };
 
 const changeStatusDB = async (id: string, user_id: string, status: string) =>
-  DealModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { status }, { new: true });
+  DealModel.findOneAndUpdate({ _id: id, user_id }, { status }, { new: true });
 
 const setLabelsDB = (id: string, user_id: string, labels: string[]) => setRefs(DealModel, id, user_id, "labels", labels);
 

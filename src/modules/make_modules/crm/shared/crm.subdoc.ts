@@ -2,7 +2,7 @@
 // Generic helpers for managing embedded sub-arrays and ref-arrays on a company-scoped doc.
 // Every op is scoped by { _id, user_id, isDeleted:false } so a company only touches its own records.
 
-const scope = (id: string, user_id: string) => ({ _id: id, user_id, isDeleted: false });
+const scope = (id: string, user_id: string) => ({ _id: id, user_id });
 
 // Push an embedded sub-document (task/call/email/discussion/file).
 export const pushSub = (Model: any, id: string, user_id: string, field: string, item: any) =>

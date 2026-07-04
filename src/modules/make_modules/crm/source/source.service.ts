@@ -14,7 +14,7 @@ const getSingleDB = async (id: string, user_id: string) => {
 };
 
 const updateDB = async (id: string, payload: Partial<TSource>, user_id: string) => {
-  return await SourceModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, payload, { new: true });
+  return await SourceModel.findOneAndUpdate({ _id: id, user_id }, payload, { new: true });
 };
 
 const deleteDB = async (id: string, user_id: string) => {
