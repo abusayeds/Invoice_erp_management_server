@@ -18,7 +18,7 @@ const getSingleDB = async (id: string, user_id: string) => {
 
 const updateDB = async (id: string, payload: Partial<TPaymentMethod>, user_id: string) => {
   return await PaymentMethodModel.findOneAndUpdate(
-    { _id: id, user_id, isDeleted: false },
+    { _id: id, user_id },
     payload,
     { new: true }
   );

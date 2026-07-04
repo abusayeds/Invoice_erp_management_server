@@ -15,7 +15,7 @@ const getSingleDB = async (id: string, user_id: string) => {
 
 const updateDB = async (id: string, payload: Partial<TSignature>, user_id: string) => {
   return await SignatureModel.findOneAndUpdate(
-    { _id: id, user_id, isDeleted: false },
+    { _id: id, user_id },
     payload,
     { new: true }
   );

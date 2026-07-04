@@ -30,7 +30,7 @@ const getSingleCategoryDB = async (id: string , user_id : string) => {
 // UPDATE
 const updateCategoryDB = async (id: string, payload: Partial<TCategory> , user_id : string) => {
   return await CategoryModel.findOneAndUpdate({_id:id , user_id}, payload, {
-    new: true,
+    new: true
   });
 };
 

@@ -40,7 +40,7 @@ const updateTaxDB = async (id: string, payload: Partial<TTax>, user_id: string) 
   }
   return await TaxModel.findOneAndUpdate({ _id: id, user_id }, payload, {
     new: true,
-    runValidators: true,
+    runValidators: true
   });
 };
 

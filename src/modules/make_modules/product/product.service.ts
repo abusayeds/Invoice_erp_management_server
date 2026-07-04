@@ -40,7 +40,7 @@ const deleteProductDB = async (user_id :  string , id : string) => {
   return result;
 }
 const updateProductDB = async (user_id : string , id : string , payload : TProduct) => {
-  const existing = await ProductModel.findOne({ user_id, _id: id, isDeleted: false });
+  const existing = await ProductModel.findOne({ user_id, _id: id });
   if (!existing) {throw new AppError(httpStatus.NOT_FOUND, "Product not found")}
   if (payload.category) {
     const isExistCategory = await CategoryModel.findOne({ _id: payload.category });
@@ -50,12 +50,12 @@ const updateProductDB = async (user_id : string , id : string , payload : TProdu
     const isExistTax = await TaxModel.findOne({
       _id: payload.tax,
       user_id,
-      type: { $in: [...taxTypesForProduct] },
+      type: { $in: [...taxTypesForProduct] }
     });
     if (!isExistTax) {throw new AppError(httpStatus.NOT_FOUND, "Tax not found")}
   }
   const result = await ProductModel.findOneAndUpdate(
-    { user_id, _id: id, isDeleted: false },
+    { user_id, _id: id },
     payload,
     { new: true, runValidators: true }
   );

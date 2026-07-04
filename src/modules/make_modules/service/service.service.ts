@@ -39,7 +39,7 @@ const updateServiceDB = async (
   payload: Partial<TService>
 ) => {
   const data = await ServiceModel.findOneAndUpdate(
-    { _id: id, user_id, isDeleted: false },
+    { _id: id, user_id },
     payload,
     { new: true }
   );
