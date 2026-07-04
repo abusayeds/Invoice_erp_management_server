@@ -20,7 +20,7 @@ const createDB = async (payload: TBudgetPeriod) => {
 };
 
 const updateDB = async (id: string, userId: string, payload: Partial<TBudgetPeriod>) => {
-  const record = await BudgetPeriodModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
+  const record = await BudgetPeriodModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Budget period not found");
   const start = payload.start_date ?? record.start_date;
   const end = payload.end_date ?? record.end_date;

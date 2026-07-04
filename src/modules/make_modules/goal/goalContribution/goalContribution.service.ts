@@ -54,14 +54,13 @@ const createDB = async (
 const updateDB = async (id: string, userId: string, payload: Partial<TGoalContribution>) => {
   const record = await GoalContributionModel.findOne({
     _id: id,
-    ...companyScope(userId),
-    isDeleted: false,
+    ...companyScope(userId)
   });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Contribution not found");
 
   const oldAmount = record.contribution_amount;
   const goalId = (payload.goal_id ?? record.goal_id).toString();
-  const goal = await GoalModel.findOne({ _id: goalId, ...companyScope(userId), isDeleted: false });
+  const goal = await GoalModel.findOne({ _id: goalId, ...companyScope(userId) });
   if (!goal) throw new AppError(httpStatus.NOT_FOUND, "Goal not found");
 
   Object.assign(record, payload);

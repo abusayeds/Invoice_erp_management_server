@@ -33,7 +33,7 @@ const createDB = async (payload: TGoal) => {
 };
 
 const updateDB = async (id: string, userId: string, payload: Partial<TGoal>) => {
-  const record = await GoalModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
+  const record = await GoalModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Goal not found");
   if (payload.category_id) await ensureCategory(userId, payload.category_id);
   if (payload.account_id !== undefined) {

@@ -53,7 +53,7 @@ const createDB = async (payload: TBudgetAllocation) => {
 };
 
 const updateDB = async (id: string, userId: string, payload: Partial<TBudgetAllocation>) => {
-  const record = await BudgetAllocationModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
+  const record = await BudgetAllocationModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Budget allocation not found");
   if (payload.budget_id) await ensureBudget(userId, payload.budget_id);
   if (payload.account_id) await ensureAccount(userId, payload.account_id);

@@ -18,14 +18,13 @@ const createDB = async (payload: TGoalCategory) => {
 };
 
 const updateDB = async (id: string, userId: string, payload: Partial<TGoalCategory>) => {
-  const record = await GoalCategoryModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
+  const record = await GoalCategoryModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Goal category not found");
   if (payload.category_code && payload.category_code !== record.category_code) {
     const dup = await GoalCategoryModel.findOne({
       user_id: userId,
       category_code: payload.category_code,
-      isDeleted: false,
-      _id: { $ne: id },
+      _id: { $ne: id }
     });
     if (dup) throw new AppError(httpStatus.CONFLICT, "Goal category code already exists");
   }

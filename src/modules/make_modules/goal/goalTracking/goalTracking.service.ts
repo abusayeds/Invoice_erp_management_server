@@ -19,7 +19,7 @@ const createDB = async (payload: TGoalTracking) => {
 };
 
 const updateDB = async (id: string, userId: string, payload: Partial<TGoalTracking>) => {
-  const record = await GoalTrackingModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
+  const record = await GoalTrackingModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Tracking record not found");
   if (payload.goal_id) await ensureGoal(userId, payload.goal_id);
   Object.assign(record, payload);

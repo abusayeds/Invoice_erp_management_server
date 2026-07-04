@@ -29,7 +29,7 @@ const createDB = async (payload: TGoalMilestone) => {
 };
 
 const updateDB = async (id: string, userId: string, payload: Partial<TGoalMilestone>) => {
-  const record = await GoalMilestoneModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
+  const record = await GoalMilestoneModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Milestone not found");
   const goalId = (payload.goal_id ?? record.goal_id).toString();
   if (payload.goal_id) await ensureGoal(userId, payload.goal_id);

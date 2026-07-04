@@ -31,7 +31,7 @@ const createDB = async (payload: TBudget) => {
 };
 
 const updateDB = async (id: string, userId: string, payload: Partial<TBudget>) => {
-  const record = await BudgetModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
+  const record = await BudgetModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Budget not found");
   if (record.status !== "draft") {
     throw new AppError(httpStatus.BAD_REQUEST, "Only draft budgets can be edited");
