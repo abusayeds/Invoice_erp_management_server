@@ -22,7 +22,42 @@ const QUERY_META_KEYS = new Set([
   "endDate",
   "from",
   "to",
+  "isDeleted",
+  "isArchive",
 ]);
+
+const SOFT_DELETE_KEYS = ["isDeleted", "isArchive"] as const;
+
+export type QueryBuilderOptions = {
+  /** Default true — hides deleted/archived unless ?isDeleted=true or ?isArchive=true */
+  softDelete?: boolean;
+};
+
+export const parseBoolQuery = (value: unknown): boolean | undefined => {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (value === true || value === "true") return true;
+  if (value === false || value === "false") return false;
+  return undefined;
+};
+
+/** Default: not deleted & not archived. Query ?isDeleted=true / ?isArchive=true shows those rows. */
+export const buildSoftDeleteFilter = (
+  query: Record<string, unknown>
+): FilterQuery<unknown> => {
+  const filter: FilterQuery<unknown> = {};
+
+  for (const key of SOFT_DELETE_KEYS) {
+    const parsed = parseBoolQuery(query[key]);
+    if (parsed === true) {
+      filter[key] = true;
+    } else {
+      // false, missing, or invalid — hide flagged rows ($ne: true keeps false + missing fields)
+      filter[key] = { $ne: true };
+    }
+  }
+
+  return filter;
+};
 
 /** `startDate`/`endDate` or `from`/`to` → createdAt range (inclusive calendar days). */
 const parseCreatedAtRange = (query: Record<string, unknown>) => {
@@ -67,9 +102,22 @@ export type SearchNestedOptions<T> = {
 class queryBuilder<T> {
   public modelQuery: Query<T[], T>;
   public query: Record<string, unknown>;
-  constructor(modelQuery: Query<T[], T>, Query: Record<string, unknown>) {
+  private softDeleteEnabled: boolean;
+
+  constructor(
+    modelQuery: Query<T[], T>,
+    Query: Record<string, unknown>,
+    options: QueryBuilderOptions = {}
+  ) {
     this.modelQuery = modelQuery;
     this.query = Query;
+    this.softDeleteEnabled = options.softDelete !== false;
+  }
+
+  /** Models without isDeleted/isArchive — skip auto soft-delete filtering. */
+  withoutSoftDelete(): this {
+    this.softDeleteEnabled = false;
+    return this;
   }
   search(searchableFields: Array<keyof T>): this {
     const searchTerm = this.query.searchTerm;
@@ -161,6 +209,12 @@ class queryBuilder<T> {
   }
 
   filter() {
+    if (this.softDeleteEnabled) {
+      this.modelQuery = this.modelQuery.find(
+        buildSoftDeleteFilter(this.query) as FilterQuery<T>
+      );
+    }
+
     const copyQuery = { ...this?.query };
     QUERY_META_KEYS.forEach((el) => delete copyQuery[el]);
 
@@ -185,25 +239,13 @@ class queryBuilder<T> {
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }
-  async paginate(model: any): Promise<{ totalData: number }> {
-    const searchTerm = this.query?.searchTerm;
-    const sort = this.query?.sort;
-    const filterKeys = Object.keys(this.query || {}).filter((key) => !QUERY_META_KEYS.has(key));
-    const hasCreatedAtRange = Boolean(parseCreatedAtRange(this.query));
-    let totalData;
-    if (!searchTerm && !sort && filterKeys.length === 0 && !hasCreatedAtRange) {
-      totalData = await model.countDocuments();
-      const page = Number(this?.query?.page) || 1;
-      const limit = Number(this?.query?.limit) || 10;
-      const skip = (page - 1) * limit;
-      this.modelQuery = this?.modelQuery?.skip(skip).limit(limit);
-    } else {
-      totalData = await this.modelQuery.clone().countDocuments();
-      const page = Number(this?.query?.page) || 1;
-      const limit = Number(this?.query?.limit) || 10;
-      const skip = (page - 1) * limit;
-      this.modelQuery = this?.modelQuery?.skip(skip).limit(limit);
-    }
+  async paginate(_model?: unknown): Promise<{ totalData: number }> {
+    void _model;
+    const totalData = await this.modelQuery.clone().countDocuments();
+    const page = Number(this?.query?.page) || 1;
+    const limit = Number(this?.query?.limit) || 10;
+    const skip = (page - 1) * limit;
+    this.modelQuery = this?.modelQuery?.skip(skip).limit(limit);
     return { totalData };
   }
   calculatePagination({
