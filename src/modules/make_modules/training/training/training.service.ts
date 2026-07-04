@@ -138,7 +138,6 @@ const update = async (req: AuthRequest, id: string, body: Record<string, unknown
   const payload = await prepare(body, req);
   delete payload.user_id;
   delete payload.creator_id;
-  delete payload.isDeleted;
   const companyId = resolveCompanyId(req);
   const updated = await TrainingModel.findOneAndUpdate(
     { _id: id, ...companyScope(companyId) },

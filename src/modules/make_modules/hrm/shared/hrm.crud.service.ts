@@ -99,8 +99,7 @@ export const createHrmCrudService = <T = any>(config: HrmCrudConfig<T>) => {
     let payload = { ...body };
     delete payload.user_id;
     delete payload.creator_id;
-    delete payload.isDeleted;
-    if (config.beforeUpdate) payload = await config.beforeUpdate(payload, req);
+        if (config.beforeUpdate) payload = await config.beforeUpdate(payload, req);
     const updated = await model.findOneAndUpdate(
       { _id: id, ...companyScope(companyId) },
       { $set: payload } as never,

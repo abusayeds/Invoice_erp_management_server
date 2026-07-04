@@ -95,8 +95,7 @@ export const createSupportCrudService = <T>(config: SupportCrudConfig<T>) => {
     let payload = { ...body };
     delete payload.user_id;
     delete payload.creator_id;
-    delete payload.isDeleted;
-    if (config.beforeUpdate) payload = await config.beforeUpdate(payload, req);
+        if (config.beforeUpdate) payload = await config.beforeUpdate(payload, req);
     const companyId = resolveCompanyId(req);
     let q = model.findOneAndUpdate(
       { _id: id, ...companyScope(companyId) } as FilterQuery<T>,

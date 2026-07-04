@@ -15,7 +15,7 @@ const getOneDB = async (user_id: string, key: string) => {
 // Upsert any number of key/value pairs at once: body = { key1: value1, key2: value2 }.
 const updateDB = async (user_id: string, data: Record<string, unknown>) => {
   const ops = Object.entries(data || {}).map(([key, value]) => ({
-    updateOne: { filter: { user_id, key }, update: { $set: { value } }, upsert: true },
+    updateOne: { filter: { user_id, key }, update: { $set: { value } }, upsert: true }
   }));
   if (ops.length) await SupportSettingModel.bulkWrite(ops);
   return getAllDB(user_id);

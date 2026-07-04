@@ -21,7 +21,7 @@ const updateBrandDB = async (user_id: string, body: Record<string, unknown>) => 
   if (body.titleText !== undefined) map.title_text = body.titleText;
   if (body.footerText !== undefined) map.footer_text = body.footerText;
   const ops = Object.entries(map).map(([key, value]) => ({
-    updateOne: { filter: { user_id, key }, update: { $set: { value } }, upsert: true },
+    updateOne: { filter: { user_id, key }, update: { $set: { value } }, upsert: true }
   }));
   if (ops.length) await SupportSettingModel.bulkWrite(ops);
   return getBrandDB(user_id);

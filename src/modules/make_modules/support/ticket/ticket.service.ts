@@ -192,7 +192,6 @@ const updateDB = async (req: AuthRequest, id: string, body: Record<string, unkno
   let payload = { ...body };
   delete payload.user_id;
   delete payload.creator_id;
-  delete payload.isDeleted;
   if (payload.account_type || payload.ticket_user_id || payload.user_id) {
     payload = await resolveAssignedUser(payload, companyId);
   }
