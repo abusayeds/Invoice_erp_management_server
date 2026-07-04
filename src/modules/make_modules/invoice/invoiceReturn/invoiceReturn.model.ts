@@ -22,7 +22,7 @@ const invoiceReturnSchema = new Schema<TInvoiceReturn>(
     status: { type: String, default: "Returned" },
     credit_note_id: { type: Schema.Types.ObjectId, ref: "CreditNote" },
     isDeleted: { type: Boolean, default: false },
-    archive: { type: Boolean, default: false },
+    isArchive: { type: Boolean, default: false },
   },
   {
     timestamps: true,

@@ -22,7 +22,7 @@ const createInvoiceReturnDB = async (payload: TInvoiceReturn) => {
 
 const getAllInvoiceReturnDB = async (query: Record<string, unknown>, user_id: string) => {
   const buildQuery = new queryBuilder(
-    InvoiceReturnModel.find({ user_id, isDeleted: false, archive: false }).populate("invoice_id").populate("warehouse_id"),
+    InvoiceReturnModel.find({ user_id, isDeleted: false, isArchive: false }).populate("invoice_id").populate("warehouse_id"),
     query
   )
     .search(["notes", "return_reason"])
@@ -31,7 +31,7 @@ const getAllInvoiceReturnDB = async (query: Record<string, unknown>, user_id: st
     .fields();
 
   const { totalData } = await buildQuery.paginate(
-    InvoiceReturnModel.find({ user_id, isDeleted: false, archive: false })
+    InvoiceReturnModel.find({ user_id, isDeleted: false, isArchive: false })
   );
 
   const allReturns = await buildQuery.modelQuery.exec();
@@ -65,7 +65,7 @@ const updateInvoiceReturnDB = async (
   payload: Partial<TInvoiceReturn>
 ) => {
   const invoiceReturn = await InvoiceReturnModel.findOneAndUpdate(
-    { _id: id, user_id, isDeleted: false },
+    { _id: id, user_id },
     payload,
     { new: true, runValidators: true }
   );
