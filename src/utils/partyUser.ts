@@ -62,6 +62,7 @@ export const PARTY_SEARCH_FIELDS = [
   "name",
   "email",
   "phone",
+  "designation",
   "businessProfile.companyName",
   "businessProfile.tax_number",
   "businessProfile.registration_number",
@@ -72,13 +73,14 @@ export const CLIENT_POPULATE_SELECT = "name ";
 
 /** List API — only fields needed for customer/vendor table rows. */
 export const PARTY_LIST_SELECT =
-  "name email phone businessProfile.companyName businessProfile.opening_balance businessProfile.opening_balance_date businessProfile.active businessProfile.archive";
+  "name email phone designation businessProfile.companyName businessProfile.opening_balance businessProfile.opening_balance_date businessProfile.active businessProfile.archive";
 
 export type TPartyListItem = {
   _id: unknown;
   name?: string | null;
   email?: string | null;
   phone?: string | null;
+  designation?: string | null;
   company_name?: string | null;
   opening_balance?: number;
   opening_balance_date?: Date | null;
@@ -97,6 +99,7 @@ export const toPartyListItem = (user: IUser): TPartyListItem => {
     name: (doc.name as string | undefined) ?? null,
     email: (doc.email as string | undefined) ?? null,
     phone: (doc.phone as string | undefined) ?? null,
+    designation: (doc.designation as string | undefined) ?? null,
     company_name: profile.companyName ?? null,
     opening_balance: profile.opening_balance ?? 0,
     opening_balance_date: profile.opening_balance_date ?? null,
@@ -232,6 +235,7 @@ export const mapPartyPayloadToUser = (
     name: payload.name,
     email: payload.email,
     phone: payload.phone,
+    designation: payload.designation,
     currency: payload.currency,
     ...(payload.password ? { password: payload.password } : {}),
     role: partyRole,
@@ -264,6 +268,7 @@ export const applyPartyUpdateToUser = (payload: TPartyUserWrite): Record<string,
   if (payload.name !== undefined) update.name = payload.name;
   if (payload.email !== undefined) update.email = payload.email;
   if (payload.phone !== undefined) update.phone = payload.phone;
+  if (payload.designation !== undefined) update.designation = payload.designation;
   if (payload.currency !== undefined) update.currency = payload.currency;
   if (payload.password !== undefined && payload.password.trim()) {
     update.password = payload.password;

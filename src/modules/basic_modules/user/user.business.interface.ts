@@ -56,6 +56,7 @@ export type TPartyUserWrite = {
   name?: string;
   email?: string;
   phone?: string;
+  designation?: string;
   /** Portal login — hashed on User; omit on update to keep existing password. */
   password?: string;
   /** Allow login when true; defaults to true when password is set on create. */

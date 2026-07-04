@@ -19,6 +19,7 @@ export type IUser = {
   password?: string;
   confirmPassword?: string;
   phone?: string;
+  designation?: string;
   language?: string;
   currency?: string;
   country?: string;
