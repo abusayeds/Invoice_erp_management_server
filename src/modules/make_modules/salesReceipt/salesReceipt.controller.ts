@@ -39,6 +39,7 @@ const getSingle = catchAsync(async (req: AuthRequest, res) => {
 });
 
 const getAll = catchAsync(async (req: AuthRequest, res) => {
+
   const result = await salesReceiptService.getAllDB(req.query, req.user?._id as string);
   sendResponse(res, {
     success: true,

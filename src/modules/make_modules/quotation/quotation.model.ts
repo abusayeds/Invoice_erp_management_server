@@ -50,7 +50,7 @@ const quotationSchema = new Schema<QuotationDocument>(
     sub_total: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },
-    archive: { type: Boolean, default: false },
+    isArchive: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -77,7 +77,7 @@ const getSingleDB = async (id: string, userId: string) => {
   const record = await DeliveryChallanModel.findOne({
     _id: id,
     user_id: userId,
-    archive: false,
+    isArchive: false,
     isDeleted: false,
   });
   if (!record) {
@@ -90,7 +90,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   const buildQuery = new queryBuilder(
     DeliveryChallanModel.find({
       user_id: user_id,
-      archive: false,
+      isArchive: false,
       isDeleted: false,
     })
       .populate({ path: 'customer_id', select: CLIENT_POPULATE_SELECT })
@@ -104,7 +104,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   const { totalData } = await buildQuery.paginate(
     DeliveryChallanModel.find({
       user_id: user_id,
-      archive: false,
+      isArchive: false,
       isDeleted: false,
     })
   );
@@ -118,8 +118,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
 const updateDB = async (id: string, userId: string, payload: TDeliveryChallan) => {
   const existing = await DeliveryChallanModel.findOne({
     _id: id,
-    user_id: userId,
-    isDeleted: false,
+    user_id: userId
   });
   if (!existing) {
     throw new AppError(httpStatus.NOT_FOUND, 'DeliveryChallan not found');
@@ -159,7 +158,7 @@ const updateDB = async (id: string, userId: string, payload: TDeliveryChallan) =
   }
 
   const updatedRecord = await DeliveryChallanModel.findOneAndUpdate(
-    { _id: id, user_id: userId, isDeleted: false },
+    { _id: id, user_id: userId },
     data,
     { new: true, runValidators: true }
   );

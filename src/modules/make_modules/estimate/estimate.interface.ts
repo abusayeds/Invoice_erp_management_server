@@ -66,6 +66,6 @@ export type TEstimate = {
   tax: number;
   total: number;
   isDeleted: boolean;
-  archive: boolean;
+  isArchive: boolean;
   createdAt?: Date;
 };

@@ -68,7 +68,7 @@ const estimateSchema = new Schema<TEstimate>(
     tax: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },
-    archive: { type: Boolean, default: false },
+    isArchive: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

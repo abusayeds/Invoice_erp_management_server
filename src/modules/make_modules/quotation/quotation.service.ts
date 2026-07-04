@@ -59,7 +59,7 @@ const getSingleDB = async (id: string, userId: string) => {
   const record = await QuotationModel.findOne({
     _id: id,
     user_id: userId,
-    archive: false,
+    isArchive: false,
     isDeleted: false,
   });
   if (!record) {
@@ -72,7 +72,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   const buildQuery = new queryBuilder(
     QuotationModel.find({
       user_id: user_id,
-      archive: false,
+      isArchive: false,
       isDeleted: false,
     }).populate({
       path: "customer_id",
@@ -87,7 +87,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   const { totalData } = await buildQuery.paginate(
     QuotationModel.find({
       user_id: user_id,
-      archive: false,
+      isArchive: false,
       isDeleted: false,
     })
   );
@@ -101,9 +101,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
 const updateDB = async (id: string, userId: string, payload: Partial<TQuotation>) => {
   const existing = await QuotationModel.findOne({
     _id: id,
-    user_id: userId,
-    archive: false,
-    isDeleted: false,
+    user_id: userId
   });
   if (!existing) {
     throw new AppError(httpStatus.NOT_FOUND, "Quotation not found");
@@ -123,7 +121,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TQuotation>
   delete data.__v;
 
   const updated = await QuotationModel.findOneAndUpdate(
-    { _id: id, user_id: userId, archive: false, isDeleted: false },
+    { _id: id, user_id: userId },
     { $set: data },
     { new: true, runValidators: true }
   );
@@ -136,7 +134,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TQuotation>
 const deleteDB = async (id: string, userId: string) => {
   const doc = await QuotationModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
-    { isDeleted: true, archive: true },
+    { isDeleted: true, isArchive: true },
     { new: true }
   );
   if (!doc) {

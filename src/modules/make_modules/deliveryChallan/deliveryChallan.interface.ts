@@ -66,6 +66,6 @@ export type TDeliveryChallan = {
   tax: number;
   total: number;
   isDeleted: boolean;
-  archive: boolean;
+  isArchive: boolean;
   createdAt?: Date;
 };
