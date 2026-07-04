@@ -85,8 +85,7 @@ const createOrUpdateTask = async (
   if (body.task_id) {
     const task = await ProjectTaskModel.findOne({
       _id: body.task_id,
-      user_id: userId,
-      isDeleted: false,
+      user_id: userId
     });
     if (!task) throw new AppError(httpStatus.NOT_FOUND, "Task not found");
     task.title = String(body.title);
@@ -107,7 +106,7 @@ const createOrUpdateTask = async (
       stage_id: task.stage_id,
       project_id: task.project_id,
       milestone_id: task.milestone_id,
-      assigned_users,
+      assigned_users
     });
   }
 
@@ -115,7 +114,7 @@ const createOrUpdateTask = async (
   let stageId = body.stage_id ? new Types.ObjectId(String(body.stage_id)) : undefined;
   if (!stageId) {
     await ensureDefaultTaskStages(userId, creatorId);
-    const first = await TaskStageModel.findOne({ user_id: userId, isDeleted: false }).sort({ order: 1 });
+    const first = await TaskStageModel.findOne({ user_id: userId }).sort({ order: 1 });
     stageId = first?._id as Types.ObjectId | undefined;
   }
 
@@ -126,12 +125,11 @@ const createOrUpdateTask = async (
     assigned_to: assigned,
     priority: (body.priority as TTaskPriority) || "Medium",
     stage_id: stageId,
-    creator_id: creatorId,
-    isDeleted: false,
+    creator_id: creatorId
   });
 
   await logProjectActivity(creatorId, new Types.ObjectId(String(body.project_id)), "Create Task", {
-    title: task.title,
+    title: task.title
   });
 
   const assigned_users = await mapAssignedUsers(task.assigned_to);
@@ -144,7 +142,7 @@ const createOrUpdateTask = async (
     stage_id: task.stage_id,
     project_id: task.project_id,
     milestone_id: task.milestone_id,
-    assigned_users,
+    assigned_users
   });
 };
 
@@ -239,10 +237,10 @@ const taskboard = async (
 };
 
 const stageUpdate = async (userId: string, creatorId: Types.ObjectId, taskId: string, stageId: string) => {
-  const task = await ProjectTaskModel.findOne({ _id: taskId, user_id: userId, isDeleted: false });
+  const task = await ProjectTaskModel.findOne({ _id: taskId, user_id: userId });
   if (!task) throw new AppError(httpStatus.NOT_FOUND, "Task not found");
   const oldStage = task.stage_id ? await TaskStageModel.findById(task.stage_id) : null;
-  const newStage = await TaskStageModel.findOne({ _id: stageId, user_id: userId, isDeleted: false });
+  const newStage = await TaskStageModel.findOne({ _id: stageId, user_id: userId });
   if (!newStage) throw new AppError(httpStatus.NOT_FOUND, "Stage not found");
   if (String(task.stage_id) !== stageId) {
     task.stage_id = newStage._id as Types.ObjectId;
@@ -250,7 +248,7 @@ const stageUpdate = async (userId: string, creatorId: Types.ObjectId, taskId: st
     await logProjectActivity(creatorId, task.project_id, "Move", {
       title: task.title,
       old_status: oldStage?.name ?? "Unknown",
-      new_status: newStage.name,
+      new_status: newStage.name
     });
   }
 };

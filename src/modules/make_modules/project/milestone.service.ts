@@ -31,7 +31,6 @@ const update = async (userId: string, body: Record<string, unknown>) => {
   const milestone = await ProjectMilestoneModel.findOne({
     _id: body.milestone_id,
     user_id: userId,
-    isDeleted: false,
   });
   if (!milestone) throw new AppError(httpStatus.NOT_FOUND, "Milestone not found");
   if (body.title !== undefined) milestone.title = String(body.title);

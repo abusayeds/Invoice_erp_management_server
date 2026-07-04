@@ -36,7 +36,7 @@ const taskStageCreate = async (userId: string, creatorId: Types.ObjectId, body: 
 
 const taskStageUpdate = async (userId: string, id: string, body: { name: string; color: string }) => {
   const stage = await TaskStageModel.findOneAndUpdate(
-    { _id: id, user_id: userId, isDeleted: false },
+    { _id: id, user_id: userId },
     { name: body.name, color: body.color },
     { new: true }
   );
@@ -96,7 +96,7 @@ const bugStageCreate = async (userId: string, creatorId: Types.ObjectId, body: {
 
 const bugStageUpdate = async (userId: string, id: string, body: { name: string; color: string }) => {
   const stage = await BugStageModel.findOneAndUpdate(
-    { _id: id, user_id: userId, isDeleted: false },
+    { _id: id, user_id: userId },
     { name: body.name, color: body.color },
     { new: true }
   );

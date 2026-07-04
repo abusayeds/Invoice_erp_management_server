@@ -119,7 +119,7 @@ const createOrUpdateProject = async (
 
   if (projectId) {
     const project = await ProjectModel.findOneAndUpdate(
-      { _id: projectId, user_id: userId, isDeleted: false },
+      { _id: projectId, user_id: userId },
       { $set: data },
       { new: true, runValidators: true }
     );
