@@ -22,7 +22,7 @@ const updateSubscriptionDB = async (
 ) => {
   const subscription = await SubscriptionModel.findByIdAndUpdate(id, payload, {
     new: true,
-    runValidators: true,
+    runValidators: true
   });
   return subscription;
 };

@@ -83,9 +83,8 @@ const getSinglePlanDB = async (id: string) => {
 const updatePlanDB = async (id: string, payload: Record<string, unknown>) => {
   const clean = sanitize(payload);
   delete (clean as Partial<TPlan>).created_by;
-  delete (clean as Partial<TPlan>).isDeleted;
   const plan = await PlanModel.findOneAndUpdate(
-    { _id: id, isDeleted: false },
+    { _id: id },
     { $set: clean },
     { new: true, runValidators: true }
   ).lean();

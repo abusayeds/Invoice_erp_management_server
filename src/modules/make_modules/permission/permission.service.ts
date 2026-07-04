@@ -47,8 +47,7 @@ const updateUserPermissionsDB = async (
   }
   const user = await UserModel.findOne({
     _id: userId,
-    companyId,
-    isDeleted: false,
+    companyId
   });
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found under this company");

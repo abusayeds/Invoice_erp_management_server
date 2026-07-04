@@ -24,7 +24,7 @@ const PdfSettingUpdateDB = async (
   validatePdfSettingEnums(payload as Record<string, unknown>);
   const result = await PDFSettingModel.findOneAndUpdate({ pdfType, user_id }, payload, {
     new: true,
-    runValidators: true,
+    runValidators: true
   });
   return result;
 };

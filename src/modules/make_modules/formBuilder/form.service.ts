@@ -27,7 +27,7 @@ const updateDB = async (id: string, payload: Partial<TForm>, user_id: string) =>
   if (payload.name !== undefined) data.name = payload.name;
   if (payload.default_layout !== undefined) data.default_layout = payload.default_layout;
   if (payload.is_active !== undefined) data.is_active = payload.is_active;
-  return FormModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, data, { new: true, runValidators: true });
+  return FormModel.findOneAndUpdate({ _id: id, user_id }, data, { new: true, runValidators: true });
 };
 
 const deleteDB = async (id: string, user_id: string) => {
@@ -39,14 +39,14 @@ const deleteDB = async (id: string, user_id: string) => {
 
 // Bulk-replace the whole field list (the builder saves all fields together).
 const updateFieldsDB = async (id: string, user_id: string, fields: TFormField[]) =>
-  FormModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { $set: { fields: fields || [] } }, { new: true, runValidators: true });
+  FormModel.findOneAndUpdate({ _id: id, user_id }, { $set: { fields: fields || [] } }, { new: true, runValidators: true });
 
 const deleteFieldDB = async (id: string, user_id: string, fieldId: string) =>
-  FormModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { $pull: { fields: { _id: fieldId } } }, { new: true });
+  FormModel.findOneAndUpdate({ _id: id, user_id }, { $pull: { fields: { _id: fieldId } } }, { new: true });
 
 const responsesDB = async (formId: string, user_id: string) => {
   await ensureForm(formId, user_id);
-  return FormResponseModel.find({ form_id: formId, isDeleted: false }).sort({ createdAt: -1 });
+  return FormResponseModel.find({ form_id: formId }).sort({ createdAt: -1 });
 };
 
 const singleResponseDB = async (formId: string, responseId: string, user_id: string) => {
@@ -69,9 +69,9 @@ const updateConversionDB = async (id: string, user_id: string, payload: TFormCon
     module_name: payload.module_name,
     submodule_name: payload.submodule_name,
     is_active: payload.is_active ?? false,
-    field_mappings: payload.field_mappings || {},
+    field_mappings: payload.field_mappings || {}
   };
-  return FormModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { $set: { conversion } }, { new: true });
+  return FormModel.findOneAndUpdate({ _id: id, user_id }, { $set: { conversion } }, { new: true });
 };
 
 export const formService = {

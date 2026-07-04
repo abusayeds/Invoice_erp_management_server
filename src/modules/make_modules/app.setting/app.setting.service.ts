@@ -133,8 +133,8 @@ const getSettingTypesService = () => {
   if (subType) {
     return {
       [type]: {
-        [subType]: (updated[type] as unknown as Record<string, unknown>)?.[subType],
-      },
+        [subType]: (updated[type] as unknown as Record<string, unknown>)?.[subType]
+      }
     };
   }
 
