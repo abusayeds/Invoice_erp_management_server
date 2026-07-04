@@ -38,7 +38,11 @@ const allVendor = catchAsync(async (req: AuthRequest, res) => {
 });
 const singleVendor = catchAsync(async (req: AuthRequest, res) => {
     const {id}  =  req.params
-  const result = await vendorService.singleVendorDB( req?.user?._id as string , id);
+  const result = await vendorService.singleVendorDB(
+    req?.user?._id as string,
+    id,
+    req.query as Record<string, unknown>
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

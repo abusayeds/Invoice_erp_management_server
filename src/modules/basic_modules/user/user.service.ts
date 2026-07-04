@@ -233,7 +233,7 @@ const updateUserDB = async (payload: IUser, file: any, userId: string) => {
     const publicFileURL = `/images/${file.filename}`;
     updateData.image = {
       path: imagePath,
-      publicFileURL: publicFileURL,
+      publicFileURL: publicFileURL
     };
   }
   const result = await UserModel.findByIdAndUpdate(userId, { ...payload, ...updateData }, { new: true });
@@ -267,9 +267,9 @@ const allUserDB = async (query: Record<string, unknown>,) => {
   const pagination = userQuery.calculatePagination({
     totalData,
     currentPage,
-    limit,
+    limit
   });
-  return { pagination, user, };
+  return { pagination, user };
 }
 
 const createUserByCompanyDB = async (companyId: string, payload: IUser) => {
@@ -302,7 +302,7 @@ const createCompanyBySuperadminDB = async (payload: IUser) => {
 
 const allUserForCompanyDB = async (companyId: string, query: Record<string, unknown>) => {
   const roleParam = typeof query.role === "string" ? query.role : undefined;
-  const baseFilter = companyPartyListFilter(companyId, roleParam);
+  const baseFilter = companyPartyListFilter(companyId, roleParam, query);
   const queryForBuilder = { ...query };
   if (isCompanyPartyListRole(roleParam)) {
     delete queryForBuilder.role;
@@ -310,13 +310,14 @@ const allUserForCompanyDB = async (companyId: string, query: Record<string, unkn
 
   const userQuery = new queryBuilder(
     UserModel.find(baseFilter).select("name email role companyId phone login image"),
-    queryForBuilder
+    queryForBuilder,
+    { softDelete: isCompanyPartyListRole(roleParam) ? false : undefined }
   )
     .search(["name", "email"])
     .filter()
     .fields()
     .sort();
-  const { totalData } = await userQuery.paginate(UserModel.find(baseFilter));
+  const { totalData } = await userQuery.paginate();
   const user = await userQuery.modelQuery.exec();
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;

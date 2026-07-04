@@ -28,13 +28,17 @@ const vendorCreateDB = async (payload: TPartyUserWrite) => {
 };
 
 const allVendorDB = async (user_id: string, query: Record<string, unknown>) => {
-  const baseFilter = partyBaseFilter(user_id, role.vendor);
-  const vendorQuery = new queryBuilder(UserModel.find(baseFilter).select(PARTY_LIST_SELECT), query)
+  const baseFilter = partyBaseFilter(user_id, role.vendor, query);
+  const vendorQuery = new queryBuilder(
+    UserModel.find(baseFilter).select(PARTY_LIST_SELECT),
+    query,
+    { softDelete: false }
+  )
     .search([...PARTY_SEARCH_FIELDS])
     .filter()
     .sort()
     .fields();
-  const { totalData } = await vendorQuery.paginate(UserModel.find(baseFilter));
+  const { totalData } = await vendorQuery.paginate();
   const allVendor = (await vendorQuery.modelQuery.exec()).map(toPartyListItem);
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
@@ -46,9 +50,13 @@ const allVendorDB = async (user_id: string, query: Record<string, unknown>) => {
   return { allVendor, pagination };
 };
 
-const singleVendorDB = async (user_id: string, _id: string): Promise<IUser | null> => {
+const singleVendorDB = async (
+  user_id: string,
+  _id: string,
+  query: Record<string, unknown> = {}
+): Promise<IUser | null> => {
   const doc = await UserModel.findOne({
-    ...partyBaseFilter(user_id, role.vendor),
+    ...partyBaseFilter(user_id, role.vendor, query),
     _id,
   }).select("-password");
   if (!doc) return null;
@@ -59,7 +67,7 @@ const deleteVendorDB = async (user_id: string, payload: TPartyUserWrite) => {
   const update = applyPartyUpdateToUser({
     ...payload,
     isDeleted: payload.isDeleted ?? true,
-    archive: payload.archive ?? true,
+    isArchive: payload.isArchive ?? true,
     active: false,
   });
   const res = await UserModel.findOneAndUpdate(
@@ -76,7 +84,7 @@ const deleteVendorDB = async (user_id: string, payload: TPartyUserWrite) => {
 const updateVendorDB = async (user_id: string, payload: TPartyUserWrite) => {
   const update = applyPartyUpdateToUser(payload);
   const res = await UserModel.findOneAndUpdate(
-    { companyId: user_id, _id: payload._id, role: role.vendor, isDeleted: false },
+    { companyId: user_id, _id: payload._id, role: role.vendor },
     { $set: update },
     { new: true, runValidators: true }
   ).select("-password");

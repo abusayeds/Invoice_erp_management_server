@@ -46,6 +46,7 @@ const singleCustomer = catchAsync(async (req: AuthRequest, res) => {
   const result = await customerService.singleCustomerDB(
     req?.user?._id as string,
     id,
+    req.query as Record<string, unknown>,
   );
   sendResponse(res, {
     success: true,

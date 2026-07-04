@@ -1,11 +1,11 @@
 import httpStatus from "http-status";
-import { Types } from "mongoose";
+import { FilterQuery, Types } from "mongoose";
+import { parseBoolQuery } from "../builder/queryBuilder";
 import AppError from "../errors/AppError";
 import { UserModel } from "../modules/basic_modules/user/user.model";
 import { IUser } from "../modules/basic_modules/user/user.interface";
 import {
   TBusinessProfile,
-  TPartyAddress,
   TPartyUserWrite,
 } from "../modules/basic_modules/user/user.business.interface";
 import { role as roleEnum, CUSTOMER_ROLE_VALUES, isCustomerRole } from "./role";
@@ -14,47 +14,19 @@ export { roleEnum as role, isCustomerRole, CUSTOMER_ROLE_VALUES };
 
 type PartyRole = typeof roleEnum.customer | typeof roleEnum.vendor;
 
-const ADDRESS_REQUIRED_FIELDS: (keyof TPartyAddress)[] = [
-  "name",
-  "address_line_1",
-  "city",
-  "state",
-  "country",
-  "zip_code",
-];
-
-const requireAddress = (address: TPartyAddress | undefined, label: string) => {
-  if (!address) {
-    throw new AppError(httpStatus.BAD_REQUEST, `${label} is required`);
-  }
-  for (const field of ADDRESS_REQUIRED_FIELDS) {
-    if (!String(address[field] ?? "").trim()) {
-      throw new AppError(httpStatus.BAD_REQUEST, `${label} ${field.replace(/_/g, " ")} is required`);
-    }
-  }
-};
-
 /**
- * Customer/vendor create validation — mirrors the Laravel StoreCustomer/StoreVendor rules.
- * company_name + name + billing_address are always required;
- * email is required for customers only; shipping_address required unless same_as_billing.
+ * Customer/vendor create — only company_name, email, and password are required.
+ * All other fields (name, address, phone, etc.) are optional.
  */
-export const validatePartyCreateBody = (payload: TPartyUserWrite, partyRole: PartyRole) => {
+export const validatePartyCreateBody = (payload: TPartyUserWrite, _partyRole: PartyRole) => {
   if (!payload.company_name?.trim()) {
     throw new AppError(httpStatus.BAD_REQUEST, "Company name is required");
   }
-  if (!payload.name?.trim()) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Name is required");
-  }
-  if (partyRole === roleEnum.customer && !payload.email?.trim()) {
+  if (!payload.email?.trim()) {
     throw new AppError(httpStatus.BAD_REQUEST, "Email is required");
   }
-  if (payload.password?.trim() && !payload.email?.trim()) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Email is required when setting a password for login");
-  }
-  requireAddress(payload.billing_address, "Billing address");
-  if (!payload.same_as_billing) {
-    requireAddress(payload.shipping_address, "Shipping address");
+  if (!payload.password?.trim()) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Password is required");
   }
 };
 
@@ -73,7 +45,7 @@ export const CLIENT_POPULATE_SELECT = "name ";
 
 /** List API — only fields needed for customer/vendor table rows. */
 export const PARTY_LIST_SELECT =
-  "name email phone designation businessProfile.companyName businessProfile.opening_balance businessProfile.opening_balance_date businessProfile.active businessProfile.archive";
+  "name email phone designation businessProfile.companyName businessProfile.opening_balance businessProfile.opening_balance_date businessProfile.active businessProfile.isArchive";
 
 export type TPartyListItem = {
   _id: unknown;
@@ -85,7 +57,7 @@ export type TPartyListItem = {
   opening_balance?: number;
   opening_balance_date?: Date | null;
   active?: boolean;
-  archive?: boolean;
+  isArchive?: boolean;
 };
 
 export const toPartyListItem = (user: IUser): TPartyListItem => {
@@ -104,7 +76,7 @@ export const toPartyListItem = (user: IUser): TPartyListItem => {
     opening_balance: profile.opening_balance ?? 0,
     opening_balance_date: profile.opening_balance_date ?? null,
     active: profile.active ?? true,
-    archive: profile.archive ?? false,
+    isArchive: profile.isArchive ?? false,
   };
 };
 
@@ -117,39 +89,71 @@ const roleQuery = (partyRole: PartyRole) => {
 
 /**
  * List/filter customers and vendors from the shared User collection.
- * Team-management users may have no businessProfile — include them unless explicitly archived/inactive.
+ * Default hides deleted + archived.
+ * ?isDeleted=true — only deleted rows (archive filter skipped).
+ * ?isArchive=true — only archived rows (isDeleted filter skipped).
  */
-export const partyBaseFilter = (companyId: Types.ObjectId | string, partyRole: PartyRole) => ({
-  companyId,
-  role: roleQuery(partyRole),
-  isDeleted: false,
-  $and: [
-    {
+export const partyBaseFilter = (
+  companyId: Types.ObjectId | string,
+  partyRole: PartyRole,
+  query: Record<string, unknown> = {}
+): FilterQuery<IUser> => {
+  const isDeletedParam = parseBoolQuery(query.isDeleted);
+  const isArchiveParam = parseBoolQuery(query.isArchive);
+  const viewingHidden = isDeletedParam === true || isArchiveParam === true;
+
+  const filter: FilterQuery<IUser> = {
+    companyId,
+    role: roleQuery(partyRole),
+  };
+
+  const andConditions: FilterQuery<IUser>[] = [];
+
+  if (isDeletedParam === true) {
+    filter.isDeleted = true;
+  } else if (isArchiveParam !== true) {
+    filter.isDeleted = { $ne: true };
+  }
+
+  if (isArchiveParam === true) {
+    andConditions.push({ "businessProfile.isArchive": true });
+  } else if (isDeletedParam !== true) {
+    andConditions.push({
       $or: [
-        { "businessProfile.archive": { $ne: true } },
+        { "businessProfile.isArchive": { $ne: true } },
         { businessProfile: { $exists: false } },
       ],
-    },
-    {
+    });
+  }
+
+  if (!viewingHidden) {
+    andConditions.push({
       $or: [
         { "businessProfile.active": { $ne: false } },
         { businessProfile: { $exists: false } },
       ],
-    },
-  ],
-});
+    });
+  }
+
+  if (andConditions.length > 0) {
+    filter.$and = andConditions;
+  }
+
+  return filter;
+};
 
 /** Base filter for company user list when role is customer or vendor (same as customer/all, vendor/all). */
 export const companyPartyListFilter = (
   companyId: Types.ObjectId | string,
-  roleParam?: string
+  roleParam?: string,
+  query: Record<string, unknown> = {}
 ) => {
   const roleValue = typeof roleParam === "string" ? roleParam.trim() : "";
   if (roleValue === roleEnum.customer || roleValue === "client") {
-    return partyBaseFilter(companyId, roleEnum.customer);
+    return partyBaseFilter(companyId, roleEnum.customer, query);
   }
   if (roleValue === roleEnum.vendor) {
-    return partyBaseFilter(companyId, roleEnum.vendor);
+    return partyBaseFilter(companyId, roleEnum.vendor, query);
   }
   return { companyId, isDeleted: false };
 };
@@ -217,7 +221,7 @@ const buildProfile = (payload: TPartyUserWrite): TBusinessProfile => ({
   same_as_billing: payload.same_as_billing ?? false,
   notes: payload.notes,
   active: payload.active ?? true,
-  archive: payload.archive ?? false,
+  isArchive: payload.isArchive ?? false,
 });
 
 const resolvePartyLogin = (payload: TPartyUserWrite): boolean => {
@@ -307,7 +311,7 @@ export const applyPartyUpdateToUser = (payload: TPartyUserWrite): Record<string,
   setProfile("same_as_billing", payload.same_as_billing);
   setProfile("notes", payload.notes);
   setProfile("active", payload.active);
-  setProfile("archive", payload.archive);
+  setProfile("isArchive", payload.isArchive);
 
   if (typeof payload.isDeleted === "boolean") update.isDeleted = payload.isDeleted;
   return update;

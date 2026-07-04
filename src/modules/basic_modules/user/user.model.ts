@@ -17,7 +17,6 @@ const addressSchema = new Schema<TPartyAddress>(
   { _id: false }
 );
 
-// Customer/Vendor business data — only the fields the Laravel forms collect.
 const businessProfileSchema = new Schema(
   {
     companyName: { type: String, trim: true },
@@ -41,7 +40,7 @@ const businessProfileSchema = new Schema(
     same_as_billing: { type: Boolean, default: false },
     notes: { type: String },
     active: { type: Boolean, default: true },
-    archive: { type: Boolean, default: false },
+    isArchive: { type: Boolean, default: false },
   },
   { _id: false }
 );

@@ -41,7 +41,7 @@ export type TBusinessProfile = {
   same_as_billing?: boolean;
   notes?: string;
   active?: boolean;
-  archive?: boolean;
+  isArchive?: boolean;
 };
 
 /**
@@ -86,5 +86,5 @@ export type TPartyUserWrite = {
   /** system flags */
   isDeleted?: boolean;
   active?: boolean;
-  archive?: boolean;
+  isArchive?: boolean;
 };

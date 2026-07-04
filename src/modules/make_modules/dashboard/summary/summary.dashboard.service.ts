@@ -20,6 +20,7 @@ import paginationBuilder from "../../../../utils/paginationBuilder";
 import {
   CUSTOMER_ROLE_VALUES,
   isCustomerRole,
+  partyBaseFilter,
   PARTY_SEARCH_FIELDS,
 } from "../../../../utils/partyUser";
 import {
@@ -325,7 +326,7 @@ const buildStats = async (
 
   const invoiceOutstandingMatch = {
     ...scope,
-    archive: false,
+    isArchive: false,
     balance_amount: { $gt: 0 },
     ...invoiceDateInRange(range),
     ...customerOnly,
@@ -334,7 +335,7 @@ const buildStats = async (
 
   const payableBillMatch = {
     ...scope,
-    archive: false,
+    isArchive: false,
     balance_amount: { $gt: 0 },
     ...invoiceDateInRange(range),
     ...vendorOnly,
@@ -420,7 +421,7 @@ const buildStats = async (
       InvoiceModel,
       {
         ...scope,
-        archive: false,
+        isArchive: false,
         balance_amount: { $gt: 0 },
         due_date: { $lt: overdueCutoff },
         status: { $in: ["Partial", "Overdue", "Open"] },
@@ -774,7 +775,7 @@ const buildRecentActivities = async (
       .limit(ACTIVITY_FETCH_CAP)
       .select("invoice_number recipient_name sub_title updatedAt createdAt")
       .lean(),
-    InvoiceModel.find({ ...invoiceActivityQuery, isDeleted: false, archive: true })
+    InvoiceModel.find({ ...invoiceActivityQuery, isDeleted: false, isArchive: true })
       .sort({ updatedAt: -1 })
       .limit(ACTIVITY_FETCH_CAP)
       .select("invoice_number recipient_name sub_title updatedAt createdAt")
@@ -926,22 +927,6 @@ const parseContactCreatedAtFilter = (query: Record<string, unknown>) => {
   return createdAt;
 };
 
-const buildContactPartyFilter = (companyId: string, partyRole: ContactRole) => {
-  const companyOid = companyObjectId(companyId);
-  if (partyRole === role.customer) {
-    return {
-      companyId: companyOid,
-      role: { $in: [...CUSTOMER_ROLE_VALUES] },
-      isDeleted: false,
-    };
-  }
-  return {
-    companyId: companyOid,
-    role: role.vendor,
-    isDeleted: false,
-  };
-};
-
 const buildPartyListQuery = (
   companyId: string,
   partyRole: ContactRole,
@@ -956,13 +941,14 @@ const buildPartyListQuery = (
 
   const createdAt = parseContactCreatedAtFilter(query);
   const baseFilter = {
-    ...buildContactPartyFilter(companyId, partyRole),
+    ...partyBaseFilter(companyId, partyRole, query),
     ...(createdAt ? { createdAt } : {}),
   };
 
   const qb = new queryBuilder(
     UserModel.find(baseFilter).select("name email phone businessProfile.companyName createdAt"),
     listQuery,
+    { softDelete: false },
   )
     .search([...PARTY_SEARCH_FIELDS])
     .filter()
@@ -977,7 +963,7 @@ const fetchCustomerBalanceMap = async (companyId: string) => {
       $match: {
         user_id: companyObjectId(companyId),
         isDeleted: false,
-        archive: false,
+        isArchive: false,
         status: DOC_STATUS_EXCLUDED,
         customer_id: { $exists: true, $ne: null },
       },
@@ -1001,7 +987,7 @@ const fetchVendorBalanceMap = async (companyId: string) => {
         $match: {
           ...scope,
           isDeleted: false,
-          archive: false,
+          isArchive: false,
           status: DOC_STATUS_EXCLUDED,
           vendor_id: { $exists: true, $ne: null },
         },
@@ -1050,7 +1036,7 @@ const getContacts = async (req: AuthRequest) => {
   const query = { ...(req.query as Record<string, unknown>) };
 
   const { qb, baseFilter } = buildPartyListQuery(companyId, partyRole, query);
-  const { totalData } = await qb.paginate(UserModel.find(baseFilter));
+  const { totalData } = await qb.paginate();
 
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;

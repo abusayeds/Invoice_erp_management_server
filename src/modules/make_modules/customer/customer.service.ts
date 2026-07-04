@@ -29,13 +29,17 @@ const customerCreateDB = async (payload: TPartyUserWrite) => {
 };
 
 const allCustomerDB = async (user_id: string, query: Record<string, unknown>) => {
-  const baseFilter = partyBaseFilter(user_id, role.customer);
-  const customerQuery = new queryBuilder(UserModel.find(baseFilter).select(PARTY_LIST_SELECT), query)
+  const baseFilter = partyBaseFilter(user_id, role.customer, query);
+  const customerQuery = new queryBuilder(
+    UserModel.find(baseFilter).select(PARTY_LIST_SELECT),
+    query,
+    { softDelete: false }
+  )
     .search([...PARTY_SEARCH_FIELDS])
     .filter()
     .sort()
     .fields();
-  const { totalData } = await customerQuery.paginate(UserModel.find(baseFilter));
+  const { totalData } = await customerQuery.paginate();
 
   const allCustomer = (await customerQuery.modelQuery.exec()).map(toPartyListItem);
   const currentPage = Number(query?.page) || 1;
@@ -48,9 +52,13 @@ const allCustomerDB = async (user_id: string, query: Record<string, unknown>) =>
   return { allCustomer, pagination };
 };
 
-const singleCustomerDB = async (user_id: string, _id: string): Promise<IUser | null> => {
+const singleCustomerDB = async (
+  user_id: string,
+  _id: string,
+  query: Record<string, unknown> = {}
+): Promise<IUser | null> => {
   const doc = await UserModel.findOne({
-    ...partyBaseFilter(user_id, role.customer),
+    ...partyBaseFilter(user_id, role.customer, query),
     _id,
   }).select("-password");
   if (!doc) return null;
@@ -61,7 +69,7 @@ const deleteCustomerDB = async (user_id: string, payload: TPartyUserWrite) => {
   const update = applyPartyUpdateToUser({
     ...payload,
     isDeleted: payload.isDeleted ?? true,
-    archive: payload.archive ?? true,
+    isArchive: payload.isArchive ?? true,
     active: false,
   });
   const res = await UserModel.findOneAndUpdate(
@@ -85,8 +93,7 @@ const updateCustomerDB = async (user_id: string, payload: TPartyUserWrite) => {
     {
       companyId: user_id,
       _id: payload._id,
-      role: { $in: [...CUSTOMER_ROLE_VALUES] },
-      isDeleted: false,
+      role: { $in: [...CUSTOMER_ROLE_VALUES] }
     },
     { $set: update },
     { new: true, runValidators: true }
