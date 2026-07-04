@@ -66,6 +66,6 @@ export type TPaymentReceived = {
   tax: number;
   total: number;
   isDeleted: boolean;
-  archive: boolean;
+  isArchive: boolean;
   createdAt?: Date;
 };

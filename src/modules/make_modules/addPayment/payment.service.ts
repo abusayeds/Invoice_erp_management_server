@@ -38,7 +38,7 @@ const paymentSingleDB = async (id: string) => {
 };
 const paymentUpdateDB = async (id: string, payload: Partial<TPayment>) => {
   const payment = await PaymentModel.findByIdAndUpdate(id, payload, {
-    new: true,
+    new: true
   });
   if (!payment) {
     throw new AppError(httpStatus.NOT_FOUND, "Payment not found");

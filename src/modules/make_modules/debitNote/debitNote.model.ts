@@ -73,7 +73,7 @@ const debitNoteSchema = new Schema<TDebitNote>(
     applied_amount: { type: Number, default: 0 },
     balance_amount: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },
-    archive: { type: Boolean, default: false },
+    isArchive: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

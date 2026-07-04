@@ -71,6 +71,6 @@ export type TDebitNote = {
   applied_amount?: number;
   balance_amount?: number;
   isDeleted: boolean;
-  archive: boolean;
+  isArchive: boolean;
   createdAt?: Date;
 };

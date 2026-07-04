@@ -68,6 +68,6 @@ export type TBill = {
   paid_amount?: number;
   balance_amount?: number;
   isDeleted: boolean;
-  archive: boolean;
+  isArchive: boolean;
   createdAt?: Date;
 };

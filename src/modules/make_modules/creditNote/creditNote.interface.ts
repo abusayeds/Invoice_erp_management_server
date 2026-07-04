@@ -72,6 +72,6 @@ export type TCreditNote = {
   applied_amount?: number;
   balance_amount?: number;
   isDeleted: boolean;
-  archive: boolean;
+  isArchive: boolean;
   createdAt?: Date;
 };

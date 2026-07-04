@@ -48,7 +48,7 @@ const getSingleDB = async (id: string, userId: string) => {
   const record = await PaymentReceivedModel.findOne({
     _id: id,
     user_id: userId,
-    archive: false,
+    isArchive: false,
     isDeleted: false,
   });
   if (!record) {
@@ -61,7 +61,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   const buildQuery = new queryBuilder(
     PaymentReceivedModel.find({
       user_id: user_id,
-      archive: false,
+      isArchive: false,
       isDeleted: false,
     }).populate({
       path: 'customer_id',
@@ -76,7 +76,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   const { totalData } = await buildQuery.paginate(
     PaymentReceivedModel.find({
       user_id: user_id,
-      archive: false,
+      isArchive: false,
       isDeleted: false,
     })
   );
