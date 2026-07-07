@@ -32,6 +32,7 @@ import {
 import { AuthRequest } from "../../../../middlewares/auth";
 import { permModule } from "../../../../utils/permissionModule";
 import { getHrmCompanySettings } from "../shared/hrm.settings.service";
+import { withBulkDeleteAuthId } from "../../../../utils/bulkDelete";
 
 const formatAttendance = (row: Record<string, unknown>) => ({
   ...row,
@@ -133,6 +134,19 @@ const assertCanClockIn = async (
     throw new AppError(httpStatus.BAD_REQUEST, eligibility.message);
   }
 };
+
+const removeOne = async (req: AuthRequest, oneId: string) => {
+  const companyId = resolveCompanyId(req);
+  const updated = await HrmAttendanceModel.findOneAndUpdate(
+    { _id: oneId, ...companyScope(companyId) },
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!updated) throw new AppError(httpStatus.NOT_FOUND, "Attendance not found");
+  return { _id: oneId };
+};
+
+const remove = withBulkDeleteAuthId(removeOne);
 
 export const attendanceService = {
   async list(req: AuthRequest, query: Record<string, unknown>) {
@@ -346,16 +360,7 @@ export const attendanceService = {
     return formatAttendanceDoc(row);
   },
 
-  async remove(req: AuthRequest, id: string) {
-    const companyId = resolveCompanyId(req);
-    const updated = await HrmAttendanceModel.findOneAndUpdate(
-      { _id: id, ...companyScope(companyId) },
-      { isDeleted: true },
-      { new: true }
-    );
-    if (!updated) throw new AppError(httpStatus.NOT_FOUND, "Attendance not found");
-    return { _id: id };
-  },
+  remove,
 
   async history(req: AuthRequest, body: Record<string, unknown>) {
     const companyId = resolveCompanyId(req);

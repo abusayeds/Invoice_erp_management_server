@@ -27,6 +27,7 @@ import { AuthRequest } from "../../../../middlewares/auth";
 import { permModule } from "../../../../utils/permissionModule";
 import { validateEmployeeProfileRefs } from "./employee.validation";
 import { parseOptionalObjectId } from "../shared/hrm.refValidation";
+import { withBulkDeleteAuthId, runBulkDelete, parseDeleteIdsFromParam } from "../../../../utils/bulkDelete";
 
 const lean = (doc: Record<string, unknown>) => ({
   ...doc,
@@ -60,6 +61,30 @@ const assertStaffUser = async (companyId: string, userId: string) => {
   if (!user) throw new AppError(httpStatus.BAD_REQUEST, "Invalid employee user");
   return user;
 };
+
+const removeOne = async (req: AuthRequest, oneId: string) => {
+  const companyId = resolveCompanyId(req);
+  await HrmEmployeeModel.findOneAndUpdate({ _id: oneId, ...companyScope(companyId) }, { isDeleted: true });
+  return { _id: oneId };
+};
+
+const remove = withBulkDeleteAuthId(removeOne);
+
+const deleteDocumentOne = async (req: AuthRequest, employeeProfileId: string, documentId: string) => {
+  const companyId = resolveCompanyId(req);
+  const updated = await HrmEmployeeDocumentModel.findOneAndUpdate(
+    { _id: documentId, employee_profile_id: employeeProfileId, ...companyScope(companyId), isDeleted: false },
+    { isDeleted: true },
+    { new: true }
+  ).lean();
+  if (!updated) throw new AppError(httpStatus.NOT_FOUND, "Document not found");
+  return { _id: documentId };
+};
+
+const deleteDocument = async (req: AuthRequest, employeeProfileId: string, documentId: string) =>
+  runBulkDelete(parseDeleteIdsFromParam(documentId), (oneId) =>
+    deleteDocumentOne(req, employeeProfileId, oneId),
+  );
 
 export const employeeService = {
   async generateId(req: AuthRequest) {
@@ -172,11 +197,7 @@ export const employeeService = {
     return lean(updated as Record<string, unknown>);
   },
 
-  async remove(req: AuthRequest, id: string) {
-    const companyId = resolveCompanyId(req);
-    await HrmEmployeeModel.findOneAndUpdate({ _id: id, ...companyScope(companyId) }, { isDeleted: true });
-    return { _id: id };
-  },
+  remove,
 
   async eligibleUsers(req: AuthRequest) {
     const companyId = resolveCompanyId(req);
@@ -206,14 +227,5 @@ export const employeeService = {
     return { branches, departments, designations, shifts, documentTypes };
   },
 
-  async deleteDocument(req: AuthRequest, employeeProfileId: string, documentId: string) {
-    const companyId = resolveCompanyId(req);
-    const updated = await HrmEmployeeDocumentModel.findOneAndUpdate(
-      { _id: documentId, employee_profile_id: employeeProfileId, ...companyScope(companyId), isDeleted: false },
-      { isDeleted: true },
-      { new: true }
-    ).lean();
-    if (!updated) throw new AppError(httpStatus.NOT_FOUND, "Document not found");
-    return { _id: documentId };
-  },
+  deleteDocument,
 };
