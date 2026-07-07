@@ -3,6 +3,7 @@ import AppError from "../../../errors/AppError";
 import httpStatus from "http-status";
 import { TService } from "./service.interface";
 import queryBuilder from "../../../builder/queryBuilder";
+import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
 
 const createServiceDB = async (payload: TService) => {
   return await ServiceModel.create(payload);
@@ -52,10 +53,19 @@ const updateServiceDB = async (
 };
 
 
-const deleteServiceDB = async (user_id :  string , payload : TService) => {
-  const result = await ServiceModel.findOneAndUpdate({ user_id, _id: payload._id } , payload , {new : true} );
+const deleteServiceDBOne = async (user_id: string, id: string) => {
+  const result = await ServiceModel.findOneAndUpdate(
+    { user_id, _id: id },
+    { isDeleted: true },
+    { new: true },
+  );
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, "Service not found");
+  }
   return result;
-}
+};
+
+const deleteServiceDB = withBulkDeleteIdSecond(deleteServiceDBOne);
 
 export const ServiceService = {
   createServiceDB,

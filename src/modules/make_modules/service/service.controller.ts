@@ -8,6 +8,10 @@ import { activitiesService } from "../activities/activities.service";
 import { TService } from "./service.interface";
 import { ActivityModule } from "../../../utils/activityModules";
 import { activityActors } from "../../../utils/activityContext";
+import {
+  bulkDeleteResponseData,
+  parseDeleteIdsFromParam,
+} from "../../../utils/bulkDelete";
 
 const createService = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -79,23 +83,28 @@ const updateService = catchAsync(async (req: AuthRequest, res) => {
 });
 
 const deleteService = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const ids = parseDeleteIdsFromParam(id);
   const result = await ServiceService.deleteServiceDB(
     req?.user?._id as string,
-    req.body,
+    id,
   );
 
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "Operation successful.",
-    data: result,
+    data: bulkDeleteResponseData(ids, result),
   });
   await activitiesService.activitiesCreateDB({
     ...activityActors(req),
     module: ActivityModule.service,
-    entity_ids: [result?._id ?? req.params.id],
+    entity_ids: ids.map((id) => result?._id ?? id),
     action: ActivityAction.archived,
-    title: `${result?.serviceName ?? "Service"} Archived`,
+    title:
+      ids.length === 1
+        ? `${result?.serviceName ?? "Service"} Archived`
+        : `${ids.length} Services Archived`,
   });
 });
 
