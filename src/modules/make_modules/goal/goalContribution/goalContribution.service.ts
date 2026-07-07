@@ -11,6 +11,7 @@ import {
 import { TGoalContribution } from "../goal.types";
 import { GoalModel } from "../goals/goal.model";
 import { GoalContributionModel } from "./goalContribution.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const createDB = async (
   userId: string,
@@ -75,7 +76,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TGoalContri
   return record;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const record = await GoalContributionModel.findOne({
     _id: id,
     ...companyScope(userId),
@@ -119,5 +120,7 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
   const limit = Number(query.limit) || 10;
   return { rows, pagination: build.calculatePagination({ totalData, currentPage: page, limit }) };
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const goalContributionService = { createDB, updateDB, deleteDB, getAllDB };

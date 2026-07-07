@@ -8,6 +8,7 @@ import { recalculateBudgetTotal } from "../budget.core.service";
 import { BudgetModel } from "../budgets/budget.model";
 import { TBudgetAllocation } from "../budget.types";
 import { BudgetAllocationModel } from "./budgetAllocation.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const ensureBudget = async (userId: string, budgetId: Types.ObjectId) => {
   const budget = await BudgetModel.findOne({ _id: budgetId, ...companyScope(userId), isDeleted: false });
@@ -70,7 +71,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TBudgetAllo
   return record;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const record = await BudgetAllocationModel.findOne({ _id: id, ...companyScope(userId), isDeleted: false });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Budget allocation not found");
   const budgetId = record.budget_id;
@@ -103,6 +104,8 @@ const listExpenseAccountsDB = async (userId: string) =>
     .select("_id account_code account_name normal_balance")
     .sort({ account_code: 1 })
     .lean();
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const budgetAllocationService = {
   createDB,

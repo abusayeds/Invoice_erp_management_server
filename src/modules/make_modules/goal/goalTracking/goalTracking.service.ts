@@ -7,6 +7,7 @@ import { TGoalTracking } from "../goal.types";
 import { GoalModel } from "../goals/goal.model";
 import { formatTrackingDetail } from "../goal.utils";
 import { GoalTrackingModel } from "./goalTracking.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const ensureGoal = async (userId: string, goalId: Types.ObjectId) => {
   const goal = await GoalModel.findOne({ _id: goalId, ...companyScope(userId), isDeleted: false });
@@ -27,7 +28,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TGoalTracki
   return record;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const record = await GoalTrackingModel.findOneAndUpdate(
     { _id: id, ...companyScope(userId) },
     { isDeleted: true },
@@ -77,6 +78,8 @@ const getSingleDB = async (id: string, userId: string) => {
 
   return formatTrackingDetail(record);
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const goalTrackingService = {
   createDB,

@@ -4,6 +4,7 @@ import queryBuilder from "../../../../builder/queryBuilder";
 import { companyScope } from "../../account/account.utils";
 import { TGoalCategory } from "../goal.types";
 import { GoalCategoryModel } from "./goalCategory.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const createDB = async (payload: TGoalCategory) => {
   const exists = await GoalCategoryModel.findOne({
@@ -33,7 +34,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TGoalCatego
   return record;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const record = await GoalCategoryModel.findOneAndUpdate(
     { _id: id, ...companyScope(userId) },
     { isDeleted: true },
@@ -58,5 +59,7 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
   const limit = Number(query.limit) || 10;
   return { rows, pagination: build.calculatePagination({ totalData, currentPage: page, limit }) };
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const goalCategoryService = { createDB, updateDB, deleteDB, getAllDB };
