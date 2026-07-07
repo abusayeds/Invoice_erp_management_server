@@ -90,8 +90,8 @@ const roleQuery = (partyRole: PartyRole) => {
 /**
  * List/filter customers and vendors from the shared User collection.
  * Default hides deleted + archived.
- * ?isDeleted=true — only deleted rows (archive filter skipped).
- * ?isArchive=true — only archived rows (isDeleted filter skipped).
+ * ?isArchive=true — archived only, not deleted (isDeleted must be false).
+ * ?isDeleted=true — deleted/trash only.
  */
 export const partyBaseFilter = (
   companyId: Types.ObjectId | string,
@@ -111,7 +111,8 @@ export const partyBaseFilter = (
 
   if (isDeletedParam === true) {
     filter.isDeleted = true;
-  } else if (isArchiveParam !== true) {
+  } else {
+    // List + archive tabs never show deleted rows
     filter.isDeleted = { $ne: true };
   }
 
