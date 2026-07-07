@@ -18,6 +18,7 @@ import {
 } from "./user.service";
 import { AuthRequest } from "../../../middlewares/auth";
 import { syncCompanySeeds } from "../../../utils/seed";
+import { handleParamBulkDelete } from "../../../utils/bulkDeleteController";
 import { permissions } from "../../../utils/permissions";
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
@@ -361,18 +362,17 @@ export const BlockUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const deleteUser = catchAsync(async (req: Request, res: Response) => {
-  const id = req.params?.id as string;
-
-  const user = await findUserById(id);
-
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "user not found .");
-  }
-
-  if (user.isDeleted) {
-    throw new AppError(httpStatus.NOT_FOUND, "user  is already deleted.");
-  }
-  await userDelete(id);
+  await handleParamBulkDelete(req.params?.id as string, async (id) => {
+    const user = await findUserById(id);
+    if (!user) {
+      throw new AppError(httpStatus.NOT_FOUND, "user not found .");
+    }
+    if (user.isDeleted) {
+      throw new AppError(httpStatus.NOT_FOUND, "user  is already deleted.");
+    }
+    await userDelete(id);
+    return null;
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
