@@ -6,6 +6,7 @@ import { InvoiceReturnModel } from "./invoiceReturn.model";
 import { InvoiceModel } from "../invoice.model";
 import { WarehouseModel } from "../../purchase/warehouse/warehouse.model";
 import { createCreditNoteFromInvoiceReturn } from "../../account/noteFromReturn.service";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const createInvoiceReturnDB = async (payload: TInvoiceReturn) => {
   const invoice = await InvoiceModel.findById(payload.invoice_id);
@@ -75,7 +76,7 @@ const updateInvoiceReturnDB = async (
   return invoiceReturn;
 };
 
-const deleteInvoiceReturnDB = async (id: string, user_id: string) => {
+const deleteInvoiceReturnDBOne = async (id: string, user_id: string) => {
   const invoiceReturn = await InvoiceReturnModel.findOneAndUpdate(
     { _id: id, user_id, isDeleted: false },
     { isDeleted: true },
@@ -102,6 +103,8 @@ const approveInvoiceReturnDB = async (id: string, user_id: string) => {
   await salesReturn.save();
   return { salesReturn, creditNote };
 };
+
+const deleteInvoiceReturnDB = withBulkDeleteId(deleteInvoiceReturnDBOne);
 
 export const invoiceReturnService = {
   createInvoiceReturnDB,

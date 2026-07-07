@@ -11,6 +11,7 @@ import { calculateInvoice } from '../utils/calculateInvoice';
 import { validateItemAmount } from '../utils/validateItemAmount';
 import { EstimateModel } from './estimate.model';
 import queryBuilder from '../../../builder/queryBuilder';
+import { withBulkDeleteId } from "../../../utils/bulkDelete";
 
 const formatParty = (party: unknown) => {
   if (party && typeof party === 'object' && party !== null && '_id' in party) {
@@ -165,7 +166,7 @@ const updateDB = async (id: string, userId: string, payload: TEstimate) => {
   return updatedRecord;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const deletedRecord = await EstimateModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -176,6 +177,8 @@ const deleteDB = async (id: string, userId: string) => {
   }
   return deletedRecord;
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const estimateService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
 

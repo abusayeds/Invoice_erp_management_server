@@ -5,6 +5,7 @@ import { TPayment } from "./payment.interface";
 import { PaymentModel } from "./payment.model";
 import { InvoiceModel } from "../invoice/invoice.model";
 import queryBuilder from "../../../builder/queryBuilder";
+import { withBulkDeleteId } from "../../../utils/bulkDelete";
 
 const paymentCreateDB = async (payload: TPayment) => {
   await assertClientUser(payload.customer_id);
@@ -45,12 +46,14 @@ const paymentUpdateDB = async (id: string, payload: Partial<TPayment>) => {
   }
   return payment;
 };
-const paymentDeleteDB = async (id: string) => {
+const paymentDeleteDBOne = async (id: string) => {
   const payment = await PaymentModel.findByIdAndDelete(id);
   if (!payment) {
     throw new AppError(httpStatus.NOT_FOUND, "Payment not found");
   }
 };
+
+const paymentDeleteDB = withBulkDeleteId(paymentDeleteDBOne);
 
 export const addPaymentService = {
   paymentCreateDB,

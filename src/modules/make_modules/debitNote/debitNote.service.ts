@@ -11,6 +11,7 @@ import { calculateInvoice } from '../utils/calculateInvoice';
 import { validateItemAmount } from '../utils/validateItemAmount';
 import { DebitNoteModel } from './debitNote.model';
 import queryBuilder from '../../../builder/queryBuilder';
+import { withBulkDeleteId } from "../../../utils/bulkDelete";
 
 const createDB = async (payload: TDebitNote) => {
   await validateDocumentParties(payload);
@@ -67,7 +68,7 @@ const approveDB = async (id: string, userId: string) => {
   return record;
 };
 
-const deleteDraftDB = async (id: string, userId: string) => {
+const deleteDraftDBOne = async (id: string, userId: string) => {
   const record = await DebitNoteModel.findOne({ _id: id, user_id: userId, isDeleted: false });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Debit note not found");
   if (record.status !== "Draft") {
@@ -120,6 +121,8 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
   const pagination = buildQuery.calculatePagination({ totalData, currentPage, limit });
   return { allRecords, pagination };
 };
+
+const deleteDraftDB = withBulkDeleteId(deleteDraftDBOne);
 
 export const debitNoteService = { createDB, getSingleDB, getAllDB, approveDB, deleteDraftDB };
 

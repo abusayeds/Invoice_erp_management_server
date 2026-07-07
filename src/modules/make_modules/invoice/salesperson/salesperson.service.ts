@@ -1,5 +1,6 @@
 import { TSalesperson } from "./salesperson.interface";
 import { SalespersonModel } from "./salesperson.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const createDB = async (payload: TSalesperson) => {
   return await SalespersonModel.create(payload);
@@ -21,13 +22,15 @@ const updateDB = async (id: string, payload: Partial<TSalesperson>, user_id: str
   );
 };
 
-const deleteDB = async (id: string, user_id: string) => {
+const deleteDBOne = async (id: string, user_id: string) => {
   return await SalespersonModel.findOneAndUpdate(
     { _id: id, user_id, isDeleted: false },
     { isDeleted: true },
     { new: true }
   );
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const salespersonService = {
   createDB,

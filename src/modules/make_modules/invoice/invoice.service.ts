@@ -11,6 +11,7 @@ import { calculateInvoice } from '../utils/calculateInvoice';
 import { validateItemAmount } from '../utils/validateItemAmount';
 import { InvoiceModel } from './invoice.model';
 import queryBuilder from '../../../builder/queryBuilder';
+import { withBulkDeleteId } from "../../../utils/bulkDelete";
 
 const createDB = async (payload: TInvoice) => {
 
@@ -149,7 +150,7 @@ const updateDB = async (id: string, userId: string, payload: TInvoice) => {
   return updatedRecord;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const deletedRecord = await InvoiceModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -160,6 +161,8 @@ const deleteDB = async (id: string, userId: string) => {
   }
   return deletedRecord;
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const invoiceService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
 

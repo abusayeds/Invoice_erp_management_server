@@ -10,6 +10,7 @@ import { calculateInvoice } from "../utils/calculateInvoice";
 import { validateItemAmount } from "../utils/validateItemAmount";
 import { ProposalModel } from "./proposal.model";
 import queryBuilder from "../../../builder/queryBuilder";
+import { withBulkDeleteId } from "../../../utils/bulkDelete";
 
 const validateCustomerAndLineItems = async (payload: TProposal) => {
   if (payload.customer_id) {
@@ -131,7 +132,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TProposal>)
   return updated;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const doc = await ProposalModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
     { isDeleted: true, isArchive: true },
@@ -142,6 +143,8 @@ const deleteDB = async (id: string, userId: string) => {
   }
   return doc;
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const proposalService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
 
