@@ -4,6 +4,7 @@ import AppError from "../../../errors/AppError";
 import queryBuilder from "../../../builder/queryBuilder";
 import { AuthRequest } from "../../../middlewares/auth";
 import { TPermissionKey } from "../../../utils/permission";
+import { parseDeleteIdsFromParam, runBulkDelete } from "../../../utils/bulkDelete";;
 import { applyOwnershipToQuery, companyObjectId, companyScope, creatorObjectId, resolveCompanyId, resolveOwnership} from "./performance.utils";
 
 export type PerfCrudConfig<T> = {
@@ -128,14 +129,19 @@ export const createPerformanceCrudService = <T>(config: PerfCrudConfig<T>) => {
     return fmt(updated as T);
   };
 
-  const remove = async (req: AuthRequest, id: string) => {
-    await getOwned(req, id);
+  const removeOne = async (req: AuthRequest, oneId: string) => {
+    await getOwned(req, oneId);
     const companyId = resolveCompanyId(req);
     await model.findOneAndUpdate(
-      { _id: id, ...companyScope(companyId) } as FilterQuery<T>,
+      { _id: oneId, ...companyScope(companyId) } as FilterQuery<T>,
       { isDeleted: true } as never
     );
-    return { _id: id };
+    return { _id: oneId };
+  };
+
+  const remove = async (req: AuthRequest, id: string) => {
+    const ids = parseDeleteIdsFromParam(id);
+    return runBulkDelete(ids, (oneId) => removeOne(req, oneId));
   };
 
   return { create, list, single, update, remove, getOwned, ownershipOf };
