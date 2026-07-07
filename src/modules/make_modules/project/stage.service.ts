@@ -8,6 +8,7 @@ import {
   ensureDefaultTaskStages,
   formatProjectResponse,
 } from "./project.utils";
+import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
 
 const taskStageAll = async (userId: string, creatorId: Types.ObjectId) => {
   await ensureDefaultTaskStages(userId, creatorId);
@@ -44,7 +45,7 @@ const taskStageUpdate = async (userId: string, id: string, body: { name: string;
   return formatProjectResponse(stage);
 };
 
-const taskStageDelete = async (userId: string, id: string) => {
+const taskStageDeleteOne = async (userId: string, id: string) => {
   const stage = await TaskStageModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -104,7 +105,7 @@ const bugStageUpdate = async (userId: string, id: string, body: { name: string; 
   return formatProjectResponse(stage);
 };
 
-const bugStageDelete = async (userId: string, id: string) => {
+const bugStageDeleteOne = async (userId: string, id: string) => {
   const stage = await BugStageModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -128,6 +129,10 @@ const bugStageReorder = async (userId: string, orderedIds: string[]) => {
   const stages = await BugStageModel.find({ user_id: userId, isDeleted: false }).sort({ order: 1 });
   return formatProjectResponse(stages);
 };
+
+const taskStageDelete = withBulkDeleteIdSecond(taskStageDeleteOne);
+
+const bugStageDelete = withBulkDeleteIdSecond(bugStageDeleteOne);
 
 export const stageService = {
   taskStageAll,

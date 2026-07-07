@@ -20,6 +20,7 @@ import {
   toListQuery,
 } from "./project.utils";
 import { TTaskPriority } from "./project.interface";
+import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
 
 const listBugs = async (
   userId: string,
@@ -144,7 +145,7 @@ const bugDetails = async (
   });
 };
 
-const deleteBug = async (userId: string, bugId: string) => {
+const deleteBugOne = async (userId: string, bugId: string) => {
   const bug = await ProjectBugModel.findOneAndUpdate(
     { _id: bugId, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -192,7 +193,7 @@ const commentCreate = async (userId: string, bugId: string, comment: string) => 
   return formatProjectResponse(doc);
 };
 
-const commentDelete = async (userId: string, commentId: string) => {
+const commentDeleteOne = async (userId: string, commentId: string) => {
   const doc = await BugCommentModel.findOneAndUpdate(
     { _id: commentId, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -201,6 +202,10 @@ const commentDelete = async (userId: string, commentId: string) => {
   if (!doc) throw new AppError(httpStatus.NOT_FOUND, "Comment not found");
   return formatProjectResponse(doc);
 };
+
+const commentDelete = withBulkDeleteIdSecond(commentDeleteOne);
+
+const deleteBug = withBulkDeleteIdSecond(deleteBugOne);
 
 export const bugService = {
   listBugs,

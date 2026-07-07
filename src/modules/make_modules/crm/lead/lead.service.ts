@@ -5,6 +5,7 @@ import { LeadModel } from "./lead.model";
 import { DealModel } from "../deal/deal.model";
 import { DealStageModel } from "../dealStage/dealStage.model";
 import { pushSub, updateSub, pullSub, addRef, removeRef, setRefs } from "../shared/crm.subdoc";
+import { withBulkDeleteId, withBulkDeleteIdThird } from "../../../../utils/bulkDelete";
 
 const LIST_POP = [
   { path: "stage_id", select: "name" },
@@ -35,7 +36,7 @@ const getSingleDB = async (id: string, user_id: string) =>
 const updateDB = async (id: string, payload: Partial<TLead>, user_id: string) =>
   LeadModel.findOneAndUpdate({ _id: id, user_id }, payload, { new: true, runValidators: true });
 
-const deleteDB = async (id: string, user_id: string) =>
+const deleteDBOne = async (id: string, user_id: string) =>
   LeadModel.findOneAndUpdate({ _id: id, user_id }, { isDeleted: true }, { new: true });
 
 // Kanban move/reorder: items [{ id, stage_id?, order }].
@@ -53,24 +54,24 @@ const orderDB = async (user_id: string, items: { id: string; stage_id?: string; 
 const setLabelsDB = (id: string, user_id: string, labels: string[]) => setRefs(LeadModel, id, user_id, "labels", labels);
 
 const addUserDB = (id: string, user_id: string, v: string) => addRef(LeadModel, id, user_id, "assigned_users", v);
-const removeUserDB = (id: string, user_id: string, v: string) => removeRef(LeadModel, id, user_id, "assigned_users", v);
+const removeUserDB = withBulkDeleteIdThird((id, user_id, v) => removeRef(LeadModel, id, user_id, "assigned_users", v));
 const addProductDB = (id: string, user_id: string, v: string) => addRef(LeadModel, id, user_id, "products", v);
-const removeProductDB = (id: string, user_id: string, v: string) => removeRef(LeadModel, id, user_id, "products", v);
+const removeProductDB = withBulkDeleteIdThird((id, user_id, v) => removeRef(LeadModel, id, user_id, "products", v));
 const addSourceDB = (id: string, user_id: string, v: string) => addRef(LeadModel, id, user_id, "sources", v);
-const removeSourceDB = (id: string, user_id: string, v: string) => removeRef(LeadModel, id, user_id, "sources", v);
+const removeSourceDB = withBulkDeleteIdThird((id, user_id, v) => removeRef(LeadModel, id, user_id, "sources", v));
 
 const addTaskDB = (id: string, user_id: string, d: Record<string, unknown>) => pushSub(LeadModel, id, user_id, "tasks", d);
 const updateTaskDB = (id: string, user_id: string, s: string, d: Record<string, unknown>) => updateSub(LeadModel, id, user_id, "tasks", s, d);
-const removeTaskDB = (id: string, user_id: string, s: string) => pullSub(LeadModel, id, user_id, "tasks", s);
+const removeTaskDB = withBulkDeleteIdThird((id, user_id, s) => pullSub(LeadModel, id, user_id, "tasks", s));
 const addCallDB = (id: string, user_id: string, d: Record<string, unknown>) => pushSub(LeadModel, id, user_id, "calls", d);
 const updateCallDB = (id: string, user_id: string, s: string, d: Record<string, unknown>) => updateSub(LeadModel, id, user_id, "calls", s, d);
-const removeCallDB = (id: string, user_id: string, s: string) => pullSub(LeadModel, id, user_id, "calls", s);
+const removeCallDB = withBulkDeleteIdThird((id, user_id, s) => pullSub(LeadModel, id, user_id, "calls", s));
 const addEmailDB = (id: string, user_id: string, d: Record<string, unknown>) => pushSub(LeadModel, id, user_id, "emails", d);
-const removeEmailDB = (id: string, user_id: string, s: string) => pullSub(LeadModel, id, user_id, "emails", s);
+const removeEmailDB = withBulkDeleteIdThird((id, user_id, s) => pullSub(LeadModel, id, user_id, "emails", s));
 const addDiscussionDB = (id: string, user_id: string, d: Record<string, unknown>) => pushSub(LeadModel, id, user_id, "discussions", d);
-const removeDiscussionDB = (id: string, user_id: string, s: string) => pullSub(LeadModel, id, user_id, "discussions", s);
+const removeDiscussionDB = withBulkDeleteIdThird((id, user_id, s) => pullSub(LeadModel, id, user_id, "discussions", s));
 const addFileDB = (id: string, user_id: string, d: Record<string, unknown>) => pushSub(LeadModel, id, user_id, "files", d);
-const removeFileDB = (id: string, user_id: string, s: string) => pullSub(LeadModel, id, user_id, "files", s);
+const removeFileDB = withBulkDeleteIdThird((id, user_id, s) => pullSub(LeadModel, id, user_id, "files", s));
 
 // Convert a lead into a deal: copy fields + embedded sub-arrays, drop it on the
 // pipeline's first deal stage, and mark the lead converted.
@@ -110,6 +111,8 @@ const convertToDealDB = async (id: string, user_id: string, body: Record<string,
 
   return { lead, deal };
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const leadService = {
   createDB, getAllDB, getSingleDB, updateDB, deleteDB, orderDB, setLabelsDB,

@@ -1,5 +1,6 @@
 import { TLeadStage } from "./leadStage.interface";
 import { LeadStageModel } from "./leadStage.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const createDB = async (payload: TLeadStage) => {
   return await LeadStageModel.create(payload);
@@ -19,7 +20,7 @@ const updateDB = async (id: string, payload: Partial<TLeadStage>, user_id: strin
   return await LeadStageModel.findOneAndUpdate({ _id: id, user_id }, payload, { new: true });
 };
 
-const deleteDB = async (id: string, user_id: string) => {
+const deleteDBOne = async (id: string, user_id: string) => {
   return await LeadStageModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
 };
 
@@ -31,5 +32,7 @@ const updateOrderDB = async (user_id: string, items: { id: string; order: number
   if (ops.length) await LeadStageModel.bulkWrite(ops);
   return await LeadStageModel.find({ user_id }).sort({ order: 1 });
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const leadStageService = { createDB, getAllDB, getSingleDB, updateDB, deleteDB, updateOrderDB };

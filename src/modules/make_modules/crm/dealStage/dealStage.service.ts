@@ -1,5 +1,6 @@
 import { TDealStage } from "./dealStage.interface";
 import { DealStageModel } from "./dealStage.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const createDB = async (payload: TDealStage) => {
   return await DealStageModel.create(payload);
@@ -19,7 +20,7 @@ const updateDB = async (id: string, payload: Partial<TDealStage>, user_id: strin
   return await DealStageModel.findOneAndUpdate({ _id: id, user_id }, payload, { new: true });
 };
 
-const deleteDB = async (id: string, user_id: string) => {
+const deleteDBOne = async (id: string, user_id: string) => {
   return await DealStageModel.findOneAndUpdate({ _id: id, user_id, isDeleted: false }, { isDeleted: true }, { new: true });
 };
 
@@ -31,5 +32,7 @@ const updateOrderDB = async (user_id: string, items: { id: string; order: number
   if (ops.length) await DealStageModel.bulkWrite(ops);
   return await DealStageModel.find({ user_id }).sort({ order: 1 });
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const dealStageService = { createDB, getAllDB, getSingleDB, updateDB, deleteDB, updateOrderDB };

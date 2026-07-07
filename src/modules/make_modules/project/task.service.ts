@@ -23,6 +23,7 @@ import {
   toListQuery,
 } from "./project.utils";
 import { TTaskPriority } from "./project.interface";
+import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
 
 const listTasks = async (
   userId: string,
@@ -176,7 +177,7 @@ const taskDetails = async (
   });
 };
 
-const deleteTask = async (userId: string, taskId: string) => {
+const deleteTaskOne = async (userId: string, taskId: string) => {
   const task = await ProjectTaskModel.findOneAndUpdate(
     { _id: taskId, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -274,7 +275,7 @@ const commentCreate = async (userId: string, taskId: string, comment: string) =>
   return formatProjectResponse(doc);
 };
 
-const commentDelete = async (userId: string, commentId: string) => {
+const commentDeleteOne = async (userId: string, commentId: string) => {
   const doc = await TaskCommentModel.findOneAndUpdate(
     { _id: commentId, user_id: userId, isDeleted: false },
     { isDeleted: true },
@@ -283,6 +284,8 @@ const commentDelete = async (userId: string, commentId: string) => {
   if (!doc) throw new AppError(httpStatus.NOT_FOUND, "Comment not found");
   return formatProjectResponse(doc);
 };
+
+const commentDelete = withBulkDeleteIdSecond(commentDeleteOne);
 
 const subtaskList = async (userId: string, taskId: string) => {
   const task = await ProjectTaskModel.findOne({ _id: taskId, user_id: userId, isDeleted: false });
@@ -311,6 +314,8 @@ const subtaskToggle = async (userId: string, subtaskId: string) => {
   await sub.save();
   return formatProjectResponse(sub);
 };
+
+const deleteTask = withBulkDeleteIdSecond(deleteTaskOne);
 
 export const taskService = {
   listTasks,
