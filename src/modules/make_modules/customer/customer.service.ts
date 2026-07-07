@@ -60,7 +60,9 @@ const singleCustomerDB = async (
   const doc = await UserModel.findOne({
     ...partyBaseFilter(user_id, role.customer, query),
     _id,
-  }).select("-password");
+  }).populate("businessProfile.default_tax_service_id", "name rate type")
+  .populate("businessProfile.default_tax_product_id", "name rate type")
+  .select("-password");
   if (!doc) return null;
   return toPartyUserResponse(doc);
 };
