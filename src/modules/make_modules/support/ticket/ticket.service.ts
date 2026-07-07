@@ -21,6 +21,7 @@ import {
   resolveCompanyId,
   resolveSupportOwnership,
 } from "../shared/support.utils";
+import { withBulkDeleteAuthId, withBulkDeleteAuthChildId } from "../../../../utils/bulkDelete";
 
 const LIST_POP = [
   { path: "category", select: "name color" },
@@ -211,7 +212,7 @@ const updateDB = async (req: AuthRequest, id: string, body: Record<string, unkno
   return formatSingle(updated as TTicket, companyId);
 };
 
-const deleteDB = async (req: AuthRequest, id: string) => {
+const deleteDBOne = async (req: AuthRequest, id: string) => {
   const companyId = resolveCompanyId(req);
   await getOwned(req, id);
   await TicketModel.findOneAndUpdate({ _id: id, ...companyScope(companyId) }, { isDeleted: true });
@@ -269,7 +270,7 @@ const updateReplyDB = async (req: AuthRequest, id: string, replyId: string, data
   return formatSingle(updated as TTicket, companyId);
 };
 
-const deleteReplyDB = async (req: AuthRequest, id: string, replyId: string) => {
+const deleteReplyDBOne = async (req: AuthRequest, id: string, replyId: string) => {
   await getOwned(req, id);
   const companyId = resolveCompanyId(req);
   const updated = await TicketModel.findOneAndUpdate(
@@ -315,6 +316,9 @@ const getRequestDataDB = async (req: AuthRequest) => {
     fields,
   };
 };
+
+const deleteDB = withBulkDeleteAuthId(deleteDBOne);
+const deleteReplyDB = withBulkDeleteAuthChildId(deleteReplyDBOne);
 
 export const ticketService = {
   createDB,

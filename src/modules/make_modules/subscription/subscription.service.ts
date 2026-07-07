@@ -1,5 +1,6 @@
 import { TSubscription } from "./subscription.interface";
 import { SubscriptionModel } from "./subscription.model";
+import { withBulkDeleteId } from "../../../utils/bulkDelete";
 
 const createSubscriptionDB = async (payload: TSubscription) => {
   const subscription = await SubscriptionModel.create(payload);
@@ -27,10 +28,12 @@ const updateSubscriptionDB = async (
   return subscription;
 };
 
-const deleteSubscriptionDB = async (id: string) => {
+const deleteSubscriptionDBOne = async (id: string) => {
   const subscription = await SubscriptionModel.findByIdAndDelete(id);
   return subscription;
 };
+
+const deleteSubscriptionDB = withBulkDeleteId(deleteSubscriptionDBOne);
 
 export const subscriptionService = {
   createSubscriptionDB,

@@ -5,6 +5,7 @@ import queryBuilder from "../../../../builder/queryBuilder";
 import { MODULE_KEYS } from "../subscription.constants";
 import { PlanModel } from "./plan.model";
 import { TPlan } from "./plan.interface";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toPlainLimits = (limits: any): Record<string, number> => {
@@ -92,7 +93,7 @@ const updatePlanDB = async (id: string, payload: Record<string, unknown>) => {
   return format(plan);
 };
 
-const deletePlanDB = async (id: string) => {
+const deletePlanDBOne = async (id: string) => {
   const plan = await PlanModel.findOneAndUpdate(
     { _id: id, isDeleted: false },
     { isDeleted: true },
@@ -101,6 +102,8 @@ const deletePlanDB = async (id: string) => {
   if (!plan) throw new AppError(httpStatus.NOT_FOUND, "Plan not found");
   return { _id: id };
 };
+
+const deletePlanDB = withBulkDeleteId(deletePlanDBOne);
 
 export const planService = {
   createPlanDB,
