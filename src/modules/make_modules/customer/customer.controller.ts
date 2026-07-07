@@ -8,6 +8,7 @@ import { ActivityAction } from "../activities/activities.interface";
 import { Types } from "mongoose";
 import { ActivityModule } from "../../../utils/activityModules";
 import { activityActors } from "../../../utils/activityContext";
+import { handleParamBulkDelete } from "../../../utils/bulkDeleteController";
 
 const customerCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -57,10 +58,10 @@ const singleCustomer = catchAsync(async (req: AuthRequest, res) => {
 });
 
 const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
-  const { id } = req.params;
-  const result = await customerService.deleteCustomerDB(
-    req?.user?._id as string,
-    { _id: new Types.ObjectId(id) },
+  const { ids, data: result } = await handleParamBulkDelete(req.params.id, (id) =>
+    customerService.deleteCustomerDB(req?.user?._id as string, {
+      _id: new Types.ObjectId(id),
+    }),
   );
   sendResponse(res, {
     success: true,
@@ -71,9 +72,12 @@ const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
   await activitiesService.activitiesCreateDB({
     ...activityActors(req),
     module: ActivityModule.customer,
-    entity_ids: [id],
+    entity_ids: ids.map((id) => new Types.ObjectId(id)),
     action: ActivityAction.archived,
-    title: `${result?.businessProfile?.companyName || result?.name || "Customer"} Archived`,
+    title:
+      ids.length === 1
+        ? `${result?.businessProfile?.companyName || result?.name || "Customer"} Archived`
+        : `${ids.length} Customers Archived`,
   });
 });
 

@@ -8,6 +8,7 @@ import { Types } from "mongoose";
 import { activitiesService } from "../activities/activities.service";
 import { ActivityModule } from "../../../utils/activityModules";
 import { activityActors } from "../../../utils/activityContext";
+import { handleParamBulkDelete } from "../../../utils/bulkDeleteController";
 
 const vendorCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -51,20 +52,26 @@ const singleVendor = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 const deleteVendor = catchAsync(async (req: AuthRequest, res) => {
-  const { id } = req.params;
-  const result = await vendorService.deleteVendorDB( req?.user?._id as string , { _id: new Types.ObjectId(id) });
+  const { ids, data: result } = await handleParamBulkDelete(req.params.id, (id) =>
+    vendorService.deleteVendorDB(req?.user?._id as string, {
+      _id: new Types.ObjectId(id),
+    }),
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "Oparation successfull.",
-    data: result
+    data: result,
   });
   await activitiesService.activitiesCreateDB({
     ...activityActors(req),
     module: ActivityModule.vendor,
-    entity_ids: [id],
+    entity_ids: ids.map((id) => new Types.ObjectId(id)),
     action: ActivityAction.archived,
-    title: `${result?.businessProfile?.companyName || result?.name || "Vendor"} Archived`,
+    title:
+      ids.length === 1
+        ? `${result?.businessProfile?.companyName || result?.name || "Vendor"} Archived`
+        : `${ids.length} Vendors Archived`,
   });
 });
 const updateVendor = catchAsync(async (req: AuthRequest, res) => {
