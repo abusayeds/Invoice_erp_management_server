@@ -1,5 +1,6 @@
 import { TCategory } from "./category.interface";
 import { CategoryModel } from "./category.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 // CREATE
 const createCategoryDB = async (payload: TCategory) => {
@@ -35,9 +36,11 @@ const updateCategoryDB = async (id: string, payload: Partial<TCategory> , user_i
 };
 
 // DELETE
-const deleteCategoryDB = async (id: string , user_id : string) => {
+const deleteCategoryDBOne = async (id: string , user_id : string) => {
   return await CategoryModel.findOneAndDelete({_id : id  , user_id});
 };
+
+const deleteCategoryDB = withBulkDeleteId(deleteCategoryDBOne);
 
 export const categoryService = {
   createCategoryDB,

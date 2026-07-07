@@ -3,6 +3,7 @@ import AppError from "../../../../errors/AppError";
 import queryBuilder from "../../../../builder/queryBuilder";
 import { TAX_TYPES, TTax, TTaxType } from "./tax.interface";
 import { TaxModel } from "./tax.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const parseTaxType = (typeInput: unknown, label = "type"): TTaxType => {
   if (typeInput === undefined || typeInput === null || typeInput === "") {
@@ -44,9 +45,11 @@ const updateTaxDB = async (id: string, payload: Partial<TTax>, user_id: string) 
   });
 };
 
-const deleteTaxDB = async (id: string, user_id: string) => {
+const deleteTaxDBOne = async (id: string, user_id: string) => {
   return await TaxModel.findOneAndDelete({ _id: id, user_id });
 };
+
+const deleteTaxDB = withBulkDeleteId(deleteTaxDBOne);
 
 export const taxService = {
   createTaxDB,

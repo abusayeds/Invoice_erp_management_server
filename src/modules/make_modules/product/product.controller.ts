@@ -8,6 +8,7 @@ import { ActivityAction } from "../activities/activities.interface";
 import { activitiesService } from "../activities/activities.service";
 import { ActivityModule } from "../../../utils/activityModules";
 import { activityActors } from "../../../utils/activityContext";
+import { bulkDeleteResponseData, parseDeleteIdsFromParam } from "../../../utils/bulkDelete";
 
 const productCreate = catchAsync(async (req: AuthRequest, res) => {
   req.body.user_id = req?.user?._id;
@@ -48,19 +49,26 @@ const singleProduct= catchAsync(async (req: AuthRequest, res) => {
 });
 const deleteProduct = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params;
-  const result : TProduct | null = await productService.deleteProductDB(req.user?._id as string, id);
+  const ids = parseDeleteIdsFromParam(id);
+  const result: TProduct | null = await productService.deleteProductDB(
+    req.user?._id as string,
+    id,
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "Product deleted successfully.",
-    data: result
+    data: bulkDeleteResponseData(ids, result),
   });
   await activitiesService.activitiesCreateDB({
     ...activityActors(req),
     module: ActivityModule.product,
-    entity_ids: [result?._id ?? id],
+    entity_ids: ids.map((entry) => result?._id ?? entry),
     action: ActivityAction.archived,
-    title: `${result?.productName ?? "Product"} Deleted`,
+    title:
+      ids.length === 1
+        ? `${result?.productName ?? "Product"} Deleted`
+        : `${ids.length} Products Deleted`,
   });
 });
 

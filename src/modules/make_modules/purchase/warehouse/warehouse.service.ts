@@ -3,6 +3,7 @@ import AppError from "../../../../errors/AppError";
 import queryBuilder from "../../../../builder/queryBuilder";
 import { TWarehouse } from "./warehouse.interface";
 import { WarehouseModel } from "./warehouse.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const createWarehouseDB = async (payload: TWarehouse) => {
   const result = await WarehouseModel.create(payload);
@@ -47,7 +48,7 @@ const updateWarehouseDB = async (id: string, user_id: string, payload: Partial<T
   return warehouse;
 };
 
-const deleteWarehouseDB = async (id: string, user_id: string) => {
+const deleteWarehouseDBOne = async (id: string, user_id: string) => {
   const warehouse = await WarehouseModel.findOneAndUpdate(
     { _id: id, user_id, isDeleted: false },
     { isDeleted: true },
@@ -58,6 +59,8 @@ const deleteWarehouseDB = async (id: string, user_id: string) => {
   }
   return warehouse;
 };
+
+const deleteWarehouseDB = withBulkDeleteId(deleteWarehouseDBOne);
 
 export const warehouseService = {
   createWarehouseDB,

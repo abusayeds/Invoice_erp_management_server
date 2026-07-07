@@ -7,6 +7,7 @@ import { PurchaseInvoiceModel } from "../purchaseInvoice/purchaseInvoice.model";
 import { WarehouseModel } from "../warehouse/warehouse.model";
 import { computeTotals, generateDocNumber, RawItem } from "../purchase.utils";
 import { createDebitNoteFromPurchaseReturn } from "../../account/noteFromReturn.service";
+import { withBulkDeleteIdSecond } from "../../../../utils/bulkDelete";
 
 const POPULATE = [
   { path: "vendor_id", select: "name email" },
@@ -128,7 +129,7 @@ const completeDB = async (userId: string, id: string) => {
 };
 
 /** Laravel destroy(): only a draft return can be deleted. */
-const removeDB = async (userId: string, id: string) => {
+const removeDBOne = async (userId: string, id: string) => {
   const purchaseReturn = await PurchaseReturnModel.findOne({ _id: id, user_id: userId, isDeleted: false });
   if (!purchaseReturn) throw new AppError(httpStatus.NOT_FOUND, "Purchase return not found");
   if (purchaseReturn.status !== "draft") {
@@ -138,6 +139,8 @@ const removeDB = async (userId: string, id: string) => {
   await purchaseReturn.save();
   return { _id: id };
 };
+
+const removeDB = withBulkDeleteIdSecond(removeDBOne);
 
 export const purchaseReturnService = {
   createDB,

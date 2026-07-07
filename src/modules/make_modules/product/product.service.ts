@@ -6,6 +6,7 @@ import queryBuilder from "../../../builder/queryBuilder";
 import { CategoryModel } from "./category/category.model";
 import { TaxModel } from "./tax/tax.model";
 import { taxTypesForProduct } from "./tax/tax.interface";
+import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
 
 const productCreateDB = async (payload : TProduct) => {
   const isExistCategory = await CategoryModel.findOne({ _id: payload.category });
@@ -35,7 +36,7 @@ const singleProductDB = async (user_id :  string , id : string) => {
   const result = await ProductModel.findOne({ user_id, _id: id , isArchive: false , isDeleted : false } );
   return result;
 }
-const deleteProductDB = async (user_id :  string , id : string) => {
+const deleteProductDBOne = async (user_id :  string , id : string) => {
   const result = await ProductModel.findOneAndUpdate({ user_id, _id: id } , { isDeleted: true } , {new : true} );
   return result;
 }
@@ -61,6 +62,8 @@ const updateProductDB = async (user_id : string , id : string , payload : TProdu
   );
   return result;
 }
+const deleteProductDB = withBulkDeleteIdSecond(deleteProductDBOne);
+
 export const productService  = {
     productCreateDB,
     allProductDB  ,

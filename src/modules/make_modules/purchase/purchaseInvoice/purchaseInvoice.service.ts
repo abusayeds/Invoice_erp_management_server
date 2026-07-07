@@ -14,6 +14,7 @@ import { WarehouseModel } from "../warehouse/warehouse.model";
 import { PurchaseInvoiceModel } from "./purchaseInvoice.model";
 import { TPurchaseInvoice } from "./purchaseInvoice.interface";
 import { generateDocNumber, round2 } from "../purchase.utils";
+import { withBulkDeleteIdSecond } from "../../../../utils/bulkDelete";
 
 const POPULATE = [
   { path: "vendor_id", select: CLIENT_POPULATE_SELECT },
@@ -182,7 +183,7 @@ const updateDB = async (userId: string, id: string, body: Record<string, unknown
   return updated;
 };
 
-const removeDB = async (userId: string, id: string) => {
+const removeDBOne = async (userId: string, id: string) => {
   const existing = await PurchaseInvoiceModel.findOne({ _id: id, user_id: userId, isDeleted: false });
   if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Purchase invoice not found");
   if (existing.status === "posted") {
@@ -203,6 +204,8 @@ const postDB = async (userId: string, id: string) => {
   await existing.save();
   return existing.populate(POPULATE);
 };
+
+const removeDB = withBulkDeleteIdSecond(removeDBOne);
 
 export const purchaseInvoiceService = {
   createDB,
