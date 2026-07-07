@@ -18,6 +18,7 @@ import { PurchaseInvoiceModel } from "../../purchase/purchaseInvoice/purchaseInv
 import { DebitNoteModel } from "../../debitNote/debitNote.model";
 import { BankAccountModel } from "../bankAccount/bankAccount.model";
 import { createBankTransaction } from "../accountBank.service";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 // Purchase invoice payable states (Laravel: a posted invoice is the open/payable one).
 const OPEN_STATUSES = ["posted", "partial", "overdue"];
@@ -240,7 +241,7 @@ const updateStatusDB = async (id: string, userId: string, status: string) => {
   return record;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const record = await VendorPaymentModel.findOne({ _id: id, ...companyScope(userId) });
   if (!record) throw new AppError(httpStatus.NOT_FOUND, "Vendor payment not found");
   if (record.status !== "pending") {
@@ -250,6 +251,8 @@ const deleteDB = async (id: string, userId: string) => {
   await record.save();
   return record;
 };
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const vendorPaymentService = {
   createDB,

@@ -5,6 +5,7 @@ import { companyScope } from "../account.utils";
 import { TBankAccount } from "./bankAccount.interface";
 import { BankAccountModel } from "./bankAccount.model";
 import { ChartOfAccountModel } from "../chartOfAccount/chartOfAccount.model";
+import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const assertGlAccount = async (userId: string, glAccountId?: string) => {
   if (!glAccountId) return;
@@ -54,7 +55,7 @@ const updateDB = async (id: string, userId: string, payload: Partial<TBankAccoun
   return record;
 };
 
-const deleteDB = async (id: string, userId: string) => {
+const deleteDBOne = async (id: string, userId: string) => {
   const record = await BankAccountModel.findOneAndUpdate(
     { _id: id, ...companyScope(userId) },
     { isDeleted: true },
@@ -85,5 +86,7 @@ const listActiveDB = async (userId: string) =>
   BankAccountModel.find({ ...companyScope(userId), is_active: true })
     .select("_id account_name account_number current_balance")
     .lean();
+
+const deleteDB = withBulkDeleteId(deleteDBOne);
 
 export const bankAccountService = { createDB, updateDB, deleteDB, getAllDB, listActiveDB };
