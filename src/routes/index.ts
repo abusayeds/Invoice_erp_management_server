@@ -46,8 +46,6 @@ import { supportRoutes } from "../modules/make_modules/support/support.route";
 import { activitiesRoutes } from "../modules/make_modules/activities/activities.route";
 
 const router = express.Router();
-
-// Feature-gate every /api/v1/:module/* request by the company's active plan (best-effort; superadmin/legacy bypass).
 router.use(subscriptionGateway);
 
 router.use("/api/v1/file-upload", uploadRouter);
