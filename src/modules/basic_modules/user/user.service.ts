@@ -112,7 +112,6 @@ const loginDB = async (email: string, password: string) => {
   delete userSafe.password;
   delete userSafe.isVerify;
   delete userSafe.permissionsOverridden;
-  // Return live role-derived permissions (per-user override wins) instead of the stored copy.
   userSafe.permissions = await resolveEffectivePermissions(user);
 
   return userSafe;
