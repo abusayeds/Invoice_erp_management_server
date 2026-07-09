@@ -1,7 +1,5 @@
 import { Schema, model, Types } from "mongoose";
 import { quotationStatus, TQuotation } from "./quotation.interface";
-
-/** Stored totals include `sub_total` from `calculateInvoice`; not on client-facing `TQuotation`. */
 type QuotationDocument = TQuotation & { sub_total?: number };
 
 const productSchema = new Schema(
