@@ -67,13 +67,24 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       user_id: user_id,
       isArchive: false,
       isDeleted: false,
-    }).populate({
-      path: 'customer_id',
-      select: CLIENT_POPULATE_SELECT,
-    }),
+    })
+      .populate({
+        path: "customer_id",
+        select: CLIENT_POPULATE_SELECT,
+      })
+      .populate({
+        path: "product.product_id",
+        select: "productName description",
+      }),
     query
   )
-    .search(['internal_notes', 'notes', 'terms_and_conditions', 'invoice_number', 'sub_title'])
+    .search([
+      "internal_notes",
+      "notes",
+      "terms_and_conditions",
+      "invoice_number",
+      "sub_title",
+    ])
     .filter()
     .sort()
     .fields();
