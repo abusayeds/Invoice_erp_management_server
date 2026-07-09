@@ -7,6 +7,10 @@ import { withBulkDeleteId } from "../../../../utils/bulkDelete";
 
 const parseTaxType = (typeInput: unknown, label = "type"): TTaxType => {
   if (typeInput === undefined || typeInput === null || typeInput === "") {
+    return "both";
+  }
+
+  if (typeInput === undefined || typeInput === null || typeInput === "") {
     throw new AppError(httpStatus.BAD_REQUEST, `${label} is required (product, service, or both)`);
   }
   const value = String(typeInput).trim().toLowerCase();
