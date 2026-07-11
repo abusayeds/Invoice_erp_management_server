@@ -239,7 +239,7 @@ export const generateDeliveryChallanPDF = async (settings: any, res: any) => {
       doc
         .fillColor(rgb("#999999"))
         .text(
-          "Created by mooninvoice",
+          "Created by Qayd",
           margin.left,
           PAGE_H - margin.bottom - 12,
           { width: CONTENT_W, align: "center" },
