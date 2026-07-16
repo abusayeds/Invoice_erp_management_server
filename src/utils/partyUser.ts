@@ -15,19 +15,20 @@ export { roleEnum as role, isCustomerRole, CUSTOMER_ROLE_VALUES };
 type PartyRole = typeof roleEnum.customer | typeof roleEnum.vendor;
 
 /**
- * Customer/vendor create — only company_name, email, and password are required.
+ * Customer/vendor create — only company_name is required.
+ * email and password are optional (portal login when both are provided).
  * All other fields (name, address, phone, etc.) are optional.
  */
 export const validatePartyCreateBody = (payload: TPartyUserWrite, _partyRole: PartyRole) => {
   if (!payload.company_name?.trim()) {
     throw new AppError(httpStatus.BAD_REQUEST, "Company name is required");
   }
-  if (!payload.email?.trim()) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Email is required");
-  }
-  if (!payload.password?.trim()) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Password is required");
-  }
+  // if (!payload.email?.trim()) {
+  //   throw new AppError(httpStatus.BAD_REQUEST, "Email is required");
+  // }
+  // if (!payload.password?.trim()) {
+  //   throw new AppError(httpStatus.BAD_REQUEST, "Password is required");
+  // }
 };
 
 export const PARTY_SEARCH_FIELDS = [

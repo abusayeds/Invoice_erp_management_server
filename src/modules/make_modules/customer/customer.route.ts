@@ -17,6 +17,13 @@ router.get(
   authMiddleware(role.company),
   customerController.allCustomer
 );
+
+router.get(
+  "/invoice-list",
+  authMiddleware(role.company),
+  customerController.invoiceCustomerList
+);
+
 router.get(
   "/single/:id",
   authMiddleware(role.company),

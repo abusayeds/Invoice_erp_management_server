@@ -4,9 +4,9 @@ import { PDFSettingModel } from "../pdf.setting/pdf.setting.model";
 import { generateInvoicePDF } from "./Invoicepdf";
 import AppError from "../../../errors/AppError";
 import { pdfTypes } from "../pdf.setting/pdf.setting.interface";
-import { generatePurchaseOrderPDF } from "./purchase.order.pdf";
-import { generatePaymentReceivedPDF } from "./payment.received.pdf";
 import { generatePaymentMoodPDF } from "./payment.made.pdf";
+import { generatePaymentReceiptPDF } from "./payment.received.pdf";
+import { resolvePaymentReceiptData } from "./payment.receipt.data";
 import { authMiddleware, AuthRequest } from "../../../middlewares/auth";
 import { role } from "../../../utils/role";
 import { IUser } from "../../basic_modules/user/user.interface";
@@ -16,33 +16,36 @@ import httpStatus from "http-status";
 
 const router = express.Router();
 
-// Types that produce a PDF from a built-in sample layout (not yet wired to live data).
 const SAMPLE_TYPES = [
-  { type: pdfTypes.Purchase_Order, title: "PURCHASE ORDER" },
-  { type: pdfTypes.Payment_Received, title: "PAYMENT RECEIVED" },
-  { type: pdfTypes.Payment_Made, title: "PAYMENT MADE" },
-].map((t) => ({ ...t, dataSource: "sample" as const }));
+  { type: pdfTypes.Payment_Made, title: "PAYMENT MADE", dataSource: "sample" as const },
+];
+
+const PAYMENT_RECEIPT_TYPE = {
+  type: pdfTypes.Payment_Received,
+  title: "PAYMENT RECEIPT",
+  dataSource: "live" as const,
+};
 
 /**
  * Render a document PDF.
  *  - `type` → pdfTypes enum value
  *  - `id`   → document id; omitted/not-found → blank "N/A" PDF
- * Layout/visibility come from the company's PDF setting (defaults when none exists).
+ * Payment_Received → PaymentModel + receipt layout (not invoice-style).
  */
 const renderPdf = async (type: string, id: string | undefined, user: IUser, res: Response) => {
   const settings = (await PDFSettingModel.findOne({ pdfType: type, user_id: user._id }).lean()) || {};
+
+  if (type === pdfTypes.Payment_Received) {
+    const data = await resolvePaymentReceiptData(id, user);
+    return await generatePaymentReceiptPDF(data, settings, res);
+  }
 
   if (isSalesDoc(type)) {
     const data = await resolveSalesDoc(type, id, user);
     return await generateInvoicePDF(data, settings, res);
   }
 
-  // TODO: wire real data for the distinct layouts below — currently sample.
   switch (type) {
-    case pdfTypes.Purchase_Order:
-      return await generatePurchaseOrderPDF(settings, res);
-    case pdfTypes.Payment_Received:
-      return await generatePaymentReceivedPDF(settings, res);
     case pdfTypes.Payment_Made:
       return await generatePaymentMoodPDF(settings, res);
     default:
@@ -69,9 +72,8 @@ const handler = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// List the document types that can currently generate a PDF (derived from code).
 const listTypes = async (_req: AuthRequest, res: Response) => {
-  const data = [...getSalesDocTypes(), ...SAMPLE_TYPES];
+  const data = [...getSalesDocTypes(), PAYMENT_RECEIPT_TYPE, ...SAMPLE_TYPES];
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -81,9 +83,7 @@ const listTypes = async (_req: AuthRequest, res: Response) => {
 };
 
 router.get("/types", authMiddleware(role.company), listTypes);
-// Unified endpoint: { "type": "Invoice", "id": "<docId>" }  (id optional → blank/N-A PDF)
 router.post("/generate", authMiddleware(role.company), handler);
-// Back-compat: { "pdfType": "Invoice", "id": "<docId>" }
 router.post("/invoice", authMiddleware(role.company), handler);
 
 export const PDFRoutes = router;

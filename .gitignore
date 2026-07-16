@@ -1,6 +1,9 @@
 node_modules
 dist/
-/public
+/public/*          
+!/public/files     
+/public/files/*    
+!/public/files/qayd.png   
 /logs
 .env
 .tmp_*

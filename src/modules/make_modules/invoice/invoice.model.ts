@@ -16,8 +16,10 @@ const addressSchema = new Schema(
 export const productSchema = new Schema(
   {
     product_id: { type: Types.ObjectId, ref: 'Product', required: true },
+    product_name: { type: String, },
+    description: { type: String, },
     quantity: { type: Number, required: true },
-    rate: { type: Number, required: true },
+    rate: { type: Number, },
     tax: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     amount: { type: Number, required: true },
@@ -40,8 +42,8 @@ export const serviceSchema = new Schema(
 const invoiceSchema = new Schema<TInvoice>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customer_id: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-    warehouse_id: { type: Schema.Types.ObjectId, required: true, ref: 'Warehouse' },
+    customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    warehouse_id: { type: Schema.Types.ObjectId, ref: 'Warehouse' },
     invoice_number: { type: String },
     currency: { type: String },
     date: { type: Date },
@@ -56,7 +58,7 @@ const invoiceSchema = new Schema<TInvoice>(
     discount_before_tax: { type: Number, default: 0 },
     billing_address: { type: addressSchema },
     shipping_address: { type: addressSchema },
-    product:  [productSchema] ,
+    product: [productSchema],
     service: [serviceSchema],
     terms_and_conditions: { type: String },
     notes: { type: String },

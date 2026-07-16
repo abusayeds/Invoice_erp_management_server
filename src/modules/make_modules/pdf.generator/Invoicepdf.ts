@@ -90,7 +90,7 @@ export const generateInvoicePDF = async (data: any, settings: any, res: any) => 
     if (footer.created_moon_invoice_hyperlink !== false) {
       setFont(false, 7);
       doc.fillColor(rgb("#999999")).text(
-        "Created by mooninvoice",
+        "Created by Qayd",
         margin.left,
         PAGE_H - margin.bottom - 12,
         { width: CONTENT_W, align: "center" }

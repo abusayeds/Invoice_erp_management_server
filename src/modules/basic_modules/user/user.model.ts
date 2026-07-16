@@ -69,6 +69,13 @@ const UserSchema = new Schema<IUser>(
     currency: { type: String, trim: true },
     country: { type: String, trim: true },
     address: { type: String },
+    // company new field 
+    website: { type: String, trim: true },
+    signature: { type: String, trim: true },
+    number_format : { type: String, trim: true },
+    decimal_separator : { type: String, trim: true },
+    payment_terms_sales : { type: String, trim: true },
+    payment_terms_purchase : { type: String, trim: true },
     image: { type: String, trim: true },
     authProvider: {
       type: String,
@@ -77,7 +84,7 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: [...Object.values(role), ],
+      enum: [...Object.values(role),],
       required: true,
     },
     companyId: {

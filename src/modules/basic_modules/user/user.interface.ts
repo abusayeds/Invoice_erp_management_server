@@ -23,6 +23,12 @@ export type IUser = {
   language?: string;
   currency?: string;
   country?: string;
+  website?: string;
+  signature?: string | null;
+  number_format?: string;
+  decimal_separator?: string;
+  payment_terms_sales?: string;
+  payment_terms_purchase?: string;
   address?: string;
   image?: string;
   authProvider?: "local" | "google";

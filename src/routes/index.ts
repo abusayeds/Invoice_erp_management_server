@@ -44,6 +44,7 @@ import { crmRoutes } from "../modules/make_modules/crm/crm.route";
 import { formBuilderRoutes } from "../modules/make_modules/formBuilder/formBuilder.route";
 import { supportRoutes } from "../modules/make_modules/support/support.route";
 import { activitiesRoutes } from "../modules/make_modules/activities/activities.route";
+import { documentEmailRoutes } from "../modules/make_modules/documentEmail/documentEmail.route";
 
 const router = express.Router();
 router.use(subscriptionGateway);
@@ -93,5 +94,6 @@ router.use("/api/v1/crm", crmRoutes);
 router.use("/api/v1/form-builder", formBuilderRoutes);
 router.use("/api/v1/support", supportRoutes);
 router.use("/api/v1/activities", activitiesRoutes);
+router.use("/api/v1/document-email", documentEmailRoutes);
 
 export default router;

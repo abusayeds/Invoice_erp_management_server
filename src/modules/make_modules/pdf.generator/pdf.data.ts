@@ -14,12 +14,15 @@ import { DeliveryChallanModel } from "../deliveryChallan/deliveryChallan.model";
 import { BillModel } from "../bill/bill.model";
 import { CreditNoteModel } from "../creditNote/creditNote.model";
 import { DebitNoteModel } from "../debitNote/debitNote.model";
+import { ExpensesModel } from "../expenses/expenses.model";
+import { PurchaseInvoiceModel } from "../purchase/purchaseInvoice/purchaseInvoice.model";
 
 export const NA = "N/A";
 
 type DocConfig = { model: any; party: "customer_id" | "vendor_id"; title: string; billLabel: string };
 
 // type → which model / party / header title / "… To:" label
+// NOTE: Payment receipt uses PaymentModel via payment.receipt.data.ts (not invoice-style).
 const DOC_CONFIG: Record<string, DocConfig> = {
   Invoice:          { model: InvoiceModel,         party: "customer_id", title: "INVOICE",          billLabel: "Invoice To:" },
   Sales_Receipt:    { model: SalesReceiptModel,    party: "customer_id", title: "SALES RECEIPT",    billLabel: "Receipt To:" },
@@ -29,9 +32,13 @@ const DOC_CONFIG: Record<string, DocConfig> = {
   Bill:             { model: BillModel,            party: "vendor_id",   title: "BILL",             billLabel: "Bill From:" },
   Credit_Note:      { model: CreditNoteModel,      party: "customer_id", title: "CREDIT NOTE",      billLabel: "Credit To:" },
   Debit_Note:       { model: DebitNoteModel,       party: "vendor_id",   title: "DEBIT NOTE",       billLabel: "Debit To:" },
+  Expense:          { model: ExpensesModel,        party: "vendor_id",   title: "EXPENSE",          billLabel: "Expense To:" },
+  Purchase_Order:   { model: PurchaseInvoiceModel, party: "vendor_id",   title: "PURCHASE ORDER",   billLabel: "Order To:" },
 };
 
 export const isSalesDoc = (type: string): boolean => Boolean(DOC_CONFIG[type]);
+
+export const getDocConfig = (type: string) => DOC_CONFIG[type] || null;
 
 // Invoice-style types wired to live data (derived from the config — no hardcoding).
 export const getSalesDocTypes = () =>

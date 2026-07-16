@@ -42,6 +42,20 @@ const allCustomer = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+const invoiceCustomerList = catchAsync(async (req: AuthRequest, res) => {
+  const result = await customerService.invoiceCustomerList(
+    req?.user?._id as string,
+    req.query,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "All customer get successfully.",
+    pagination: result.pagination,
+    data: result.allCustomer,
+  });
+});
+
 const singleCustomer = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params;
   const result = await customerService.singleCustomerDB(
@@ -104,6 +118,7 @@ const updateCustomer = catchAsync(async (req: AuthRequest, res) => {
 export const customerController = {
   customerCreate,
   allCustomer,
+  invoiceCustomerList,
   singleCustomer,
   deleteCustomer,
   updateCustomer,

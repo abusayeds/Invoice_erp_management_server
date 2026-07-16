@@ -30,7 +30,7 @@ const vendorCreateDB = async (payload: TPartyUserWrite) => {
 const allVendorDB = async (user_id: string, query: Record<string, unknown>) => {
   const baseFilter = partyBaseFilter(user_id, role.vendor, query);
   const vendorQuery = new queryBuilder(
-    UserModel.find(baseFilter).select(PARTY_LIST_SELECT),
+    UserModel.find(baseFilter),
     query,
     { softDelete: false }
   )
@@ -39,7 +39,7 @@ const allVendorDB = async (user_id: string, query: Record<string, unknown>) => {
     .sort()
     .fields();
   const { totalData } = await vendorQuery.paginate();
-  const allVendor = (await vendorQuery.modelQuery.exec()).map(toPartyListItem);
+  const allVendor = (await vendorQuery.modelQuery.exec());
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
   const pagination = vendorQuery.calculatePagination({

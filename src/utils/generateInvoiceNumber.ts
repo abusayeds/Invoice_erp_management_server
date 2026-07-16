@@ -1,0 +1,28 @@
+import { InvoiceModel } from "../modules/make_modules/invoice/invoice.model";
+
+export const generateInvoiceNumber = async (
+    prefix: string = "INV"
+): Promise<string> => {
+    const lastInvoice = await InvoiceModel.findOne({
+        invoice_number: { $regex: `^${prefix}-\\d+$` },
+    })
+        .sort({ createdAt: -1 })
+        .select("invoice_number")
+        .lean();
+
+    if (!lastInvoice?.invoice_number) {
+        return `${prefix}-0001`;
+    }
+
+    const match = lastInvoice.invoice_number.match(
+        new RegExp(`^${prefix}-(\\d+)$`)
+    );
+
+    if (!match) {
+        return `${prefix}-0001`;
+    }
+
+    const nextSequence = Number(match[1]) + 1;
+
+    return `${prefix}-${String(nextSequence).padStart(4, "0")}`;
+};

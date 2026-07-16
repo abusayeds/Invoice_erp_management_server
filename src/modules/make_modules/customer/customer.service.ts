@@ -16,6 +16,7 @@ import {
   toPartyListItem,
   CUSTOMER_ROLE_VALUES,
 } from "../../../utils/partyUser";
+import { InvoiceModel } from "../invoice/invoice.model";
 
 const customerCreateDB = async (payload: TPartyUserWrite) => {
   const companyId = payload.user_id;
@@ -51,6 +52,58 @@ const allCustomerDB = async (user_id: string, query: Record<string, unknown>) =>
   });
   return { allCustomer, pagination };
 };
+const invoiceCustomerList = async (
+  user_id: string,
+  query: Record<string, unknown>
+) => {
+  // Invoice filter
+  const invoiceFilter: Record<string, unknown> = {
+    user_id,
+    isDeleted: false,
+    isArchive: false,
+  };
+
+  // Example: if you have invoice type
+  if (query.type) {
+    invoiceFilter.type = query.type;
+  }
+
+  // Get unique customer ids that have invoices
+  const customerIds = await InvoiceModel.distinct(
+    "customer_id",
+    invoiceFilter
+  );
+
+  const baseFilter = {
+    ...partyBaseFilter(user_id, role.customer, query),
+    _id: { $in: customerIds },
+  };
+
+  const customerQuery = new queryBuilder(
+    UserModel.find(baseFilter).select(PARTY_LIST_SELECT),
+    query,
+    { softDelete: false }
+  )
+    .search([...PARTY_SEARCH_FIELDS])
+    .filter()
+    .sort()
+    .fields();
+
+  const { totalData } = await customerQuery.paginate();
+
+  const allCustomer = (await customerQuery.modelQuery.exec()).map(toPartyListItem);
+
+  const currentPage = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const pagination = customerQuery.calculatePagination({
+    totalData,
+    currentPage,
+    limit,
+  });
+
+  return { allCustomer, pagination };
+};
 
 const singleCustomerDB = async (
   user_id: string,
@@ -61,8 +114,8 @@ const singleCustomerDB = async (
     ...partyBaseFilter(user_id, role.customer, query),
     _id,
   }).populate("businessProfile.default_tax_service_id", "name rate type")
-  .populate("businessProfile.default_tax_product_id", "name rate type")
-  .select("-password");
+    .populate("businessProfile.default_tax_product_id", "name rate type")
+    .select("-password");
   if (!doc) return null;
   return toPartyUserResponse(doc);
 };
@@ -109,6 +162,7 @@ const updateCustomerDB = async (user_id: string, payload: TPartyUserWrite) => {
 export const customerService = {
   customerCreateDB,
   allCustomerDB,
+  invoiceCustomerList,
   singleCustomerDB,
   deleteCustomerDB,
   updateCustomerDB,
