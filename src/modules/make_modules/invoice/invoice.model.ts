@@ -30,6 +30,7 @@ export const productSchema = new Schema(
 export const serviceSchema = new Schema(
   {
     service_id: { type: Types.ObjectId, ref: 'Service' },
+    service_name: { type: String },
     quantity: { type: Number },
     rate: { type: Number },
     tax: { type: Number, default: 0 },
@@ -43,6 +44,7 @@ const invoiceSchema = new Schema<TInvoice>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    customer_name: { type: String },
     warehouse_id: { type: Schema.Types.ObjectId, ref: 'Warehouse' },
     invoice_number: { type: String },
     currency: { type: String },

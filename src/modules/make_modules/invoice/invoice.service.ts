@@ -15,7 +15,6 @@ import { withBulkDeleteId } from "../../../utils/bulkDelete";
 import { generateInvoiceNumber } from '../../../utils/generateInvoiceNumber';
 
 const createDB = async (payload: TInvoice) => {
-  console.log("payload: ", payload);
 
   await validateDocumentParties(payload);
   // if (Array.isArray(payload.product)) {
@@ -84,16 +83,51 @@ const createDB = async (payload: TInvoice) => {
   }
 
 
+  // if (Array.isArray(payload.service)) {
+  //   for (const item of payload.service) {
+  //     const service = (await ServiceModel.findById(item.service_id)) as TService;
+  //     if (!service) {
+  //       throw new AppError(httpStatus.NOT_FOUND, 'Service not found with id: ' + item.service_id);
+  //     }
+  //     if (service.rate !== item.rate) {
+  //       throw new AppError(httpStatus.BAD_REQUEST, 'Service rate mismatch ' + item.service_id + ': ' + service.rate + ' vs ' + item.rate);
+  //     }
+  //     validateItemAmount(item, 'service');
+  //   }
+  // }
+
   if (Array.isArray(payload.service)) {
     for (const item of payload.service) {
-      const service = (await ServiceModel.findById(item.service_id)) as TService;
-      if (!service) {
-        throw new AppError(httpStatus.NOT_FOUND, 'Service not found with id: ' + item.service_id);
+      // Existing service
+      if (item.service_id) {
+        const service = await ServiceModel.findById(item.service_id);
+
+        if (!service) {
+          throw new AppError(
+            httpStatus.NOT_FOUND,
+            `Service not found with id: ${item.service_id}`
+          );
+        }
+
+        if (service.rate !== item.rate) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            `Service rate mismatch ${item.service_id}: ${service.rate} vs ${item.rate}`
+          );
+        }
       }
-      if (service.rate !== item.rate) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'Service rate mismatch ' + item.service_id + ': ' + service.rate + ' vs ' + item.rate);
+
+      // Custom service (no service_id)
+      else {
+        if (!item.service_name) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "service_name is required when service_id is not provided."
+          );
+        }
       }
-      validateItemAmount(item, 'service');
+
+      validateItemAmount(item, "service");
     }
   }
 

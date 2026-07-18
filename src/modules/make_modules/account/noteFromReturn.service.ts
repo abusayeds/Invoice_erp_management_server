@@ -56,7 +56,7 @@ export const createCreditNoteFromInvoiceReturn = async (
     currency: invoice.currency,
     date: salesReturn.return_date ?? new Date(),
     product: invoice.product ? [...invoice.product] as any : undefined,
-    service: invoice.service ? [...invoice.service] : undefined,
+    service: invoice.service ? [...invoice.service] as any : undefined,
     billing_address: invoice.billing_address,
     shipping_address: invoice.shipping_address,
     sub_total: invoice.sub_total,
