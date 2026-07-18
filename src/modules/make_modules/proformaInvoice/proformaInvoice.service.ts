@@ -11,7 +11,7 @@ import { calculateInvoice } from '../utils/calculateInvoice';
 import { validateItemAmount } from '../utils/validateItemAmount';
 import { ProformaInvoiceModel } from './proformaInvoice.model';
 import queryBuilder from '../../../builder/queryBuilder';
-import { withBulkDeleteId } from "../../../utils/bulkDelete";
+import { withBulkDeleteId, parseDeleteIdsFromParam } from "../../../utils/bulkDelete";
 
 const formatParty = (party: unknown) => {
   if (party && typeof party === 'object' && party !== null && '_id' in party) {
@@ -167,6 +167,42 @@ const updateDB = async (id: string, userId: string, payload: TProformaInvoice) =
   return updatedRecord;
 };
 
+/** Duplicate one proforma invoice — same data, invoice_number gets a " copy" suffix for recognition. */
+const duplicateDBOne = async (id: string, userId: string) => {
+  const original = await ProformaInvoiceModel.findOne({
+    _id: id,
+    user_id: userId,
+    isDeleted: false,
+  });
+  if (!original) {
+    throw new AppError(httpStatus.NOT_FOUND, 'ProformaInvoice not found');
+  }
+
+  const source = original.toObject() as Record<string, unknown>;
+  delete source._id;
+  delete source.createdAt;
+  delete source.updatedAt;
+  delete source.__v;
+
+  const duplicatedRecord = await ProformaInvoiceModel.create({
+    ...source,
+    invoice_number: original.invoice_number ? `${original.invoice_number} copy` : undefined,
+    isDeleted: false,
+    isArchive: false,
+  });
+  return duplicatedRecord;
+};
+
+/** Single id → one duplicated doc; comma-separated ids → array of duplicated docs. */
+const duplicateDB = async (rawId: string, userId: string) => {
+  const ids = parseDeleteIdsFromParam(rawId);
+  const duplicated = [];
+  for (const id of ids) {
+    duplicated.push(await duplicateDBOne(id, userId));
+  }
+  return ids.length === 1 ? duplicated[0] : duplicated;
+};
+
 const deleteDBOne = async (id: string, userId: string) => {
   const deletedRecord = await ProformaInvoiceModel.findOneAndUpdate(
     { _id: id, user_id: userId, isDeleted: false },
@@ -181,6 +217,6 @@ const deleteDBOne = async (id: string, userId: string) => {
 
 const deleteDB = withBulkDeleteId(deleteDBOne);
 
-export const proformaInvoiceService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
+export const proformaInvoiceService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, duplicateDB };
 
 

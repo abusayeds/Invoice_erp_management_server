@@ -27,18 +27,31 @@ const vendorCreate = catchAsync(async (req: AuthRequest, res) => {
     title: `${result?.businessProfile?.companyName || result?.name} Vendor Created`,
   });
 });
+
 const allVendor = catchAsync(async (req: AuthRequest, res) => {
-  const result = await vendorService.allVendorDB( req?.user?._id as string , req.query);
+  const result = await vendorService.allVendorDB(req?.user?._id as string, req.query);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "All vendor get successfully.",
-    pagination : result.pagination ,
+    pagination: result.pagination,
     data: result.allVendor
   });
 });
+
+const VendorReturnList = catchAsync(async (req: AuthRequest, res) => {
+  const result = await vendorService.VendorReturnList(req?.user?._id as string, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "All vendor get successfully.",
+    pagination: result.pagination,
+    data: result.allVendor
+  });
+});
+
 const singleVendor = catchAsync(async (req: AuthRequest, res) => {
-    const {id}  =  req.params
+  const { id } = req.params
   const result = await vendorService.singleVendorDB(
     req?.user?._id as string,
     id,
@@ -75,9 +88,9 @@ const deleteVendor = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 const updateVendor = catchAsync(async (req: AuthRequest, res) => {
-  const result = await vendorService.updateVendorDB( req?.user?._id as string , req.body);
- 
-   
+  const result = await vendorService.updateVendorDB(req?.user?._id as string, req.body);
+
+
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -94,8 +107,9 @@ const updateVendor = catchAsync(async (req: AuthRequest, res) => {
 });
 export const vendorController = {
   vendorCreate,
-  allVendor , 
-  singleVendor , 
-  deleteVendor ,
+  allVendor,
+  VendorReturnList,
+  singleVendor,
+  deleteVendor,
   updateVendor
 };

@@ -7,11 +7,17 @@ const router = express.Router();
 const auth = authMiddleware(role.company);
 
 router.post("/create", auth, purchaseInvoiceController.create);
+
 router.get("/all", auth, purchaseInvoiceController.getAll);
+
 router.get("/single/:id", auth, purchaseInvoiceController.getSingle);
+
 router.patch("/edit/:id", auth, purchaseInvoiceController.update);
+
 router.delete("/delete/:id", auth, purchaseInvoiceController.remove);
+
 router.patch("/post/:id", auth, purchaseInvoiceController.post);
+
 router.get("/print/:id", auth, purchaseInvoiceController.print);
 
 export const purchaseInvoiceRoutes = router;

@@ -15,6 +15,7 @@ import {
   toPartyUserResponse,
   toPartyListItem,
 } from "../../../utils/partyUser";
+import { PurchaseInvoiceModel } from "../purchase/purchaseInvoice/purchaseInvoice.model";
 
 const vendorCreateDB = async (payload: TPartyUserWrite) => {
   const companyId = payload.user_id;
@@ -48,6 +49,51 @@ const allVendorDB = async (user_id: string, query: Record<string, unknown>) => {
     limit,
   });
   return { allVendor, pagination };
+};
+const VendorReturnList = async (
+  user_id: string,
+  query: Record<string, unknown>
+) => {
+  // Get all vendor ids who have purchase invoices
+  const vendorIds = await PurchaseInvoiceModel.distinct("vendor_id", {
+    user_id,
+    isDeleted: false,
+    status: { $nin: "draft" },
+    vendor_id: { $ne: null },
+  });
+
+  const baseFilter = {
+    ...partyBaseFilter(user_id, role.vendor, query),
+    _id: { $in: vendorIds },
+  };
+
+  const vendorQuery = new queryBuilder(
+    UserModel.find(baseFilter),
+    query,
+    { softDelete: false }
+  )
+    .search([...PARTY_SEARCH_FIELDS])
+    .filter()
+    .sort()
+    .fields();
+
+  const { totalData } = await vendorQuery.paginate();
+
+  const allVendor = await vendorQuery.modelQuery.exec();
+
+  const currentPage = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const pagination = vendorQuery.calculatePagination({
+    totalData,
+    currentPage,
+    limit,
+  });
+
+  return {
+    allVendor,
+    pagination,
+  };
 };
 
 const singleVendorDB = async (
@@ -97,6 +143,7 @@ const updateVendorDB = async (user_id: string, payload: TPartyUserWrite) => {
 export const vendorService = {
   vendorCreateDB,
   allVendorDB,
+  VendorReturnList,
   singleVendorDB,
   deleteVendorDB,
   updateVendorDB,

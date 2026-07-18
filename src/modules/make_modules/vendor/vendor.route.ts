@@ -12,10 +12,17 @@ router.post(
   enforcePlanLimit("users"),
   vendorController.vendorCreate
 );
+
 router.get(
   "/all",
   authMiddleware(role.company),
   vendorController.allVendor
+);
+
+router.get(
+  "/return-list",
+  authMiddleware(role.company),
+  vendorController.VendorReturnList
 );
 router.get(
   "/single/:id",

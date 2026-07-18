@@ -19,10 +19,22 @@ router.get(
   authMiddleware(role.company),
   proformaInvoiceController.getAll
 );
+
 router.post(
   '/edit/:id',
   authMiddleware(role.company),
   proformaInvoiceController.update
+);
+
+router.post(
+  '/duplicate/:id',
+  authMiddleware(role.company),
+  proformaInvoiceController.duplicate
+);
+router.post(
+  '/duplicate',
+  authMiddleware(role.company),
+  proformaInvoiceController.duplicate
 );
 router.delete(
   '/delete/:id',
