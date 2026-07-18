@@ -42,41 +42,106 @@ const assertWarehouse = async (warehouseId: unknown, userId: string) => {
 };
 
 const validateLineItems = async (payload: TPurchaseInvoice) => {
-  const hasProduct = Array.isArray(payload.product) && payload.product.length > 0;
-  const hasService = Array.isArray(payload.service) && payload.service.length > 0;
-  if (!hasProduct && !hasService) {
-    throw new AppError(httpStatus.BAD_REQUEST, "At least one product or service is required");
-  }
+  // const hasProduct = Array.isArray(payload.product) && payload.product.length > 0;
+  // const hasService = Array.isArray(payload.service) && payload.service.length > 0;
+  // if (!hasProduct && !hasService) {
+  //   throw new AppError(httpStatus.BAD_REQUEST, "At least one product or service is required");
+  // }
 
+  // if (Array.isArray(payload.product)) {
+  //   for (const item of payload.product) {
+  //     const product = (await ProductModel.findById(item.product_id)) as TProduct;
+  //     if (!product) {
+  //       throw new AppError(httpStatus.NOT_FOUND, "Product not found with id: " + item.product_id);
+  //     }
+  //     const buyRate = product.pricing?.buyPrice ?? 0;
+  //     if (buyRate !== item.rate) {
+  //       throw new AppError(
+  //         httpStatus.BAD_REQUEST,
+  //         "Product rate mismatch " + item.product_id + ": " + buyRate + " vs " + item.rate
+  //       );
+  //     }
+  //     validateItemAmount(item, "product");
+  //   }
+  // }
   if (Array.isArray(payload.product)) {
     for (const item of payload.product) {
-      const product = (await ProductModel.findById(item.product_id)) as TProduct;
-      if (!product) {
-        throw new AppError(httpStatus.NOT_FOUND, "Product not found with id: " + item.product_id);
+
+      if (item.product_id) {
+        const product = await ProductModel.findById(item.product_id);
+
+        if (!product) {
+          throw new AppError(
+            httpStatus.NOT_FOUND,
+            `Product not found with id: ${item.product_id}`
+          );
+        }
+
+        const buyRate = product.pricing?.buyPrice ?? 0;
+
+        if (buyRate !== item.rate) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            `Product rate mismatch ${item.product_id}: ${buyRate} vs ${item.rate}`
+          );
+        }
+      } else {
+        if (!item.product_name?.trim()) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "product_name is required when product_id is not provided."
+          );
+        }
       }
-      const buyRate = product.pricing?.buyPrice ?? 0;
-      if (buyRate !== item.rate) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Product rate mismatch " + item.product_id + ": " + buyRate + " vs " + item.rate
-        );
-      }
+
       validateItemAmount(item, "product");
     }
   }
 
+  // if (Array.isArray(payload.service)) {
+  //   for (const item of payload.service) {
+  //     const service = (await ServiceModel.findById(item.service_id)) as TService;
+  //     if (!service) {
+  //       throw new AppError(httpStatus.NOT_FOUND, "Service not found with id: " + item.service_id);
+  //     }
+  //     if (service.rate !== item.rate) {
+  //       throw new AppError(
+  //         httpStatus.BAD_REQUEST,
+  //         "Service rate mismatch " + item.service_id + ": " + service.rate + " vs " + item.rate
+  //       );
+  //     }
+  //     validateItemAmount(item, "service");
+  //   }
+  // }
+
   if (Array.isArray(payload.service)) {
     for (const item of payload.service) {
-      const service = (await ServiceModel.findById(item.service_id)) as TService;
-      if (!service) {
-        throw new AppError(httpStatus.NOT_FOUND, "Service not found with id: " + item.service_id);
+
+      if (item.service_id) {
+        const service = await ServiceModel.findById(item.service_id);
+
+        if (!service) {
+          throw new AppError(
+            httpStatus.NOT_FOUND,
+            `Service not found with id: ${item.service_id}`
+          );
+        }
+
+        if (service.rate !== item.rate) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            `Service rate mismatch ${item.service_id}: ${service.rate} vs ${item.rate}`
+          );
+        }
+      } else {
+        if (!item.service_name?.trim()) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "service_name is required when service_id is not provided."
+          );
+        }
       }
-      if (service.rate !== item.rate) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Service rate mismatch " + item.service_id + ": " + service.rate + " vs " + item.rate
-        );
-      }
+
       validateItemAmount(item, "service");
     }
   }
@@ -84,8 +149,24 @@ const validateLineItems = async (payload: TPurchaseInvoice) => {
 
 const buildDocument = async (userId: string, body: Record<string, unknown>) => {
   const payload = normalizeBody(body) as TPurchaseInvoice;
-  if (!payload.vendor_id) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Vendor is required");
+  // if (!payload.vendor_id) {
+  //   throw new AppError(httpStatus.BAD_REQUEST, "Vendor is required");
+  // }
+  // Existing vendor
+  if (payload.vendor_id) {
+    await validateDocumentParties({
+      vendor_id: payload.vendor_id,
+    });
+  }
+
+  // Custom vendor
+  else {
+    if (!payload.vendor_name?.trim()) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Either vendor_id or vendor_name is required."
+      );
+    }
   }
   await validateDocumentParties({ vendor_id: payload.vendor_id });
   await assertWarehouse(payload.warehouse_id, userId);

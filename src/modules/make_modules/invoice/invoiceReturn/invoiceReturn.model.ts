@@ -15,7 +15,7 @@ const invoiceReturnSchema = new Schema<TInvoiceReturn>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
     invoice_id: { type: Schema.Types.ObjectId, ref: "Invoice", required: true },
-    warehouse_id: { type: Schema.Types.ObjectId, ref: "Warehouse", required: true },
+    warehouse_id: { type: Schema.Types.ObjectId, ref: "Warehouse" },
     return_date: { type: Date, required: true },
     return_reason: { type: String, enum: returnReasons, required: true },
     notes: { type: String },

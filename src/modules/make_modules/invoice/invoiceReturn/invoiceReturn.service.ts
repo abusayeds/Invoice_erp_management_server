@@ -13,10 +13,10 @@ const createInvoiceReturnDB = async (payload: TInvoiceReturn) => {
   if (!invoice) {
     throw new AppError(httpStatus.NOT_FOUND, "Original Invoice not found");
   }
-  const warehouse = await WarehouseModel.findById(payload.warehouse_id);
-  if (!warehouse) {
-    throw new AppError(httpStatus.NOT_FOUND, "Warehouse not found");
-  }
+  // const warehouse = await WarehouseModel.findById(payload.warehouse_id);
+  // if (!warehouse) {
+  //   throw new AppError(httpStatus.NOT_FOUND, "Warehouse not found");
+  // }
   const result = await InvoiceReturnModel.create(payload);
   return result;
 };

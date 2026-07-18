@@ -16,7 +16,9 @@ const addressSchema = new Schema(
 /** Keep line _id for purchase returns (original_invoice_item_id). */
 const productSchema = new Schema(
   {
-    product_id: { type: Types.ObjectId, ref: "Product", required: true },
+    product_id: { type: Types.ObjectId, ref: "Product" },
+    product_name: { type: String },
+    description: { type: String },
     quantity: { type: Number, required: true },
     rate: { type: Number, required: true },
     tax: { type: Number, default: 0 },
@@ -28,6 +30,7 @@ const productSchema = new Schema(
 const serviceSchema = new Schema(
   {
     service_id: { type: Types.ObjectId, ref: "Service" },
+    service_name: { type: String },
     quantity: { type: Number },
     rate: { type: Number },
     tax: { type: Number, default: 0 },
@@ -40,7 +43,8 @@ const serviceSchema = new Schema(
 const purchaseInvoiceSchema = new Schema<TPurchaseInvoice>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    vendor_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    vendor_id: { type: Schema.Types.ObjectId, ref: "User" },
+    vendor_name: { type: String },
     warehouse_id: { type: Schema.Types.ObjectId, ref: "Warehouse" },
     invoice_number: { type: String },
     currency: { type: String },

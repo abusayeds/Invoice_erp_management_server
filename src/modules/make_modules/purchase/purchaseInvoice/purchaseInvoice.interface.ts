@@ -6,7 +6,8 @@ export type TPurchaseInvoiceStatus = (typeof purchaseInvoiceStatus)[number];
 export type TPurchaseInvoice = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
-  vendor_id: Types.ObjectId;
+  vendor_id?: Types.ObjectId;
+  vendor_name?: string;
   warehouse_id?: Types.ObjectId;
   invoice_number?: string;
   currency?: string;
@@ -35,7 +36,9 @@ export type TPurchaseInvoice = {
   };
   product?: {
     _id?: Types.ObjectId;
-    product_id: Types.ObjectId;
+    product_id?: Types.ObjectId;
+    product_name?: string;
+    description?: string;
     quantity: number;
     rate: number;
     tax: number;
@@ -43,7 +46,8 @@ export type TPurchaseInvoice = {
     amount: number;
   }[];
   service?: {
-    service_id: Types.ObjectId;
+    service_id?: Types.ObjectId;
+    service_name?: string;
     quantity: number;
     rate: number;
     tax: number;
