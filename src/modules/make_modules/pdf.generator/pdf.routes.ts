@@ -57,7 +57,7 @@ const handler = async (req: AuthRequest, res: Response) => {
   const user = req?.user as IUser;
   try {
     const type = (req.body.type || req.body.pdfType) as string;
-    const id = (req.body.id || req.params.id) as string | undefined;
+    const id = (req.body.ids || req.params.ids) as string | undefined;
     if (!type) throw new AppError(400, "type is required");
     await renderPdf(type, id, user, res);
   } catch (err: any) {
@@ -83,7 +83,9 @@ const listTypes = async (_req: AuthRequest, res: Response) => {
 };
 
 router.get("/types", authMiddleware(role.company), listTypes);
+
 router.post("/generate", authMiddleware(role.company), handler);
+
 router.post("/invoice", authMiddleware(role.company), handler);
 
 export const PDFRoutes = router;

@@ -12,6 +12,7 @@ import { validateItemAmount } from '../utils/validateItemAmount';
 import { SalesReceiptModel } from './salesReceipt.model';
 import queryBuilder from '../../../builder/queryBuilder';
 import { withBulkDeleteId } from "../../../utils/bulkDelete";
+import { generateInvoiceNumber } from '../../../utils/generateInvoiceNumber';
 
 const formatListItem = (doc: unknown) => {
   const row =
@@ -22,14 +23,13 @@ const formatListItem = (doc: unknown) => {
   const customerId =
     row.customer_id && typeof row.customer_id === 'object' && row.customer_id !== null && '_id' in row.customer_id
       ? {
-          _id: (row.customer_id as { _id: unknown })._id,
-          name: (row.customer_id as { name?: string }).name ?? null,
-        }
+        _id: (row.customer_id as { _id: unknown })._id,
+        name: (row.customer_id as { name?: string }).name ?? null,
+      }
       : (row.customer_id ?? null);
 
   return {
     _id: row._id,
-    invoice_number: row.invoice_number ?? null,
     customer_id: customerId,
     terms_and_conditions: row.terms_and_conditions ?? null,
     notes: row.notes ?? null,
@@ -40,35 +40,122 @@ const formatListItem = (doc: unknown) => {
 };
 
 const createDB = async (payload: TSalesReceipt) => {
-  await validateDocumentParties(payload);
+
+  // await validateDocumentParties(payload);
+  // if (Array.isArray(payload.product)) {
+  //   for (const item of payload.product) {
+  //     const product = (await ProductModel.findById(item.product_id)) as TProduct;
+  //     if (!product) {
+  //       throw new AppError(httpStatus.NOT_FOUND, 'Product not found with id: ' + item.product_id);
+  //     }
+  //     if (product.pricing.sellPrice !== item.rate) {
+  //       throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': ' + product.pricing.sellPrice + ' vs ' + item.rate);
+  //     }
+  //     validateItemAmount(item, 'product');
+  //   }
+  // }
+  // if (Array.isArray(payload.service)) {
+  //   for (const item of payload.service) {
+  //     const service = (await ServiceModel.findById(item.service_id)) as TService;
+  //     if (!service) {
+  //       throw new AppError(httpStatus.NOT_FOUND, 'Service not found with id: ' + item.service_id);
+  //     }
+  //     if (service.rate !== item.rate) {
+  //       throw new AppError(httpStatus.BAD_REQUEST, 'Service rate mismatch ' + item.service_id + ': ' + service.rate + ' vs ' + item.rate);
+  //     }
+  //     validateItemAmount(item, 'service');
+  //   }
+  // }
+
+
+  // Customer validation
+  if (payload.customer_id) {
+    await validateDocumentParties({
+      customer_id: payload.customer_id,
+    });
+  } else {
+    if (!payload.customer_name?.trim()) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Either customer_id or customer_name is required."
+      );
+    }
+  }
+
+  // Product validation
   if (Array.isArray(payload.product)) {
     for (const item of payload.product) {
-      const product = (await ProductModel.findById(item.product_id)) as TProduct;
-      if (!product) {
-        throw new AppError(httpStatus.NOT_FOUND, 'Product not found with id: ' + item.product_id);
+      if (item.product_id) {
+        const product = await ProductModel.findById(item.product_id);
+
+        if (!product) {
+          throw new AppError(
+            httpStatus.NOT_FOUND,
+            `Product not found with id: ${item.product_id}`
+          );
+        }
+
+        if (product.pricing.sellPrice !== item.rate) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            `Product rate mismatch ${item.product_id}: ${product.pricing.sellPrice} vs ${item.rate}`
+          );
+        }
+      } else {
+        if (!item.product_name?.trim()) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "product_name is required when product_id is not provided."
+          );
+        }
       }
-      if (product.pricing.sellPrice !== item.rate) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': ' + product.pricing.sellPrice + ' vs ' + item.rate);
-      }
-      validateItemAmount(item, 'product');
+
+      validateItemAmount(item, "product");
     }
   }
+
+  // Service validation
   if (Array.isArray(payload.service)) {
     for (const item of payload.service) {
-      const service = (await ServiceModel.findById(item.service_id)) as TService;
-      if (!service) {
-        throw new AppError(httpStatus.NOT_FOUND, 'Service not found with id: ' + item.service_id);
+      if (item.service_id) {
+        const service = await ServiceModel.findById(item.service_id);
+
+        if (!service) {
+          throw new AppError(
+            httpStatus.NOT_FOUND,
+            `Service not found with id: ${item.service_id}`
+          );
+        }
+
+        if (service.rate !== item.rate) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            `Service rate mismatch ${item.service_id}: ${service.rate} vs ${item.rate}`
+          );
+        }
+      } else {
+        if (!item.service_name?.trim()) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "service_name is required when service_id is not provided."
+          );
+        }
       }
-      if (service.rate !== item.rate) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'Service rate mismatch ' + item.service_id + ': ' + service.rate + ' vs ' + item.rate);
-      }
-      validateItemAmount(item, 'service');
+
+      validateItemAmount(item, "service");
     }
   }
+
   const result = await calculateInvoice(payload);
-  const data = { ...payload, ...result };
-  const createdRecord = await SalesReceiptModel.create(data);
-  return createdRecord;
+
+  const data = {
+    ...payload, ...result, invoice_number:
+      payload.invoice_number ||
+      (await generateInvoiceNumber("SR", "sales")),
+  };
+  return data;
+  // const createdRecord = await SalesReceiptModel.create(data);
+  // return createdRecord;
 };
 
 const getSingleDB = async (id: string, userId: string) => {

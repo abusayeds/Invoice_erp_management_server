@@ -7,6 +7,7 @@ export type TSalesReceipt = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
   customer_id?: Types.ObjectId;
+  customer_name?: string;
   vendor_id?: Types.ObjectId;
   invoice_number?: string;
   currency?: string;
@@ -35,7 +36,8 @@ export type TSalesReceipt = {
   };
   product?: [
     {
-      product_id: Types.ObjectId;
+      product_id?: Types.ObjectId;
+      product_name?: string;
       quantity: number;
       rate: number;
       tax: number;
@@ -45,7 +47,8 @@ export type TSalesReceipt = {
   ];
   service?: [
     {
-      service_id: Types.ObjectId;
+      service_id?: Types.ObjectId;
+      service_name?: string;
       quantity: number;
       rate: number;
       tax: number;

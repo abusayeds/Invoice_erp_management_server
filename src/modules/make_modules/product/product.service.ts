@@ -24,7 +24,18 @@ const productCreateDB = async (payload : TProduct) => {
 }
 
 const allProductDB = async (user_id :  string , query : Record<string, unknown>) => {
- const productQuery  =  new queryBuilder(ProductModel.find({ user_id, isArchive: false , isDeleted : false } ), query) .search(["productName", "category", "sku"]).filter().sort().fields();
+ const productQuery  =  new queryBuilder(ProductModel.find({ user_id, isArchive: false , isDeleted : false } ), query);
+ await productQuery.searchNested({
+   localFields: ["productName", "sku"],
+   refs: [
+     {
+       foreignField: "category",
+       model: CategoryModel as never,
+       fields: ["category"],
+     },
+   ],
+ });
+ productQuery.filter().sort().fields();
  const {totalData } = await productQuery.paginate(ProductModel.find({ user_id, isArchive: false , isDeleted : false } ));
  const allProduct = await productQuery.modelQuery.exec();
  const currentPage = Number(query?.page) || 1;
