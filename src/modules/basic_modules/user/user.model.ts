@@ -35,6 +35,7 @@ const businessProfileSchema = new Schema(
     opening_balance: { type: Number, default: 0 },
     opening_balance_date: { type: Date },
     payment_reminder: { type: Boolean, default: false },
+    is_login_required: { type: Boolean, default: false },
     billing_address: { type: addressSchema },
     shipping_address: { type: addressSchema },
     same_as_billing: { type: Boolean, default: false },

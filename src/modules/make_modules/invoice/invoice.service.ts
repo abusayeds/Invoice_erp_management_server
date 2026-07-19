@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import AppError from '../../../errors/AppError';
 import { CLIENT_POPULATE_SELECT } from '../../../utils/partyUser';
+import { IUser } from '../../basic_modules/user/user.interface';
 import { validateDocumentParties } from '../../../utils/documentPartyValidation';
 import { TInvoice } from './invoice.interface';
 import { ProductModel } from '../product/product.model';
@@ -169,7 +170,16 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
     })
       .populate({
         path: "customer_id",
-        select: CLIENT_POPULATE_SELECT,
+        select: `${CLIENT_POPULATE_SELECT} companyId`,
+        populate: {
+          path: "companyId",
+          select: "name businessProfile.companyName",
+          transform: (doc: IUser | null) =>
+            doc && {
+              _id: doc._id,
+              company_name: doc.businessProfile?.companyName ?? doc.name ?? "",
+            },
+        },
       })
       .populate({
         path: "product.product_id",
