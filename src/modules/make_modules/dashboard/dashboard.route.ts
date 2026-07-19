@@ -6,6 +6,7 @@ import { recruitmentDashboardRoutes } from "./recruitment/recruitment.dashboard.
 import { crmDashboardRoutes } from "./crm/crm.dashboard.route";
 import { supportDashboardRoutes } from "./support/support.dashboard.route";
 import { summaryDashboardRoutes } from "./summary/summary.dashboard.route";
+import { calendarDashboardRoutes } from "./calendar/calendar.dashboard.route";
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.use("/hrm", hrmDashboardRoutes);
 router.use("/recruitment", recruitmentDashboardRoutes);
 router.use("/crm", crmDashboardRoutes);
 router.use("/support", supportDashboardRoutes);
+router.use("/calendar", calendarDashboardRoutes);
 
 export const dashboardRoutes = router;
