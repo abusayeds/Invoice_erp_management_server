@@ -47,8 +47,19 @@ const getSingleTransfer = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+const removeTransfer = catchAsync(async (req: AuthRequest, res) => {
+  await transferService.deleteTransferDB(req.params.id, req?.user?._id as string);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Stock transfer deleted successfully",
+    data: null,
+  });
+});
+
 export const transferController = {
   createTransfer,
   getAllTransfer,
   getSingleTransfer,
+  removeTransfer,
 };

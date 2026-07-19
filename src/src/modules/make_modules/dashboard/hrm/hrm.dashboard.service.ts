@@ -83,6 +83,37 @@ const activeAnnouncements = async (companyId: string, today: Date) => {
   }));
 };
 
+/** Employees whose birthday falls within the next 30 days, soonest first. */
+const upcomingBirthdays = async (companyId: string, today: Date) => {
+  const scope = companyScope(companyId);
+  const rows = await HrmEmployeeModel.find({
+    ...scope,
+    date_of_birth: { $ne: null },
+  })
+    .populate("employee_user_id", "name email")
+    .lean();
+  const start = startOfDay(today);
+  const items = rows
+    .map((e: any) => {
+      const dob = e.date_of_birth ? new Date(e.date_of_birth) : null;
+      if (!dob || isNaN(dob.getTime())) return null;
+      let next = new Date(start.getFullYear(), dob.getMonth(), dob.getDate());
+      if (next < start) next = new Date(start.getFullYear() + 1, dob.getMonth(), dob.getDate());
+      const days_until = Math.round((next.getTime() - start.getTime()) / 86400000);
+      return {
+        id: e._id,
+        employee_name: (e.employee_user_id as any)?.name || "",
+        date_of_birth: formatDateOnly(dob),
+        next_birthday: formatDateOnly(next),
+        days_until,
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null && x.days_until <= 30)
+    .sort((a, b) => a.days_until - b.days_until)
+    .slice(0, 10);
+  return items;
+};
+
 /* ------------------------- COMPANY / HR ---------------------------- */
 const companyDashboard = async (companyId: string) => {
   const scope = companyScope(companyId);
@@ -205,6 +236,7 @@ const companyDashboard = async (companyId: string) => {
       calendar_events: calendarEvents,
       recent_leave_applications: recentLeaveApplications,
       recent_announcements: recentAnnouncements,
+      upcoming_birthdays: await upcomingBirthdays(companyId, today),
       employees_on_leave_today: employeesOnLeaveToday,
       employees_without_attendance: employeesWithoutAttendance,
     },
@@ -341,6 +373,7 @@ const employeeDashboard = async (companyId: string, userId: string) => {
       calendar_events: calendarEvents,
       recent_announcements: recentAnnouncements,
       recent_leave_applications: recentLeaveApplications,
+      upcoming_birthdays: await upcomingBirthdays(companyId, today),
       recent_awards: recentAwards,
       recent_warnings: recentWarnings,
       attendance_data: attendanceData,

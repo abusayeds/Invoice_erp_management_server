@@ -9,5 +9,6 @@ const auth = authMiddleware(role.company);
 router.post("/create", auth, transferController.createTransfer);
 router.get("/all", auth, transferController.getAllTransfer);
 router.get("/single/:id", auth, transferController.getSingleTransfer);
+router.delete("/delete/:id", auth, transferController.removeTransfer);
 
 export const transferRoutes = router;

@@ -7,7 +7,10 @@ export type TExpenses = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
   customer_id?: Types.ObjectId;
+  customer_name?: string;
   vendor_id?: Types.ObjectId;
+  vendor_name?: string;
+  category?: string;
   invoice_number?: string;
   currency?: string;
   date?: Date;

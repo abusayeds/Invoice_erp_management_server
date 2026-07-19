@@ -39,7 +39,11 @@ const fmtTicketDate = (d?: Date) =>
       })
     : "";
 
-const emptyMonthly = () => Object.fromEntries(MONTHS.map((m) => [m, 0])) as Record<string, number>;
+const emptyMonthly = () =>
+  Object.fromEntries(MONTHS.map((m) => [m, { created: 0, resolved: 0 }])) as Record<
+    string,
+    { created: number; resolved: number }
+  >;
 
 const oneYearAgo = () => {
   const d = new Date();
@@ -83,12 +87,21 @@ const statusChartFromCounts = (statusData: Record<string, number>) =>
 const monthlyFromTickets = async (match: FilterQuery<any>) => {
   const rows = await TicketModel.aggregate([
     { $match: { ...match, createdAt: { $gt: oneYearAgo() } } },
-    { $group: { _id: { $month: "$createdAt" }, total: { $sum: 1 } } },
+    {
+      $group: {
+        _id: { $month: "$createdAt" },
+        total: { $sum: 1 },
+        resolved: { $sum: { $cond: [{ $eq: ["$status", "Closed"] }, 1, 0] } },
+      },
+    },
   ]);
-  const byMonth = new Map<number, number>(rows.map((r) => [r._id as number, r.total as number]));
+  const byMonth = new Map<number, { total: number; resolved: number }>(
+    rows.map((r) => [r._id as number, { total: r.total as number, resolved: r.resolved as number }]),
+  );
   const result = emptyMonthly();
   MONTHS.forEach((label, index) => {
-    result[label] = byMonth.get(index + 1) ?? 0;
+    const v = byMonth.get(index + 1);
+    result[label] = { created: v?.total ?? 0, resolved: v?.resolved ?? 0 };
   });
   return result;
 };

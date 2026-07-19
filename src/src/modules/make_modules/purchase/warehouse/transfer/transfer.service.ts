@@ -6,6 +6,7 @@ import { TStockTransfer } from "./transfer.interface";
 import { StockTransferModel } from "./transfer.model";
 import { ProductModel } from "../../../product/product.model";
 import { WarehouseModel } from "../warehouse.model";
+import { withBulkDeleteId } from "../../../../../utils/bulkDelete";
 
 const assertPositiveIntegerQuantity = (quantity: unknown): number => {
   const n = Number(quantity);
@@ -153,8 +154,22 @@ const getSingleTransferDB = async (id: string, user_id: string) => {
   return doc;
 };
 
+// NOTE: a stock transfer is a movement record; deleting it here removes the
+// record only and does NOT reverse the moved quantities. Stock-reversal on
+// delete can be layered on later if the product wants it.
+const deleteTransferDBOne = async (id: string, user_id: string) => {
+  const deleted = await StockTransferModel.findOneAndDelete({ _id: id, user_id });
+  if (!deleted) {
+    throw new AppError(httpStatus.NOT_FOUND, "Stock transfer not found");
+  }
+  return deleted;
+};
+
+const deleteTransferDB = withBulkDeleteId(deleteTransferDBOne);
+
 export const transferService = {
   createTransferDB,
   getAllTransferDB,
   getSingleTransferDB,
+  deleteTransferDB,
 };

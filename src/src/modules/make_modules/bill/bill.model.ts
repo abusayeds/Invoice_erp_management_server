@@ -41,7 +41,9 @@ const billSchema = new Schema<TBill>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     customer_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    customer_name: { type: String },
     vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    vendor_name: { type: String },
     invoice_number: { type: String },
     currency: { type: String },
     date: { type: Date },

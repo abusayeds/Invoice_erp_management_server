@@ -33,7 +33,11 @@ const formatListItem = (doc: unknown) => {
     _id: row._id,
     invoice_number: row.invoice_number ?? null,
     customer_id: formatParty(row.customer_id),
+    customer_name: row.customer_name ?? null,
     vendor_id: formatParty(row.vendor_id),
+    vendor_name: row.vendor_name ?? null,
+    category: row.category ?? null,
+    date: row.date ?? null,
     terms_and_conditions: row.terms_and_conditions ?? null,
     notes: row.notes ?? null,
     total: row.total ?? 0,
@@ -70,6 +74,16 @@ const createDB = async (payload: TExpenses) => {
   }
   const result = await calculateInvoice(payload);
   const data = { ...payload, ...result };
+  // Expenses can be a flat amount with no line items — honour the payload's
+  // total/sub_total in that case (calculateInvoice would otherwise zero them).
+  const hasItems =
+    (Array.isArray(payload.product) && payload.product.length > 0) ||
+    (Array.isArray(payload.service) && payload.service.length > 0);
+  if (!hasItems) {
+    const flat = Number(payload.total ?? payload.sub_total ?? 0);
+    data.sub_total = flat;
+    data.total = flat;
+  }
   const createdRecord = await ExpensesModel.create(data);
   return createdRecord;
 };
@@ -154,8 +168,22 @@ const updateDB = async (id: string, userId: string, payload: TExpenses) => {
   const recalcTotals = payload.product !== undefined || payload.service !== undefined;
   let data: Record<string, unknown> = { ...payload };
   if (recalcTotals) {
-    const result = await calculateInvoice({ ...existing.toObject(), ...payload });
+    const merged = { ...existing.toObject(), ...payload };
+    const result = await calculateInvoice(merged);
     data = { ...payload, ...result };
+    const hasItems =
+      (Array.isArray(merged.product) && merged.product.length > 0) ||
+      (Array.isArray(merged.service) && merged.service.length > 0);
+    if (!hasItems) {
+      const flat = Number(payload.total ?? payload.sub_total ?? existing.total ?? 0);
+      data.sub_total = flat;
+      data.total = flat;
+    }
+  } else if (payload.total !== undefined || payload.sub_total !== undefined) {
+    // Flat-amount edit (no items touched) — accept the new total directly.
+    const flat = Number(payload.total ?? payload.sub_total ?? 0);
+    data.sub_total = flat;
+    data.total = flat;
   }
 
   const updatedRecord = await ExpensesModel.findOneAndUpdate(

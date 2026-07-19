@@ -23,4 +23,16 @@ router.get(
   billController.getAll
 );
 
+router.post(
+  '/edit/:id',
+  authMiddleware(role.company),
+  billController.update
+);
+
+router.delete(
+  '/delete/:id',
+  authMiddleware(role.company),
+  billController.remove
+);
+
 export const billRoutes = router;
