@@ -35,6 +35,7 @@ const businessProfileSchema = new Schema(
     opening_balance: { type: Number, default: 0 },
     opening_balance_date: { type: Date },
     payment_reminder: { type: Boolean, default: false },
+    is_login_required: { type: Boolean, default: false },
     billing_address: { type: addressSchema },
     shipping_address: { type: addressSchema },
     same_as_billing: { type: Boolean, default: false },
@@ -72,10 +73,10 @@ const UserSchema = new Schema<IUser>(
     // company new field 
     website: { type: String, trim: true },
     signature: { type: String, trim: true },
-    number_format : { type: String, trim: true },
-    decimal_separator : { type: String, trim: true },
-    payment_terms_sales : { type: String, trim: true },
-    payment_terms_purchase : { type: String, trim: true },
+    number_format: { type: String, trim: true },
+    decimal_separator: { type: String, trim: true },
+    payment_terms_sales: { type: String, trim: true },
+    payment_terms_purchase: { type: String, trim: true },
     image: { type: String, trim: true },
     authProvider: {
       type: String,
