@@ -276,10 +276,19 @@ const createUserByCompanyDB = async (companyId: string, payload: IUser) => {
   if (isUserRegistered) {
     throw new AppError(httpStatus.BAD_REQUEST, "User already exists");
   }
+  // Invited team members may not carry a password (the invite form has no
+  // password field). Generate a temporary one so the account can be created;
+  // the user resets it via forgot-password.
+  if (!payload.password) {
+    payload.password = `${Math.random().toString(36).slice(-10)}A1!`;
+  }
+  if (!payload.role) {
+    payload.role = role.staff;
+  }
   const rolePermissions = await loadStoredRolePermissions(companyId, payload.role);
   payload.permissions = rolePermissions;
   payload.companyId = new Types.ObjectId(companyId);
-  payload.isVerify = true; 
+  payload.isVerify = true;
   const result = await UserModel.create(payload);
   const userObject = result.toObject();
   delete userObject.password;

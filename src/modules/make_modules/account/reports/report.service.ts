@@ -8,6 +8,11 @@ import { CreditNoteModel } from "../../creditNote/creditNote.model";
 import { DebitNoteModel } from "../../debitNote/debitNote.model";
 import { CustomerPaymentModel } from "../customerPayment/customerPayment.model";
 import { VendorPaymentModel } from "../vendorPayment/vendorPayment.model";
+import { BillModel } from "../../bill/bill.model";
+import { ExpensesModel } from "../../expenses/expenses.model";
+import { EstimateModel } from "../../estimate/estimate.model";
+import { ProformaInvoiceModel } from "../../proformaInvoice/proformaInvoice.model";
+import { TimeLogModel } from "../../timeLog/timeLog.model";
 
 const AGING_STATUSES = ["Open", "Partial", "Overdue"];
 const BALANCE_STATUSES = ["Open", "Partial", "Paid", "Overdue"];
@@ -568,6 +573,97 @@ const vendorDetailDB = async (
   };
 };
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Company-wide financial summary for the Summary Report screen. Every figure is
+// summed defensively so a missing model/field yields 0 rather than a 500.
+const summaryDB = async (userId: string) => {
+  const uid = companyObjectId(userId);
+  const now = new Date();
+
+  const sumOf = async (Model: any, field: string, extra: any = {}) => {
+    try {
+      const r = await Model.aggregate([
+        { $match: { user_id: uid, ...extra } },
+        { $group: { _id: null, s: { $sum: `$${field}` } } },
+      ]);
+      return r[0]?.s || 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  const groupTop = async (Model: any, nameField: string, valueField: string) => {
+    try {
+      const rows = await Model.aggregate([
+        { $match: { user_id: uid } },
+        { $group: { _id: `$${nameField}`, value: { $sum: `$${valueField}` } } },
+        { $sort: { value: -1 } },
+        { $limit: 5 },
+      ]);
+      return rows
+        .filter((x: any) => x._id)
+        .map((x: any) => ({ name: String(x._id), value: x.value || 0 }));
+    } catch {
+      return [];
+    }
+  };
+
+  const [
+    sales, outstanding, overdue, bills, expenses, estimates, proforma,
+    creditNotes, debitNotes, paymentReceived, purchaseOrders,
+    salesTax, salesDiscount, salesSubTotal, timeLogHours,
+  ] = await Promise.all([
+    sumOf(InvoiceModel, "total"),
+    sumOf(InvoiceModel, "balance_amount"),
+    sumOf(InvoiceModel, "balance_amount", { due_date: { $lt: now } }),
+    sumOf(BillModel, "total"),
+    sumOf(ExpensesModel, "total"),
+    sumOf(EstimateModel, "total"),
+    sumOf(ProformaInvoiceModel, "total"),
+    sumOf(CreditNoteModel, "total"),
+    sumOf(DebitNoteModel, "total"),
+    sumOf(CustomerPaymentModel, "payment_amount"),
+    sumOf(PurchaseInvoiceModel, "total"),
+    sumOf(InvoiceModel, "tax"),
+    sumOf(InvoiceModel, "discount"),
+    sumOf(InvoiceModel, "sub_total"),
+    sumOf(TimeLogModel, "hours"),
+  ]);
+
+  const [topCustomers, topVendors] = await Promise.all([
+    groupTop(InvoiceModel, "customer_name", "total"),
+    groupTop(BillModel, "vendor_name", "total"),
+  ]);
+
+  return {
+    summary: {
+      outstanding,
+      net_profit: sales - expenses,
+      sales,
+      bills,
+      payment_received: paymentReceived,
+      proforma_invoice: proforma,
+      estimates,
+      expenses,
+      purchase_order: purchaseOrders,
+      overdue,
+      credit_notes: creditNotes,
+      debit_notes: debitNotes,
+      time_logs: timeLogHours,
+    },
+    top_customers: topCustomers,
+    top_vendors: topVendors,
+    sales_breakdown: {
+      total: sales,
+      discount: salesDiscount,
+      net_sales: sales - salesDiscount,
+      tax: salesTax,
+      gross_sales: salesSubTotal,
+    },
+    payment_received_breakdown: [{ name: "Total", value: paymentReceived }],
+  };
+};
+
 export const reportService = {
   invoiceAgingDB,
   billAgingDB,
@@ -576,4 +672,5 @@ export const reportService = {
   vendorBalanceDB,
   customerDetailDB,
   vendorDetailDB,
+  summaryDB,
 };

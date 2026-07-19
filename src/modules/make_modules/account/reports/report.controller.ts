@@ -133,6 +133,16 @@ const index = catchAsync(async (_req: AuthRequest, res) => {
   });
 });
 
+const summary = catchAsync(async (req: AuthRequest, res) => {
+  const data = await reportService.summaryDB(req.user!._id as string);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Summary report retrieved successfully",
+    data,
+  });
+});
+
 export const reportController = {
   index,
   invoiceAging,
@@ -142,4 +152,5 @@ export const reportController = {
   vendorBalance,
   customerDetail,
   vendorDetail,
+  summary,
 };

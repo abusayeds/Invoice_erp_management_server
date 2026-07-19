@@ -41,6 +41,7 @@ import { trainingRoutes } from "../modules/make_modules/training/training.route"
 import { recruitmentRoutes } from "../modules/make_modules/recruitment/recruitment.route";
 import { dashboardRoutes } from "../modules/make_modules/dashboard/dashboard.route";
 import { posRoutes } from "../modules/make_modules/pos/pos.route";
+import { timeLogRoutes } from "../modules/make_modules/timeLog/timeLog.route";
 import { crmRoutes } from "../modules/make_modules/crm/crm.route";
 import { formBuilderRoutes } from "../modules/make_modules/formBuilder/formBuilder.route";
 import { supportRoutes } from "../modules/make_modules/support/support.route";
@@ -92,6 +93,7 @@ router.use("/api/v1/training", trainingRoutes);
 router.use("/api/v1/recruitment", recruitmentRoutes);
 router.use("/api/v1/dashboard", dashboardRoutes);
 router.use("/api/v1/pos", posRoutes);
+router.use("/api/v1/time-log", timeLogRoutes);
 router.use("/api/v1/crm", crmRoutes);
 router.use("/api/v1/form-builder", formBuilderRoutes);
 router.use("/api/v1/support", supportRoutes);
