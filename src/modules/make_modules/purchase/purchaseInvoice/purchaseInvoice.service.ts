@@ -20,7 +20,7 @@ const POPULATE = [
   { path: "vendor_id", select: CLIENT_POPULATE_SELECT },
   { path: "warehouse_id", select: "name address city" },
   { path: "product.product_id", select: "productName sku" },
-  { path: "service.service_id", select: "name" },
+  { path: "service.service_id", select: "serviceName" },
 ];
 
 const normalizeBody = (body: Record<string, unknown>): Record<string, unknown> => {
