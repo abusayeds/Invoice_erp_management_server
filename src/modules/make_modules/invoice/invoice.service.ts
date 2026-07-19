@@ -169,11 +169,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
     })
       .populate({
         path: "customer_id",
-        select: `${CLIENT_POPULATE_SELECT} companyId`,
-        populate: {
-          path: "companyId",
-          select: "name businessProfile.companyName",
-        },
+        select: CLIENT_POPULATE_SELECT,
       })
       .populate({
         path: "product.product_id",
@@ -198,23 +194,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       isDeleted: false,
     })
   );
-
-  const records = await buildQuery.modelQuery.exec();
-  
-  // Reshape populated customer's companyId to { _id, company_name } without touching other fields
-  // const allRecords = await buildQuery.modelQuery.exec();
-  const allRecords = records.map((record: any) => {
-    const doc = typeof record.toObject === "function" ? record.toObject() : record;
-    const customer = doc.customer_id;
-    if (customer && typeof customer === "object" && customer.companyId && typeof customer.companyId === "object") {
-      const company = customer.companyId;
-      customer.companyId = {
-        _id: company._id,
-        company_name: company.businessProfile?.companyName ?? company.name ?? null,
-      };
-    }
-    return doc;
-  });
+  const allRecords = await buildQuery.modelQuery.exec();
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
   const pagination = buildQuery.calculatePagination({ totalData, currentPage, limit });

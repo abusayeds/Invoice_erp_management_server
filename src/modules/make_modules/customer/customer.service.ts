@@ -29,7 +29,6 @@ const customerCreateDB = async (payload: TPartyUserWrite) => {
   return toPartyUserResponse(created);
 };
 
-
 const allCustomerDB = async (user_id: string, query: Record<string, unknown>) => {
   const baseFilter = partyBaseFilter(user_id, role.customer, query);
   const customerQuery = new queryBuilder(
@@ -53,7 +52,6 @@ const allCustomerDB = async (user_id: string, query: Record<string, unknown>) =>
   });
   return { allCustomer, pagination };
 };
-
 const invoiceCustomerList = async (
   user_id: string,
   query: Record<string, unknown>

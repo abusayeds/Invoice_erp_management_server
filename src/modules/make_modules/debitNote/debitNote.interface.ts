@@ -7,6 +7,7 @@ export type TDebitNote = {
   _id?: Types.ObjectId;
   user_id: Types.ObjectId;
   vendor_id?: Types.ObjectId;
+  vendor_name?: string;
   source?: "manual" | "return";
   return_id?: Types.ObjectId;
   source_invoice_id?: Types.ObjectId;

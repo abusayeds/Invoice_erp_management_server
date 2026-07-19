@@ -77,7 +77,6 @@ export type TPartyUserWrite = {
   opening_balance?: number;
   opening_balance_date?: Date | string;
   payment_reminder?: boolean;
-  is_login_required?: boolean;
   /** Stored on User root (same as before). */
   currency?: string;
   billing_address?: TPartyAddress;

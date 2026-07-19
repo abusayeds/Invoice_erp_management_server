@@ -121,11 +121,21 @@ const validateAllocations = async (
 
 const createDB = async (payload: TVendorPayment) => {
   await assertVendorUser(payload.vendor_id);
-  const bank = await BankAccountModel.findOne({
-    _id: payload.bank_account_id,
-    ...companyScope(String(payload.user_id)),
-  });
-  if (!bank) throw new AppError(httpStatus.BAD_REQUEST, "Invalid bank account");
+  // bank_account_id is optional from the app; fall back to the company's first
+  // account so a payment can be recorded without an explicit account picker.
+  let bank = payload.bank_account_id
+    ? await BankAccountModel.findOne({
+        _id: payload.bank_account_id,
+        ...companyScope(String(payload.user_id)),
+      })
+    : null;
+  if (!bank) {
+    bank = await BankAccountModel.findOne({
+      ...companyScope(String(payload.user_id)),
+    }).sort({ createdAt: 1 });
+  }
+  if (!bank) throw new AppError(httpStatus.BAD_REQUEST, "No bank account found for this company");
+  payload.bank_account_id = bank._id;
 
   await validateAllocations(
     String(payload.user_id),

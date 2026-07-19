@@ -21,8 +21,8 @@ const createDB = async (payload: TBill) => {
       if (!product) {
         throw new AppError(httpStatus.NOT_FOUND, 'Product not found with id: ' + item.product_id);
       }
-      if (product.pricing.sellPrice !== item.rate) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': ' + product.pricing.sellPrice + ' vs ' + item.rate);
+      if (product.pricing.buyPrice !== item.rate && product.pricing.sellPrice !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': expected ' + product.pricing.buyPrice + ' (buy) or ' + product.pricing.sellPrice + ' (sell), got ' + item.rate);
       }
       validateItemAmount(item, 'product');
     }
@@ -111,8 +111,8 @@ const updateDB = async (id: string, userId: string, payload: TBill) => {
       if (!product) {
         throw new AppError(httpStatus.NOT_FOUND, 'Product not found with id: ' + item.product_id);
       }
-      if (product.pricing.sellPrice !== item.rate) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': ' + product.pricing.sellPrice + ' vs ' + item.rate);
+      if (product.pricing.buyPrice !== item.rate && product.pricing.sellPrice !== item.rate) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Product rate mismatch ' + item.product_id + ': expected ' + product.pricing.buyPrice + ' (buy) or ' + product.pricing.sellPrice + ' (sell), got ' + item.rate);
       }
       validateItemAmount(item, 'product');
     }

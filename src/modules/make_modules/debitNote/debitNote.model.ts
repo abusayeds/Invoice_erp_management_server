@@ -41,6 +41,7 @@ const debitNoteSchema = new Schema<TDebitNote>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     vendor_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    vendor_name: { type: String },
     source: { type: String, enum: ['manual', 'return'], default: 'manual' },
     return_id: { type: Schema.Types.ObjectId, ref: 'ReturnPurchase' },
     source_invoice_id: { type: Schema.Types.ObjectId },

@@ -27,16 +27,6 @@ const createTransferDB = async (payload: TStockTransfer) => {
   const quantity = assertPositiveIntegerQuantity(payload.quantity);
   assertObjectIds(payload.from_warehouse, payload.to_warehouse);
 
-  const product = await ProductModel.findOne({
-    _id: payload.product_id,
-    user_id,
-    isDeleted: false,
-    isArchive: false,
-  });
-  if (!product) {
-    throw new AppError(httpStatus.NOT_FOUND, "Product not found");
-  }
-
   const [fromWh, toWh] = await Promise.all([
     WarehouseModel.findOne({ _id: payload.from_warehouse, user_id, isDeleted: false }),
     WarehouseModel.findOne({ _id: payload.to_warehouse, user_id, isDeleted: false }),
@@ -48,16 +38,47 @@ const createTransferDB = async (payload: TStockTransfer) => {
     throw new AppError(httpStatus.NOT_FOUND, "Destination warehouse not found");
   }
 
+  if (!payload.date || Number.isNaN(new Date(payload.date as unknown as string).getTime())) {
+    throw new AppError(httpStatus.BAD_REQUEST, "date must be a valid date");
+  }
+
+  // Free-text product (no id): record the transfer without moving stock.
+  if (!payload.product_id) {
+    if (!payload.product_name) {
+      throw new AppError(httpStatus.BAD_REQUEST, "product_id or product_name is required");
+    }
+    const [doc] = await StockTransferModel.create([
+      {
+        user_id,
+        product_name: payload.product_name,
+        from_warehouse: payload.from_warehouse,
+        to_warehouse: payload.to_warehouse,
+        quantity,
+        date: new Date(payload.date),
+        notes: payload.notes,
+      },
+    ]);
+    return await StockTransferModel.findById(doc._id)
+      .populate("from_warehouse")
+      .populate("to_warehouse");
+  }
+
+  const product = await ProductModel.findOne({
+    _id: payload.product_id,
+    user_id,
+    isDeleted: false,
+    isArchive: false,
+  });
+  if (!product) {
+    throw new AppError(httpStatus.NOT_FOUND, "Product not found");
+  }
+
   const onHand = product.stock?.onHandStock ?? 0;
   if (onHand < quantity) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       `Insufficient product stock: onHandStock is ${onHand}, transfer requests ${quantity}`
     );
-  }
-
-  if (!payload.date || Number.isNaN(new Date(payload.date as unknown as string).getTime())) {
-    throw new AppError(httpStatus.BAD_REQUEST, "date must be a valid date");
   }
 
   const session = await mongoose.startSession();

@@ -25,7 +25,7 @@ const schema = new Schema<TVendorPayment>(
     payment_number: { type: String },
     payment_date: { type: Date, required: true },
     vendor_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    bank_account_id: { type: Schema.Types.ObjectId, ref: "AccountBankAccount", required: true },
+    bank_account_id: { type: Schema.Types.ObjectId, ref: "AccountBankAccount" },
     reference_number: { type: String, trim: true },
     payment_amount: { type: Number, required: true, min: 0 },
     status: { type: String, enum: paymentStatuses, default: "pending" },
