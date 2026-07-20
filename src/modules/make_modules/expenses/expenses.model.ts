@@ -3,12 +3,12 @@ import { expensesStatus, TExpenses } from './expenses.interface';
 
 const addressSchema = new Schema(
   {
-    street: { type: String, required: true },
+    street: { type: String},
     street2: { type: String },
-    city: { type: String, required: true },
+    city: { type: String},
     state: { type: String },
     zip: { type: String },
-    country: { type: String, required: true },
+    country: { type: String},
   },
   { _id: false }
 );
@@ -17,10 +17,10 @@ const productSchema = new Schema(
   {
     product_id: { type: Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, required: true },
-    rate: { type: Number, required: true },
+    rate: { type: Number },
     tax: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
-    amount: { type: Number, required: true },
+    amount: { type: Number },
   },
   { _id: false }
 );

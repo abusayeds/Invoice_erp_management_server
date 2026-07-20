@@ -3,12 +3,12 @@ import { billStatus, TBill } from './bill.interface';
 
 const addressSchema = new Schema(
   {
-    street: { type: String, required: true },
+    street: { type: String },
     street2: { type: String },
-    city: { type: String, required: true },
+    city: { type: String },
     state: { type: String },
     zip: { type: String },
-    country: { type: String, required: true },
+    country: { type: String },
   },
   { _id: false }
 );
