@@ -1,0 +1,19 @@
+node_modules
+dist/
+/public/*          
+!/public/files     
+/public/files/*    
+!/public/files/qayd.png   
+/logs
+.env
+.tmp_*
+.cursor/
+docs/
+scripts/
+postman/
+
+# Claude rules & reference (local only — never push)
+CLAUDE.md
+claude-rules/
+main-files/
+*.zip

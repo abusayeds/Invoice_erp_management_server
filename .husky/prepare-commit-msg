@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+node git-hooks/strip-coauthor-trailers.mjs "$1"
