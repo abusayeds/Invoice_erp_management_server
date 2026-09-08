@@ -1,0 +1,51 @@
+import { Types } from "mongoose";
+
+/** Candidate pipeline stages (readable enum — replaces the old 0..5 codes). */
+export const candidateStatuses = [
+  "New",
+  "Shortlisted",
+  "Interview",
+  "Offer",
+  "Hired",
+  "Rejected",
+] as const;
+export type TCandidateStatus = (typeof candidateStatuses)[number];
+
+export type TCandidate = {
+  _id?: Types.ObjectId;
+  user_id: Types.ObjectId;
+  creator_id?: Types.ObjectId;
+  tracking_id?: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  gender?: string;
+  dob?: Date;
+  country?: string;
+  state?: string;
+  city?: string;
+  current_company?: string;
+  current_position?: string;
+  experience_years?: number;
+  current_salary?: number;
+  expected_salary?: number;
+  notice_period?: string;
+  skills?: string;
+  education?: string;
+  portfolio_url?: string;
+  linkedin_url?: string;
+  profile_path?: string;
+  resume_path?: string;
+  cover_letter_path?: string;
+  status: string;
+  application_date?: Date;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  custom_question?: any;
+  job_id?: Types.ObjectId;
+  source_id?: Types.ObjectId;
+  candidate_user_id?: Types.ObjectId;
+  isDeleted: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+};

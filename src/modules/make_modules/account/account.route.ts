@@ -1,0 +1,42 @@
+import express from "express";
+import { customerRoutes } from "../customer/customer.route";
+import { vendorRoutes } from "../vendor/vendor.route";
+import { bankAccountRoutes } from "./bankAccount/bankAccount.route";
+import { accountCategoryRoutes } from "./accountCategory/accountCategory.route";
+import { accountTypeRoutes } from "./accountType/accountType.route";
+import { chartOfAccountRoutes } from "./chartOfAccount/chartOfAccount.route";
+import { bankTransactionRoutes } from "./bankTransaction/bankTransaction.route";
+import { bankTransferRoutes } from "./bankTransfer/bankTransfer.route";
+import { revenueCategoryRoutes } from "./revenueCategory/revenueCategory.route";
+import { expenseCategoryRoutes } from "./expenseCategory/expenseCategory.route";
+import { accountRevenueRoutes } from "./accountRevenue/accountRevenue.route";
+import { accountExpenseRoutes } from "./accountExpense/accountExpense.route";
+import { customerPaymentRoutes } from "./customerPayment/customerPayment.route";
+import { vendorPaymentRoutes } from "./vendorPayment/vendorPayment.route";
+import { accountCreditNoteRoutes } from "./accountCreditNote/accountCreditNote.route";
+import { accountDebitNoteRoutes } from "./accountDebitNote/accountDebitNote.route";
+import { dashboardRoutes } from "./dashboard/dashboard.route";
+import { reportRoutes } from "./reports/report.route";
+
+const router = express.Router();
+
+router.use("/dashboard", dashboardRoutes);
+router.use("/customers", customerRoutes);
+router.use("/vendors", vendorRoutes);
+router.use("/bank-accounts", bankAccountRoutes);
+router.use("/account-types", accountTypeRoutes);
+router.use("/account-categories", accountCategoryRoutes);
+router.use("/chart-of-accounts", chartOfAccountRoutes);
+router.use("/bank-transactions", bankTransactionRoutes);
+router.use("/bank-transfers", bankTransferRoutes);
+router.use("/revenue-categories", revenueCategoryRoutes);
+router.use("/expense-categories", expenseCategoryRoutes);
+router.use("/revenues", accountRevenueRoutes);
+router.use("/expenses", accountExpenseRoutes);
+router.use("/customer-payments", customerPaymentRoutes);
+router.use("/vendor-payments", vendorPaymentRoutes);
+router.use("/credit-notes", accountCreditNoteRoutes);
+router.use("/debit-notes", accountDebitNoteRoutes);
+router.use("/reports", reportRoutes);
+
+export const accountRoutes = router;
