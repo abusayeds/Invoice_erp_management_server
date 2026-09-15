@@ -39,6 +39,9 @@ const DOC_CONFIG: Record<string, DocConfig> = {
   Debit_Note:       { model: DebitNoteModel,       party: "vendor_id",   title: "DEBIT NOTE",       billLabel: "Debit To:" },
   Expense:          { model: ExpensesModel,        party: "vendor_id",   title: "EXPENSE",          billLabel: "Expense To:" },
   Purchase_Order:   { model: PurchaseInvoiceModel, party: "vendor_id",   title: "PURCHASE ORDER",   billLabel: "Order To:" },
+  // Same invoice document, different PDF title/settings (opened from invoice ⋮ menu).
+  Packing_Slip:     { model: InvoiceModel,         party: "customer_id", title: "PACKING SLIP",     billLabel: "Ship To:" },
+  Delivery_Note:    { model: InvoiceModel,         party: "customer_id", title: "DELIVERY NOTE",    billLabel: "Deliver To:" },
 };
 
 export const isSalesDoc = (type: string): boolean => Boolean(DOC_CONFIG[type]);
