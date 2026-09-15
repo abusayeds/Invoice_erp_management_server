@@ -202,7 +202,7 @@ export const generatePaymentReceiptPDF = async (data: any, settings: any, res: a
     drawText(col.value ?? "N/A", px + 4, y + 4, { size: 9, width: col.w - 8 });
     px += col.w;
   });
-  y += rowH + 28;
+  y += rowH + 40;
 
   // ── Signature ──────────────────────────────────────────────────────────
   const sigBuf = await loadImageBuffer(data?.signature?.image);

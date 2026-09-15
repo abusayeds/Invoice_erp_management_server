@@ -20,6 +20,7 @@ import { PaymentReceivedModel } from "../paymentReceived/paymentReceived.model";
 import { PaymentModel } from "../addPayment/payment.model";
 import { VendorPaymentModel } from "../account/vendorPayment/vendorPayment.model";
 import { PaymentMethodModel } from "../setting/paymentMethod/paymentMethod.model";
+import { SignatureModel } from "../setting/signature/signature.model";
 
 export const NA = "N/A";
 
@@ -119,7 +120,13 @@ const buildSample = (company: any, cfg: DocConfig) => ({
   termsAndConditions: NA,
   notes: NA,
   hsnSacSummary: [] as any[],
-  signature: { companyName: company.name, subtitle: "Authorized Signatory" },
+  signature: {
+    companyName: company.name,
+    subtitle: "Authorized Signatory",
+    companyImage: null,
+    image: null,
+    customerImage: null,
+  },
   qrCodeData: NA,
   paymentDetails: [] as any[],
 });
@@ -140,6 +147,16 @@ export const resolveSalesDoc = async (type: string, id: string | undefined, user
     .catch(() => null);
 
   if (!inv) return buildSample(company, cfg);
+
+  // Company / Authorized Signatory image from Settings → Signatures
+  // (Companies page). Separate from per-document customer signatures.
+  const companySig: any = await SignatureModel.findOne({
+    user_id: user?._id,
+    isDeleted: false,
+  })
+    .sort({ createdAt: -1 })
+    .lean()
+    .catch(() => null);
 
   const cur = inv.currency || "USD";
   const c = inv[cfg.party] || {};
@@ -325,12 +342,14 @@ export const resolveSalesDoc = async (type: string, id: string | undefined, user
     termsAndConditions: txt(inv.terms_and_conditions),
     notes: txt(inv.notes),
     hsnSacSummary: [],
-    // The captured customer signature image (server path) is rendered in the
-    // PDF when present; the name/subtitle stay as the label under it.
+    // Company image → Authorized Signatory. Document `inv.signature` is the
+    // optional customer signature (shown only when PDF setting contact_sign is on).
     signature: {
       companyName: company.name,
       subtitle: "Authorized Signatory",
+      companyImage: companySig?.image || null,
       image: inv.signature || null,
+      customerImage: inv.signature || null,
     },
     // Scanning the QR opens the document as a PDF, scoped to the owning account
     // and addressed by its human number, e.g. https://temp-api.ssh.bd/<user_id>/invoice/16.

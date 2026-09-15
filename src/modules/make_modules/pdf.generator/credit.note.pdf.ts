@@ -531,7 +531,8 @@ export const generateCreditNotePDF = async (settings: any, res: any) => {
   if (signature.company_sign !== "hide" || header.qr_code !== false) {
     const qrW  = 70;
     const sigW = 130;
-    checkPageBreak(qrW + 20);
+    y += 28;
+    checkPageBreak(qrW + 40);
 
     const baseY = y;
     const sigX  = margin.left + CONTENT_W * 0.25;

@@ -303,8 +303,9 @@ export const generateInvoiceThermalPDF = async (data: any, settings: any, res: a
     }
 
     // ── Signature ────────────────────────────────────────────────────────
+    y += 10;
     if (signature.company_sign !== "hide") {
-      const sigBuf = loadImg(data.signature?.image);
+      const sigBuf = loadImg(data.signature?.companyImage);
       if (sigBuf) {
         y += 4;
         try {
@@ -312,6 +313,19 @@ export const generateInvoiceThermalPDF = async (data: any, settings: any, res: a
           y += 32;
         } catch { /* ignore undecodable image */ }
       }
+      line("Authorized Signatory", { size: 6.5, align: "center", color: "#666666", gap: 2 });
+    }
+    const customerSrc = data.signature?.customerImage || data.signature?.image;
+    if (signature.contact_sign !== false && customerSrc) {
+      const custBuf = loadImg(customerSrc);
+      if (custBuf) {
+        y += 6;
+        try {
+          doc.image(custBuf, M + CW / 2 - 40, y, { fit: [80, 30], align: "center" });
+          y += 32;
+        } catch { /* ignore */ }
+      }
+      line("Customer Signature", { size: 6.5, align: "center", color: "#666666", gap: 2 });
     }
 
     // ── Footer ───────────────────────────────────────────────────────────

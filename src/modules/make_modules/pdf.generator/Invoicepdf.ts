@@ -592,31 +592,60 @@ export const generateInvoicePDF = async (data: any, settings: any, res: any) => 
   // ════════════════════════════════════════════════════════════════════════
   // SECTION 8 — SIGNATURE + QR
   // ════════════════════════════════════════════════════════════════════════
-  if (signature.company_sign !== "hide" || header.qr_code !== false) {
+  const customerSrc = data.signature?.customerImage || data.signature?.image;
+  const showCustomerSig = signature.contact_sign !== false && !!customerSrc;
+  if (signature.company_sign !== "hide" || header.qr_code !== false || showCustomerSig) {
     const qrW  = 70;
     const sigW = 130;
-    checkPageBreak(qrW + 20);
+    const sigImgH = 34;
+    // Push the whole block down so the signature image never overlaps
+    // totals / notes / payment rows above.
+    y += 28;
+    checkPageBreak(qrW + sigImgH + 50);
 
     const baseY = y;
     // Signature sits at the bottom-left (reference layout); QR stays right.
     const sigX  = margin.left;
     const qrX   = PAGE_W - margin.right - CONTENT_W * 0.15 - qrW;
+    const lineY = baseY + sigImgH + 4;
 
     if (signature.company_sign !== "hide") {
-      // Draw the captured signature image (if any) sitting on the line.
-      const sigBuf = loadSignatureBuffer(data.signature?.image);
+      // Company / Authorized Signatory — from Settings signatures, not the
+      // per-document customer signature.
+      const sigBuf = loadSignatureBuffer(data.signature?.companyImage);
       if (sigBuf) {
         try {
-          doc.image(sigBuf, sigX, baseY - 18, {
-            fit: [sigW, 34], align: "center",
+          doc.image(sigBuf, sigX, baseY, {
+            fit: [sigW, sigImgH], align: "center",
           });
         } catch { /* ignore an undecodable image, keep the label */ }
       }
       doc.save().strokeColor(rgb(borderColor))
-        .moveTo(sigX, baseY + 20).lineTo(sigX + sigW, baseY + 20)
+        .moveTo(sigX, lineY).lineTo(sigX + sigW, lineY)
         .stroke().restore();
-      drawText(data.signature.companyName, sigX, baseY + 22, { bold: true, width: sigW, align: "center" });
-      drawText(data.signature.subtitle,    sigX, baseY + 35, { width: sigW, align: "center", color: "#666666" });
+      drawText(data.signature.companyName, sigX, lineY + 3, { bold: true, width: sigW, align: "center" });
+      drawText(data.signature.subtitle,    sigX, lineY + 16, { width: sigW, align: "center", color: "#666666" });
+    }
+
+    // Optional customer signature — only when PDF setting is on AND the
+    // document actually has a captured signature image.
+    if (showCustomerSig) {
+      const custBuf = loadSignatureBuffer(customerSrc);
+      // Sit left of the QR column so both can coexist.
+      const custX = Math.max(sigX + sigW + 24, qrX - sigW - 16);
+      if (custBuf) {
+        try {
+          doc.image(custBuf, custX, baseY, {
+            fit: [sigW, sigImgH], align: "center",
+          });
+        } catch { /* ignore */ }
+      }
+      doc.save().strokeColor(rgb(borderColor))
+        .moveTo(custX, lineY).lineTo(custX + sigW, lineY)
+        .stroke().restore();
+      drawText("Customer Signature", custX, lineY + 16, {
+        width: sigW, align: "center", color: "#666666",
+      });
     }
 
     if (header.qr_code !== false) {
@@ -636,7 +665,7 @@ export const generateInvoicePDF = async (data: any, settings: any, res: any) => 
       }
     }
 
-    y += qrW + 15;
+    y = Math.max(lineY + 30, baseY + qrW + 18);
   }
 
    // ─── PAYMENT DETAILS ─────────────────────────────────────────────────────
