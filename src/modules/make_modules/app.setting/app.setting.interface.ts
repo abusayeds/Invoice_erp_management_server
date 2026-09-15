@@ -8,6 +8,7 @@ export type TSettingType =
   | "security"
   | "titles"
   | "whatsApp"
+  | "notification"
   | "invoice"
   | "proforma_invoice"
   | "sales_receipt"
@@ -135,6 +136,26 @@ export type TSetting = {
   whatsApp: {
     enabled?: boolean;
     send_via?: string;
+  };
+
+  /** Reminder / recurring notification preferences (Notification Settings UI). */
+  notification?: {
+    timezone?: string;
+    notification_time?: string;
+    recurring?: {
+      auto_send_invoice?: boolean;
+      daily?: boolean;
+      weekly?: boolean;
+      monthly?: boolean;
+    };
+    payment_reminder?: {
+      auto_send_payment_receipt?: boolean;
+      default_for_new_customer?: boolean;
+      days_before_due_3?: boolean;
+      on_due_date?: boolean;
+      days_after_due_3?: boolean;
+      days_after_due_7?: boolean;
+    };
   };
 
   invoice: TDocumentConfig;

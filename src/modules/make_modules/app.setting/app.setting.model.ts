@@ -158,6 +158,26 @@ const settingSchema = new Schema(
       send_via: String,
     },
 
+    // Notification Settings (reminders / recurring) — additive, optional.
+    notification: {
+      timezone: String,
+      notification_time: String,
+      recurring: {
+        auto_send_invoice: Boolean,
+        daily: Boolean,
+        weekly: Boolean,
+        monthly: Boolean,
+      },
+      payment_reminder: {
+        auto_send_payment_receipt: Boolean,
+        default_for_new_customer: Boolean,
+        days_before_due_3: Boolean,
+        on_due_date: Boolean,
+        days_after_due_3: Boolean,
+        days_after_due_7: Boolean,
+      },
+    },
+
     invoice: documentSchema(),
     proforma_invoice: documentSchema(),
     sales_receipt: documentSchema(),

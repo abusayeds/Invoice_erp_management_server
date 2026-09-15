@@ -55,6 +55,25 @@ export const setting_seed_data = {
     send_via: "Moon Invoice",
   },
 
+  notification: {
+    timezone: "(GMT-7:00) America/Los_Angeles",
+    notification_time: "07:00",
+    recurring: {
+      auto_send_invoice: true,
+      daily: true,
+      weekly: true,
+      monthly: true,
+    },
+    payment_reminder: {
+      auto_send_payment_receipt: true,
+      default_for_new_customer: true,
+      days_before_due_3: true,
+      on_due_date: true,
+      days_after_due_3: true,
+      days_after_due_7: true,
+    },
+  },
+
   // ==================== INVOICE ====================
   invoice: {
     field_visibility: {

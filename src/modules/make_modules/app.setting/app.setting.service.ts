@@ -28,6 +28,7 @@ const SUB_TYPE_MAP: Partial<Record<TSettingType, string[]>> = {
   security:         [],
   titles:           [],
   whatsApp:         [],
+  notification:     [],
   expense:          [],
   service:          [],
 };
