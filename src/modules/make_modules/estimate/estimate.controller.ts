@@ -104,4 +104,23 @@ const hardRemove = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const estimateController = { create, getSingle, getAll, update, remove, hardRemove };
+/** Brings a soft-deleted estimate back — the counterpart of `remove`. */
+const restore = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const data = await estimateService.restoreDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Estimate restored successfully.',
+    data,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.estimate,
+    entity_ids: [id],
+    action: ActivityAction.updated,
+    title: `Estimate ${id} Restored`,
+  });
+});
+
+export const estimateController = { create, getSingle, getAll, update, remove, hardRemove, restore };

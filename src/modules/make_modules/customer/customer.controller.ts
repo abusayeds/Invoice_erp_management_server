@@ -110,6 +110,42 @@ const deleteCustomer = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash (supports comma-separated ids). Mobile soft-delete route untouched. */
+const hardDeleteCustomer = catchAsync(async (req: AuthRequest, res) => {
+  const { ids, data: result } = await handleParamBulkDelete(req.params.id, (id) =>
+    customerService.hardDeleteCustomerDB(req?.user?._id as string, id),
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Customer permanently deleted.",
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.customer,
+    entity_ids: ids.map((id) => new Types.ObjectId(id)),
+    action: ActivityAction.archived,
+    title:
+      ids.length === 1
+        ? `${result?.businessProfile?.companyName || result?.name || "Customer"} permanently deleted`
+        : `${ids.length} Customers permanently deleted`,
+  });
+});
+
+const restoreCustomer = catchAsync(async (req: AuthRequest, res) => {
+  const result = await customerService.restoreCustomerDB(
+    req?.user?._id as string,
+    req.params.id,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Customer restored successfully.",
+    data: result,
+  });
+});
+
 const updateCustomer = catchAsync(async (req: AuthRequest, res) => {
   const result = await customerService.updateCustomerDB(
     req?.user?._id as string,
@@ -152,5 +188,7 @@ export const customerController = {
   invoiceCustomerList,
   singleCustomer,
   deleteCustomer,
+  hardDeleteCustomer,
+  restoreCustomer,
   updateCustomer,
 };

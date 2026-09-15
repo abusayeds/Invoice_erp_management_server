@@ -97,11 +97,10 @@ const createDB = async (payload: TEstimate) => {
 };
 
 const getSingleDB = async (id: string, userId: string) => {
+  // Not pinned to isDeleted/isArchive false: Trash/Archive detail must still open.
   const record = await EstimateModel.findOne({
     _id: id,
     user_id: userId,
-    isArchive: false,
-    isDeleted: false,
     // Populate the customer so the single response carries the customer NAME
     // (read by "Duplicate as …").
   }).populate({ path: 'customer_id', select: CLIENT_POPULATE_SELECT });
@@ -112,12 +111,11 @@ const getSingleDB = async (id: string, userId: string) => {
 };
 
 const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
+  // isDeleted/isArchive are NOT hard-coded here: queryBuilder.filter() applies
+  // buildSoftDeleteFilter, which defaults to "active only" and honours
+  // ?isDeleted=true (Trash tab). Pinning them here would override that tab.
   const buildQuery = new queryBuilder(
-    EstimateModel.find({
-      user_id: user_id,
-      isArchive: false,
-      isDeleted: false,
-    })
+    EstimateModel.find({ user_id: user_id })
       .populate({ path: 'customer_id', select: CLIENT_POPULATE_SELECT })
       .populate({ path: 'vendor_id', select: CLIENT_POPULATE_SELECT }),
     query
@@ -126,13 +124,7 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
     .filter()
     .sort()
     .fields();
-  const { totalData } = await buildQuery.paginate(
-    EstimateModel.find({
-      user_id: user_id,
-      isArchive: false,
-      isDeleted: false,
-    })
-  );
+  const { totalData } = await buildQuery.paginate();
   const allRecords = (await buildQuery.modelQuery.exec()).map(formatListItem);
   const currentPage = Number(query?.page) || 1;
   const limit = Number(query.limit) || 10;
@@ -234,6 +226,19 @@ const hardDeleteDBOne = async (id: string, userId: string) => {
 };
 const hardDeleteDB = withBulkDeleteId(hardDeleteDBOne);
 
-export const estimateService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, hardDeleteDB };
+/** Restores a soft-deleted estimate — counterpart of deleteDBOne. */
+const restoreDB = async (id: string, userId: string) => {
+  const restored = await EstimateModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: true },
+    { isDeleted: false },
+    { new: true }
+  );
+  if (!restored) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Estimate not found in Trash');
+  }
+  return restored;
+};
+
+export const estimateService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, hardDeleteDB, restoreDB };
 
 

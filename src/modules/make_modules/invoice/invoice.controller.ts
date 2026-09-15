@@ -105,4 +105,22 @@ const restore = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const invoiceController = { create, getSingle, getAll, update, remove, restore };
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await invoiceService.hardDeleteDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Invoice permanently deleted.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.invoice,
+    entity_ids: [id],
+    action: ActivityAction.deleted,
+    title: `Invoice ${id} Permanently Deleted`,
+  });
+});
+
+export const invoiceController = { create, getSingle, getAll, update, remove, restore, hardRemove };

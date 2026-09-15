@@ -165,6 +165,14 @@ const restoreDB = async (id: string, userId: string) => {
   return restored;
 };
 
+/** Permanent delete from Trash — removes the row. */
+const hardDeleteDBOne = async (id: string, userId: string) => {
+  const removed = await PaymentReceivedModel.findOneAndDelete({ _id: id, user_id: userId });
+  if (!removed) throw new AppError(httpStatus.NOT_FOUND, 'PaymentReceived not found');
+  return removed;
+};
+const hardDeleteDB = withBulkDeleteId(hardDeleteDBOne);
+
 const getSingleDB = async (id: string, userId: string) => {
   const record = await PaymentReceivedModel.findOne({
     _id: id,
@@ -239,6 +247,7 @@ export const paymentReceivedService = {
   updateDB,
   deleteDB,
   restoreDB,
+  hardDeleteDB,
 };
 
 

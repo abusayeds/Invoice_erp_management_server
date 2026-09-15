@@ -33,6 +33,12 @@ router.delete(
   authMiddleware(role.company),
   paymentReceivedController.remove
 );
+// Permanent delete from the Trash tab (actually removes the row).
+router.delete(
+  '/hard-delete/:id',
+  authMiddleware(role.company),
+  paymentReceivedController.hardRemove
+);
 // `delete` is a soft delete, so a removed payment can be brought back.
 router.post(
   '/restore/:id',

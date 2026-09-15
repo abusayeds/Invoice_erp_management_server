@@ -28,6 +28,9 @@ const injectId = (req: Request, _res: Response, next: NextFunction) => {
 // hydrate its detail/edit form straight from the list.
 router.get("/", auth, customerController.allCustomerFull);
 router.post("/", auth, enforcePlanLimit("users"), customerController.customerCreate);
+// Permanent delete / restore must be registered before `/:id` routes.
+router.delete("/permanent/:id", auth, customerController.hardDeleteCustomer);
+router.post("/restore/:id", auth, customerController.restoreCustomer);
 router.get("/:id", auth, customerController.singleCustomer);
 router.put("/:id", auth, injectId, customerController.updateCustomer);
 router.patch("/:id", auth, injectId, customerController.updateCustomer);

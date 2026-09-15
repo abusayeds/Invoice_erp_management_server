@@ -337,6 +337,14 @@ const restoreDB = async (id: string, userId: string) => {
   return restored;
 };
 
-export const invoiceService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, restoreDB };
+/** Permanent delete from Trash — removes the row (works whether soft-deleted or not). */
+const hardDeleteDBOne = async (id: string, userId: string) => {
+  const removed = await InvoiceModel.findOneAndDelete({ _id: id, user_id: userId });
+  if (!removed) throw new AppError(httpStatus.NOT_FOUND, 'Invoice not found');
+  return removed;
+};
+const hardDeleteDB = withBulkDeleteId(hardDeleteDBOne);
+
+export const invoiceService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, restoreDB, hardDeleteDB };
 
 

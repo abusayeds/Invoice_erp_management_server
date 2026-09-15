@@ -17,6 +17,9 @@ const auth = authMiddleware(role.company);
 
 router.get("/", auth, invoiceController.getAll);
 router.post("/", auth, invoiceController.create);
+// Permanent delete / restore must be registered before `/:id` routes.
+router.delete("/permanent/:id", auth, invoiceController.hardRemove);
+router.post("/restore/:id", auth, invoiceController.restore);
 router.get("/:id", auth, invoiceController.getSingle);
 router.put("/:id", auth, invoiceController.update);
 router.patch("/:id", auth, invoiceController.update);

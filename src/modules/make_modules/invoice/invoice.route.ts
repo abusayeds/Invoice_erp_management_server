@@ -35,6 +35,13 @@ router.delete(
   invoiceController.remove
 );
 
+// Permanent delete from the Trash tab (actually removes the row).
+router.delete(
+  '/hard-delete/:id',
+  authMiddleware(role.company),
+  invoiceController.hardRemove
+);
+
 // `delete` is a soft delete, so a trashed invoice can be brought back.
 router.post(
   '/restore/:id',

@@ -41,4 +41,11 @@ router.delete(
   estimateController.hardRemove
 );
 
+// `delete` is a soft delete, so a trashed estimate can be brought back.
+router.post(
+  '/restore/:id',
+  authMiddleware(role.company),
+  estimateController.restore
+);
+
 export const estimateRoutes = router;

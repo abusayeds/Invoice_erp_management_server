@@ -110,6 +110,26 @@ const restore = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  await paymentReceivedService.hardDeleteDB(
+    req.params.id,
+    req.user?._id as string
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'PaymentReceived permanently deleted.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.payment_received,
+    entity_ids: [req.params.id],
+    action: ActivityAction.deleted,
+    title: `Payment Received ${req.params.id} Permanently Deleted`,
+  });
+});
+
 export const paymentReceivedController = {
   create,
   getSingle,
@@ -117,4 +137,5 @@ export const paymentReceivedController = {
   update,
   remove,
   restore,
+  hardRemove,
 };

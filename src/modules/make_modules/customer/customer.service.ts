@@ -188,6 +188,44 @@ const deleteCustomerDB = async (user_id: string, payload: TPartyUserWrite) => {
   return toPartyUserResponse(res);
 };
 
+/** Permanent remove from Trash — deletes the User row (already soft-deleted). */
+const hardDeleteCustomerDB = async (user_id: string, id: string) => {
+  const removed = await UserModel.findOneAndDelete({
+    companyId: user_id,
+    _id: id,
+    role: { $in: [...CUSTOMER_ROLE_SET] },
+    isDeleted: true,
+  }).select("-password");
+  if (!removed) {
+    throw new AppError(httpStatus.NOT_FOUND, "Customer not found in Trash");
+  }
+  return toPartyUserResponse(removed);
+};
+
+/** Restore a trashed customer back to the Active list. */
+const restoreCustomerDB = async (user_id: string, id: string) => {
+  const res = await UserModel.findOneAndUpdate(
+    {
+      companyId: user_id,
+      _id: id,
+      role: { $in: [...CUSTOMER_ROLE_SET] },
+      isDeleted: true,
+    },
+    {
+      $set: {
+        isDeleted: false,
+        "businessProfile.isArchive": false,
+        "businessProfile.active": true,
+      },
+    },
+    { new: true }
+  ).select("-password");
+  if (!res) {
+    throw new AppError(httpStatus.NOT_FOUND, "Customer not found in Trash");
+  }
+  return toPartyUserResponse(res);
+};
+
 const updateCustomerDB = async (user_id: string, payload: TPartyUserWrite) => {
   const update = applyPartyUpdateToUser(payload);
   const res = await UserModel.findOneAndUpdate(
@@ -219,5 +257,7 @@ export const customerService = {
   invoiceCustomerList,
   singleCustomerDB,
   deleteCustomerDB,
+  hardDeleteCustomerDB,
+  restoreCustomerDB,
   updateCustomerDB,
 };
