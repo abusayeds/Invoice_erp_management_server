@@ -28,9 +28,14 @@ const createCategory = catchAsync(async (req: AuthRequest, res) => {
 });
 
 // GET ALL
-const getAllCategory = catchAsync(async (req :  AuthRequest, res) => {
-  const category =  req.query.category
-  const result = await categoryService.getAllCategoryDB(   req?.user?._id as string , category as string);
+const getAllCategory = catchAsync(async (req: AuthRequest, res) => {
+  const typeFilter = (req.query.category || req.query.type) as string | undefined;
+  const searchTerm = (req.query.searchTerm || req.query.search) as string | undefined;
+  const result = await categoryService.getAllCategoryDB(
+    req?.user?._id as string,
+    typeFilter,
+    searchTerm,
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

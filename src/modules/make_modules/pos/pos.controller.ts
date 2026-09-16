@@ -27,12 +27,13 @@ const createOrder = catchAsync(async (req: AuthRequest, res) => {
 });
 
 const getOrders = catchAsync(async (req: AuthRequest, res) => {
-  const data = await posOrderService.getAllDB(req.user!._id as string, req.query);
+  const result = await posOrderService.getAllDB(req.user!._id as string, req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "POS orders retrieved successfully",
-    data,
+    data: result.allRecords,
+    pagination: result.pagination,
   });
 });
 

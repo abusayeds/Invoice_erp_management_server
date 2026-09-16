@@ -107,11 +107,18 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
     "goal_id",
     "goal_name goal_type status"
   );
-  const build = new queryBuilder(base, query)
-    .search(["notes"])
-    .filter()
-    .sort()
-    .fields();
+  const build = new queryBuilder(base, query);
+  await build.searchNested({
+    localFields: ["notes"],
+    refs: [
+      {
+        foreignField: "goal_id",
+        model: GoalModel as never,
+        fields: ["goal_name"],
+      },
+    ],
+  });
+  build.filter().sort().fields();
   const { totalData } = await build.paginate(
     GoalContributionModel.find({ ...companyScope(userId), isDeleted: false })
   );

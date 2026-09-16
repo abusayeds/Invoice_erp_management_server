@@ -116,11 +116,33 @@ const updateProduct = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+const mergeProducts = catchAsync(async (req: AuthRequest, res) => {
+  const result = await productService.mergeProductsDB(
+    req.user?._id as string,
+    req.body.survivor_id,
+    req.body.merged_ids,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Products merged successfully.",
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.product,
+    entity_ids: [result.survivor?._id ?? req.body.survivor_id],
+    action: ActivityAction.updated,
+    title: "Products Merged",
+  });
+});
+
 export const productController = {
     productCreate,
     allProduct ,
     singleProduct ,
     deleteProduct ,
     restoreProduct ,
-    updateProduct
+    updateProduct,
+    mergeProducts,
 }

@@ -17,6 +17,8 @@ export type TCompanyRegister = {
   payment_terms_sales?: string;
   payment_terms_purchase?: string;
   start_fiscal_year?: string;
+  /** Company logo path/URL (from /upload). */
+  logo?: string;
   is_owner?: boolean;
   isDeleted?: boolean;
   createdAt?: Date;

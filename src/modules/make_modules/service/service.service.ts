@@ -4,6 +4,7 @@ import httpStatus from "http-status";
 import { TService } from "./service.interface";
 import queryBuilder from "../../../builder/queryBuilder";
 import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
+import { mergeCatalogItemsDB } from "../../../utils/catalogMerge";
 
 const createServiceDB = async (payload: TService) => {
   return await ServiceModel.create(payload);
@@ -71,10 +72,26 @@ const deleteServiceDBOne = async (user_id: string, id: string) => {
 
 const deleteServiceDB = withBulkDeleteIdSecond(deleteServiceDBOne);
 
+const mergeServicesDB = async (
+  user_id: string,
+  survivorId: string,
+  mergedIds: string[],
+) =>
+  mergeCatalogItemsDB({
+    Model: ServiceModel,
+    userId: user_id,
+    survivorId,
+    mergedIdsRaw: mergedIds,
+    label: "Service",
+    refField: "service_id",
+    foldStock: false,
+  });
+
 export const ServiceService = {
   createServiceDB,
   getAllServiceDB,
   getSingleServiceDB,
   updateServiceDB,
   deleteServiceDB,
+  mergeServicesDB,
 };

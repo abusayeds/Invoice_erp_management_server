@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import httpStatus from "http-status";
 import AppError from "../../../errors/AppError";
+import queryBuilder from "../../../builder/queryBuilder";
 import { FormModel } from "./form.model";
 import { FormResponseModel } from "./formResponse.model";
 import { TForm, TFormConversion, TFormField } from "./form.interface";
@@ -18,8 +19,33 @@ const createDB = async (payload: TForm) => {
   return FormModel.create(payload);
 };
 
-const getAllDB = async (user_id: string) =>
-  FormModel.find({ user_id, isDeleted: false }).sort({ createdAt: -1 });
+const getAllDB = async (user_id: string, query: Record<string, unknown> = {}) => {
+  const base = { user_id, isDeleted: false };
+  const qb = new queryBuilder(FormModel.find(base), query)
+    .search(["name", "code"] as never)
+    .filter()
+    .sort()
+    .fields();
+  const { totalData } = await qb.paginate(FormModel.find(base));
+  const data = await qb.modelQuery.exec();
+  const currentPage = Number(query?.page) || 1;
+  const limit = Number(query?.limit) || 10;
+  const pagination = qb.calculatePagination({ totalData, currentPage, limit });
+
+  // Attach live response counts for list UI.
+  const ids = data.map((d) => d._id);
+  const counts = await FormResponseModel.aggregate([
+    { $match: { form_id: { $in: ids }, isDeleted: { $ne: true } } },
+    { $group: { _id: "$form_id", count: { $sum: 1 } } },
+  ]);
+  const countMap = new Map(counts.map((c) => [String(c._id), c.count as number]));
+  const rows = data.map((d) => {
+    const plain = d.toObject ? d.toObject() : d;
+    return { ...plain, response_count: countMap.get(String(d._id)) || 0 };
+  });
+
+  return { data: rows, pagination };
+};
 
 const getSingleDB = async (id: string, user_id: string) => ensureForm(id, user_id);
 
@@ -45,9 +71,16 @@ const updateFieldsDB = async (id: string, user_id: string, fields: TFormField[])
 const deleteFieldDBOne = async (id: string, user_id: string, fieldId: string) =>
   FormModel.findOneAndUpdate({ _id: id, user_id }, { $pull: { fields: { _id: fieldId } } }, { new: true });
 
-const responsesDB = async (formId: string, user_id: string) => {
+const responsesDB = async (formId: string, user_id: string, query: Record<string, unknown> = {}) => {
   await ensureForm(formId, user_id);
-  return FormResponseModel.find({ form_id: formId }).sort({ createdAt: -1 });
+  const base = { form_id: formId, isDeleted: { $ne: true } };
+  const qb = new queryBuilder(FormResponseModel.find(base), query).filter().sort().fields();
+  const { totalData } = await qb.paginate(FormResponseModel.find(base));
+  const data = await qb.modelQuery.exec();
+  const currentPage = Number(query?.page) || 1;
+  const limit = Number(query?.limit) || 10;
+  const pagination = qb.calculatePagination({ totalData, currentPage, limit });
+  return { data, pagination };
 };
 
 const singleResponseDB = async (formId: string, responseId: string, user_id: string) => {

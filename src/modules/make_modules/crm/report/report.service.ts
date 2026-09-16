@@ -10,6 +10,23 @@ const stageFilter = (user_id: string, query: Record<string, unknown>) => {
   return f;
 };
 
+const entityFilter = (user_id: string, query: Record<string, unknown>) => {
+  const f = stageFilter(user_id, query) as Record<string, unknown>;
+  const from = query.from_date;
+  const to = query.to_date;
+  if (from || to) {
+    const createdAt: Record<string, Date> = {};
+    if (typeof from === "string" && from) createdAt.$gte = new Date(from);
+    if (typeof to === "string" && to) {
+      const end = new Date(to);
+      end.setHours(23, 59, 59, 999);
+      createdAt.$lte = end;
+    }
+    f.createdAt = createdAt;
+  }
+  return f;
+};
+
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEK_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -109,7 +126,7 @@ const countByRefs = (rows: any[], pick: (r: any) => any[]) => {
 };
 
 const leadReportsDB = async (user_id: string, query: Record<string, unknown>) => {
-  const leads = await LeadModel.find(stageFilter(user_id, query))
+  const leads = await LeadModel.find(entityFilter(user_id, query))
     .populate("sources", "name")
     .populate("assigned_users", "name email")
     .populate("pipeline_id", "name")
@@ -157,7 +174,7 @@ const leadReportsDB = async (user_id: string, query: Record<string, unknown>) =>
 };
 
 const dealReportsDB = async (user_id: string, query: Record<string, unknown>) => {
-  const deals = await DealModel.find(stageFilter(user_id, query))
+  const deals = await DealModel.find(entityFilter(user_id, query))
     .populate("sources", "name")
     .populate("assigned_users", "name email")
     .populate("clients", "name email businessProfile")

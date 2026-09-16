@@ -17,7 +17,9 @@ export interface TPosOrder {
   customer_name?: string;
   customer_id?: Types.ObjectId;
   warehouse?: string;
+  warehouse_id?: Types.ObjectId;
   bank_account?: string;
+  bank_account_id?: Types.ObjectId;
   items: TPosOrderItem[];
   discount: number;
   sub_total: number;
@@ -45,9 +47,11 @@ const posOrderSchema = new Schema<TPosOrder>(
     order_number: { type: String, required: true },
     date: { type: Date, default: Date.now },
     customer_name: { type: String, default: "Walk-in Customer" },
-    customer_id: { type: Schema.Types.ObjectId, ref: "User" },
+    customer_id: { type: Schema.Types.ObjectId, ref: "Customer" },
     warehouse: { type: String, default: "" },
+    warehouse_id: { type: Schema.Types.ObjectId, ref: "Warehouse" },
     bank_account: { type: String, default: "" },
+    bank_account_id: { type: Schema.Types.ObjectId, ref: "BankAccount" },
     items: { type: [posOrderItemSchema], default: [] },
     discount: { type: Number, default: 0 },
     sub_total: { type: Number, default: 0 },

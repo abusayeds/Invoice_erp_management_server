@@ -1,6 +1,8 @@
 import httpStatus from "http-status";
 import { Types } from "mongoose";
 import AppError from "../../../../errors/AppError";
+import queryBuilder from "../../../../builder/queryBuilder";
+import { ProductModel } from "../../product/product.model";
 import { PosOrderModel, TPosOrder, TPosOrderItem } from "./posOrder.model";
 
 const uid = (id: string) => new Types.ObjectId(id);
@@ -26,18 +28,39 @@ const createDB = async (payload: Partial<TPosOrder>) => {
     status: payload.status || "Completed",
     isDeleted: false,
   };
-  return PosOrderModel.create(data);
+  const created = await PosOrderModel.create(data);
+
+  for (const item of items) {
+    if (!item.product_id) continue;
+    const qty = Number(item.quantity) || 0;
+    if (qty <= 0) continue;
+    const prod = await ProductModel.findById(item.product_id);
+    if (!prod?.stock) continue;
+    const onHand = Math.max(0, (Number(prod.stock.onHandStock) || 0) - qty);
+    const available = Math.max(0, (Number(prod.stock.availableForSale) || 0) - qty);
+    prod.stock.onHandStock = onHand;
+    prod.stock.availableForSale = available;
+    await prod.save();
+  }
+
+  return created;
 };
 
 const getAllDB = async (userId: string, query: Record<string, unknown>) => {
-  const filter: Record<string, unknown> = { user_id: uid(userId), isDeleted: { $ne: true } };
-  const term = (query.searchTerm as string) ?? "";
-  if (term.trim()) {
-    const rx = new RegExp(term.trim(), "i");
-    filter.$or = [{ order_number: rx }, { customer_name: rx }, { warehouse: rx }];
-  }
-  if (query.status) filter.status = query.status;
-  return PosOrderModel.find(filter).sort({ createdAt: -1 }).lean();
+  const buildQuery = new queryBuilder(
+    PosOrderModel.find({ user_id: uid(userId), isDeleted: { $ne: true } }),
+    query,
+  )
+    .search(["order_number", "customer_name", "warehouse"])
+    .filter()
+    .sort()
+    .fields();
+  const { totalData } = await buildQuery.paginate();
+  const allRecords = await buildQuery.modelQuery.exec();
+  const currentPage = Number(query?.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const pagination = buildQuery.calculatePagination({ totalData, currentPage, limit });
+  return { allRecords, pagination };
 };
 
 const getSingleDB = async (id: string, userId: string) => {

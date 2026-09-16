@@ -7,6 +7,7 @@ import { CategoryModel } from "./category/category.model";
 import { TaxModel } from "./tax/tax.model";
 import { taxTypesForProduct } from "./tax/tax.interface";
 import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
+import { mergeCatalogItemsDB } from "../../../utils/catalogMerge";
 
 const productCreateDB = async (payload : TProduct) => {
   // Category is OPTIONAL and not tightly coupled: only validate when one is
@@ -98,11 +99,27 @@ const updateProductDB = async (user_id : string , id : string , payload : TProdu
 const deleteProductDB = withBulkDeleteIdSecond(deleteProductDBOne);
 const restoreProductDB = withBulkDeleteIdSecond(restoreProductDBOne);
 
+const mergeProductsDB = async (
+  user_id: string,
+  survivorId: string,
+  mergedIds: string[],
+) =>
+  mergeCatalogItemsDB({
+    Model: ProductModel,
+    userId: user_id,
+    survivorId,
+    mergedIdsRaw: mergedIds,
+    label: "Product",
+    refField: "product_id",
+    foldStock: true,
+  });
+
 export const productService  = {
     productCreateDB,
     allProductDB  ,
     singleProductDB ,
     deleteProductDB ,
     restoreProductDB ,
-    updateProductDB
+    updateProductDB,
+    mergeProductsDB,
 }

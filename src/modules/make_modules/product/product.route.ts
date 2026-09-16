@@ -35,5 +35,10 @@ router.patch(
   authMiddleware(role.company),
   productController.updateProduct
 );
+router.post(
+  "/merge",
+  authMiddleware(role.company),
+  productController.mergeProducts
+);
 
 export const productRoutes = router;

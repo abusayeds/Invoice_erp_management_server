@@ -108,10 +108,32 @@ const deleteService = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+const mergeServices = catchAsync(async (req: AuthRequest, res) => {
+  const result = await ServiceService.mergeServicesDB(
+    req.user?._id as string,
+    req.body.survivor_id,
+    req.body.merged_ids,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Services merged successfully.",
+    data: result,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.service,
+    entity_ids: [result.survivor?._id ?? req.body.survivor_id],
+    action: ActivityAction.updated,
+    title: "Services Merged",
+  });
+});
+
 export const ServiceController = {
   createService,
   getAllService,
   getSingleService,
   updateService,
   deleteService,
+  mergeServices,
 };

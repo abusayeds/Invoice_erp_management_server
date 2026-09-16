@@ -16,8 +16,16 @@ const createForm = catchAsync(async (req: AuthRequest, res) => {
   ok(res, "Form created successfully.", await formService.createDB(req.body));
 });
 
-const getAllForm = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Forms retrieved successfully.", await formService.getAllDB(uid(req))));
+const getAllForm = catchAsync(async (req: AuthRequest, res) => {
+  const result = await formService.getAllDB(uid(req), req.query as Record<string, unknown>);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Forms retrieved successfully.",
+    data: result.data,
+    pagination: result.pagination,
+  });
+});
 
 const getSingleForm = catchAsync(async (req: AuthRequest, res) =>
   ok(res, "Form retrieved successfully.", await formService.getSingleDB(req.params.id, uid(req))));
@@ -34,8 +42,16 @@ const updateFields = catchAsync(async (req: AuthRequest, res) =>
 const deleteField = catchAsync(async (req: AuthRequest, res) =>
   ok(res, "Form field deleted successfully.", await formService.deleteFieldDB(req.params.id, uid(req), req.params.fieldId)));
 
-const getResponses = catchAsync(async (req: AuthRequest, res) =>
-  ok(res, "Form responses retrieved successfully.", await formService.responsesDB(req.params.id, uid(req))));
+const getResponses = catchAsync(async (req: AuthRequest, res) => {
+  const result = await formService.responsesDB(req.params.id, uid(req), req.query as Record<string, unknown>);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Form responses retrieved successfully.",
+    data: result.data,
+    pagination: result.pagination,
+  });
+});
 
 const getSingleResponse = catchAsync(async (req: AuthRequest, res) =>
   ok(res, "Form response retrieved successfully.", await formService.singleResponseDB(req.params.id, req.params.responseId, uid(req))));

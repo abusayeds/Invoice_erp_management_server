@@ -18,6 +18,7 @@ const companyRegisterSchema = new Schema<TCompanyRegister>(
     payment_terms_sales: { type: String },
     payment_terms_purchase: { type: String },
     start_fiscal_year: { type: String },
+    logo: { type: String, trim: true },
     is_owner: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
   },

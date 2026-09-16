@@ -5,6 +5,7 @@ dns.setDefaultResultOrder('ipv4first');
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
+import path from "path";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import notFound from "./middlewares/notFound";
 import router from "./routes";
@@ -28,7 +29,10 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.static("public"));
+// Serve uploads from absolute public dir so /files/* never falls through to API 404.
+const publicDir = path.resolve(process.cwd(), "public");
+app.use("/files", express.static(path.join(publicDir, "files")));
+app.use(express.static(publicDir));
 app.use(logsRoutes);
 app.use(logHttpRequests);
 app.use(express.json({ limit: "16mb" }));
