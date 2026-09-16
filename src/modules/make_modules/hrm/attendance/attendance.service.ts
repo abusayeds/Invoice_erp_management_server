@@ -159,6 +159,24 @@ const assertCanClockIn = async (
   }
 };
 
+/** Statuses that mark the day without requiring a clock-in. */
+const NON_CLOCK_STATUSES = new Set(["on leave", "off day", "absent"]);
+
+const normalizeAttendanceStatus = (raw: unknown): string | undefined => {
+  if (raw === undefined || raw === null || String(raw).trim() === "") return undefined;
+  const s = String(raw).trim().toLowerCase();
+  if (s === "leave" || s === "onleave") return "on leave";
+  if (s === "half" || s === "halfday") return "half day";
+  if (s === "off" || s === "dayoff" || s === "day off") return "off day";
+  return s;
+};
+
+const resolveAttendanceStatus = (raw: unknown, fallback = "present") => {
+  const normalized = normalizeAttendanceStatus(raw);
+  if (normalized === undefined) return fallback;
+  return assertEnumValue(normalized, ATTENDANCE_STATUS, "status");
+};
+
 const removeOne = async (req: AuthRequest, oneId: string) => {
   const companyId = resolveCompanyId(req);
   const updated = await HrmAttendanceModel.findOneAndUpdate(
@@ -307,6 +325,8 @@ export const attendanceService = {
       if (profile?.shift_id) body.shift_id = profile.shift_id;
     }
     const date = startOfDay(parseDate(body.date, "date"));
+    const status = resolveAttendanceStatus(body.status, "present");
+    const skipClockGate = NON_CLOCK_STATUSES.has(status);
     const existing = await HrmAttendanceModel.findOne({
       ...companyScope(companyId),
       employee_id,
@@ -318,42 +338,45 @@ export const attendanceService = {
       // previously only status was updated here.
       const inAt = combineDateTime(date, body.clock_in);
       const outAt = combineDateTime(date, body.clock_out);
-      // A holiday (or approved leave / non-working day) is a day off — setting
-      // clock in/out on it isn't allowed, so block it here too. Status/notes
-      // only edits are still permitted.
-      if (inAt || outAt) {
+      // Marking leave / off day / absent does not require clock eligibility.
+      // Present/half-day still cannot clock on holiday/approved-leave/weekend.
+      if (!skipClockGate && (inAt || outAt)) {
         await assertCanClockIn(companyId, employee_id, date);
       }
-      if (body.status !== undefined) {
-        existing.status = assertEnumValue(body.status, ATTENDANCE_STATUS, "status") as never;
+      existing.status = status as never;
+      if (skipClockGate) {
+        existing.clock_in = null as never;
+        existing.clock_out = null as never;
+        existing.total_hour = 0;
+      } else {
+        if (inAt) existing.clock_in = inAt;
+        if (outAt) existing.clock_out = outAt;
+        if (existing.clock_in && existing.clock_out) {
+          existing.total_hour =
+            Math.round(((existing.clock_out.getTime() - existing.clock_in.getTime()) / 3600000) * 100) / 100;
+        }
       }
-      if (inAt) existing.clock_in = inAt;
-      if (outAt) existing.clock_out = outAt;
       if (body.notes !== undefined) existing.notes = String(body.notes);
-      if (existing.clock_in && existing.clock_out) {
-        existing.total_hour =
-          Math.round(((existing.clock_out.getTime() - existing.clock_in.getTime()) / 3600000) * 100) / 100;
-      }
       await existing.save();
       return { action: "updated" as const, data: formatAttendanceDoc(existing) };
     }
 
-    await assertCanClockIn(companyId, employee_id, date);
-    const clockIn = combineDateTime(date, body.clock_in) ?? new Date();
-    const clockOut = combineDateTime(date, body.clock_out);
+    if (!skipClockGate) {
+      await assertCanClockIn(companyId, employee_id, date);
+    }
+    const clockIn = skipClockGate ? undefined : (combineDateTime(date, body.clock_in) ?? new Date());
+    const clockOut = skipClockGate ? undefined : combineDateTime(date, body.clock_out);
     const doc = await HrmAttendanceModel.create({
       employee_id,
       shift_id: body.shift_id,
       date,
       clock_in: clockIn,
       clock_out: clockOut,
-      total_hour: clockOut
-        ? Math.round(((clockOut.getTime() - clockIn.getTime()) / 3600000) * 100) / 100
-        : 0,
-      status:
-        body.status !== undefined
-          ? (assertEnumValue(body.status, ATTENDANCE_STATUS, "status") as never)
-          : "present",
+      total_hour:
+        clockIn && clockOut
+          ? Math.round(((clockOut.getTime() - clockIn.getTime()) / 3600000) * 100) / 100
+          : 0,
+      status: status as never,
       notes: body.notes,
       user_id: companyScope(companyId).user_id,
       creator_id: creatorObjectId(req),
@@ -503,7 +526,12 @@ export const attendanceService = {
       if (outAt) row.clock_out = outAt;
     }
     if (body.status !== undefined) {
-      row.status = assertEnumValue(body.status, ATTENDANCE_STATUS, "status") as never;
+      row.status = resolveAttendanceStatus(body.status) as never;
+      if (NON_CLOCK_STATUSES.has(String(row.status))) {
+        row.clock_in = null as never;
+        row.clock_out = null as never;
+        row.total_hour = 0;
+      }
     }
     if (body.notes !== undefined) row.notes = String(body.notes);
     if (row.clock_in && row.clock_out) {

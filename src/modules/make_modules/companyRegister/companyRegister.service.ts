@@ -44,17 +44,20 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
 
   let rows = await CompanyRegisterModel.find(filter).sort({ createdAt: -1 }).lean();
 
-  const user = await UserModel.findById(userId).select("name email image").lean();
-  const userEmail = String(user?.email || "").trim().toLowerCase();
-  const userName = String(user?.name || "").trim();
+  const userDoc = (await UserModel.findById(userId)
+    .select("name email image")
+    .lean()) as { name?: string; email?: string; image?: string } | null;
+  const userEmail = String(userDoc?.email || "").trim().toLowerCase();
+  const userName = String(userDoc?.name || "").trim();
+  const userLogo = String(userDoc?.image || "").trim();
 
   // Seed the owner's company register from the login account when empty.
   if (rows.length === 0) {
     const seeded = await CompanyRegisterModel.create({
       user_id: uid(userId),
       business_name: userName || userEmail || "My Company",
-      email: user?.email || "",
-      logo: (user as any)?.image || "",
+      email: userDoc?.email || "",
+      logo: userLogo,
       is_owner: true,
     });
     rows = [seeded.toObject()];
@@ -71,8 +74,8 @@ const getAllDB = async (userId: string, query: Record<string, unknown>) => {
       const seeded = await CompanyRegisterModel.create({
         user_id: uid(userId),
         business_name: userName || userEmail || "My Company",
-        email: user?.email || "",
-        logo: (user as any)?.image || "",
+        email: userDoc?.email || "",
+        logo: userLogo,
         is_owner: true,
       });
       rows = [seeded.toObject(), ...rows.map((r) => ({ ...r, is_owner: false }))];
