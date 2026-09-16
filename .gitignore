@@ -5,7 +5,12 @@ dist/
 /public/files/*    
 !/public/files/qayd.png   
 /logs
+
+# Env files (never commit secrets — keep .env.example only)
 .env
+.env.*
+!.env.example
+
 .tmp_*
 .cursor/
 docs/
