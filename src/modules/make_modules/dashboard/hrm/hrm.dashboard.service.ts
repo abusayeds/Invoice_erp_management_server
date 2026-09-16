@@ -220,6 +220,21 @@ const companyDashboard = async (companyId: string) => {
 
   const recentAnnouncements = await activeAnnouncements(companyId, today);
 
+  // Compact team snapshot for the dashboard (no invented attendance %).
+  const teamRaw = await HrmEmployeeModel.find(scope)
+    .populate("employee_user_id", "name image")
+    .populate("designation_id", "designation_name")
+    .populate("department_id", "department_name")
+    .sort({ createdAt: -1 })
+    .limit(8)
+    .lean();
+  const teamMembers = teamRaw.map((e: any) => ({
+    name: e.employee_user_id?.name || e.employee_id || "Employee",
+    role: e.designation_id?.designation_name || "—",
+    department: e.department_id?.department_name || "—",
+    avatar: e.employee_user_id?.image || "",
+  }));
+
   return {
     stats: {
       total_employees: totalEmployees,
@@ -239,6 +254,7 @@ const companyDashboard = async (companyId: string) => {
       upcoming_birthdays: await upcomingBirthdays(companyId, today),
       employees_on_leave_today: employeesOnLeaveToday,
       employees_without_attendance: employeesWithoutAttendance,
+      team_members: teamMembers,
     },
     message: "HRM Dashboard - Complete overview of your workforce.",
   };
