@@ -8,6 +8,7 @@ const docFieldVisibilitySchema = new Schema(
   {
     due_date: Boolean,
     shipping_address: Boolean,
+    internal_notes: Boolean,
     street1: Boolean,
     street2: Boolean,
     zip_code: Boolean,
@@ -16,8 +17,10 @@ const docFieldVisibilitySchema = new Schema(
     country: Boolean,
     sub_title: Boolean,
     po: Boolean,
+    po_date: Boolean,
     recipient_name: Boolean,
     shipping_cost_and_method: Boolean,
+    shipping_tax: Boolean,
     salesperson: Boolean,
     payment_methods: Boolean,
     payment_type: Boolean,
@@ -32,6 +35,7 @@ const docFieldVisibilitySchema = new Schema(
 const docGeneralSchema = new Schema(
   {
     line_option: String,
+    create_public_url_in_email: Boolean,
     track_purchase_orders_in_stock: Boolean,
   },
   { _id: false }
@@ -64,6 +68,8 @@ const docSummarySchema = new Schema(
     negative_value_format: Boolean,
     subtotal_with_tax: String,
     contact_note_as_default_note: Boolean,
+    custom_charges: Boolean,
+    inline_discount: Boolean,
     show_line_total_with_tax: Boolean,
   },
   { _id: false }
@@ -79,6 +85,13 @@ const docPrintEmailSchema = new Schema(
   { _id: false }
 );
 
+const docPaymentSchema = new Schema(
+  {
+    cash_received_denomination: Boolean,
+  },
+  { _id: false }
+);
+
 const documentSchema = () =>
   new Schema(
     {
@@ -87,6 +100,7 @@ const documentSchema = () =>
       columns: docColumnsSchema,
       summary: docSummarySchema,
       print_email: docPrintEmailSchema,
+      payment: docPaymentSchema,
     },
     { _id: false }
   );

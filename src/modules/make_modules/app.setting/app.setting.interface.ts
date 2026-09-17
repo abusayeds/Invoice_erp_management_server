@@ -28,7 +28,8 @@ export type TDocumentSubType =
   | "general"
   | "columns"
   | "summary"
-  | "print_email";
+  | "print_email"
+  | "payment";
 export type TProductSubType = "field_visibility" | "general" | "stock";
 export type TTimeLogSubType = "columns" | "summary";
 export type TSettingSubType = TDocumentSubType | TProductSubType | TTimeLogSubType;
@@ -36,6 +37,7 @@ export type TSettingSubType = TDocumentSubType | TProductSubType | TTimeLogSubTy
 export type TDocFieldVisibility = {
   due_date?: boolean;
   shipping_address?: boolean;
+  internal_notes?: boolean;
   street1?: boolean;
   street2?: boolean;
   zip_code?: boolean;
@@ -44,8 +46,10 @@ export type TDocFieldVisibility = {
   country?: boolean;
   sub_title?: boolean;
   po?: boolean;
+  po_date?: boolean;
   recipient_name?: boolean;
   shipping_cost_and_method?: boolean;
+  shipping_tax?: boolean;
   salesperson?: boolean;
   payment_methods?: boolean;
   payment_type?: boolean;
@@ -78,6 +82,8 @@ export type TDocSummary = {
   negative_value_format?: boolean;
   subtotal_with_tax?: string;
   contact_note_as_default_note?: boolean;
+  custom_charges?: boolean;
+  inline_discount?: boolean;
   show_line_total_with_tax?: boolean;
 };
 
@@ -88,15 +94,21 @@ export type TDocPrintEmail = {
   number_of_copies_on_print?: string;
 };
 
+export type TDocPayment = {
+  cash_received_denomination?: boolean;
+};
+
 export type TDocumentConfig = {
   field_visibility?: TDocFieldVisibility;
   general?: {
     line_option?: string;
+    create_public_url_in_email?: boolean;
     track_purchase_orders_in_stock?: boolean;
   };
   columns?: TDocColumns;
   summary?: TDocSummary;
   print_email?: TDocPrintEmail;
+  payment?: TDocPayment;
 };
 
 export type TSetting = {

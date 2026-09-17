@@ -6,7 +6,7 @@ import { setting_seed_data } from "../../../utils/seed/seed.setting";
 
 // ── Valid subTypes per type ──────────────────────────────
 
-const DOC_SUB_TYPES = ["field_visibility", "general", "columns", "summary", "print_email"];
+const DOC_SUB_TYPES = ["field_visibility", "general", "columns", "summary", "print_email", "payment"];
 
 const SUB_TYPE_MAP: Partial<Record<TSettingType, string[]>> = {
   invoice:          DOC_SUB_TYPES,
