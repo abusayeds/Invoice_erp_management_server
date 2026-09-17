@@ -219,6 +219,11 @@ const settingSchema = new Schema(
       },
       stock: {
         product_stock: Boolean,
+        out_of_stock_items_online_store: String,
+      },
+      checkout: {
+        product_price_on_checkout: Boolean,
+        product_image_size: String,
       },
     },
 

@@ -197,6 +197,11 @@ export type TSetting = {
     };
     stock?: {
       product_stock?: boolean;
+      out_of_stock_items_online_store?: string;
+    };
+    checkout?: {
+      product_price_on_checkout?: boolean;
+      product_image_size?: string;
     };
   };
 
