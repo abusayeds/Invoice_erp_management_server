@@ -9,7 +9,7 @@ import { STRIPE_WEBHOOK_SECRET } from "../../../../config";
 import { UserModel } from "../../../basic_modules/user/user.model";
 import { PlanModel } from "../plan/plan.model";
 import { assignPlan } from "../companySubscription/assignment.service";
-import { getActiveSubscription, resolveCompanyId } from "../subscription.helpers";
+import { getActiveSubscription, resolveCompanyId, cancelCompanySubscription } from "../subscription.helpers";
 import { TBillingCycle } from "../subscription.constants";
 import { stripe, createPlanCheckoutSession } from "./checkout.service";
 import { renderSuccessPage, renderCancelPage } from "./checkout.pages";
@@ -118,6 +118,18 @@ const mySubscription = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** POST /subscription/cancel — stop auto-renew; access continues until end_date. */
+const cancelSubscription = catchAsync(async (req: AuthRequest, res) => {
+  const companyId = resolveCompanyId(req);
+  const sub = await cancelCompanySubscription(companyId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Subscription cancelled. You keep access until the current period ends.",
+    data: sub,
+  });
+});
+
 /** POST /stripe/webhook (raw body, mounted in app.ts). Activates the plan on successful payment. */
 const webhook = async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string;
@@ -217,6 +229,7 @@ export const checkoutController = {
   assignFree,
   startTrial,
   mySubscription,
+  cancelSubscription,
   webhook,
   checkoutSuccess,
   checkoutCancel,
