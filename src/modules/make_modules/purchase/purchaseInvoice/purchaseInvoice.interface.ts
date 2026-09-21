@@ -70,6 +70,8 @@ export type TPurchaseInvoice = {
   notes?: string;
   internal_notes?: string;
   Attachment?: string;
+  /** Captured vendor signature image path (from POST /api/v1/upload). */
+  signature?: string;
   status: TPurchaseInvoiceStatus;
   sub_total: number;
   deposit: number | string;

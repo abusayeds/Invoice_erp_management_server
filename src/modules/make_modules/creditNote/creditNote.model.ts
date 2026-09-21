@@ -67,6 +67,8 @@ const creditNoteSchema = new Schema<TCreditNote>(
     notes: { type: String },
     internal_notes: { type: String },
     Attachment: { type: String },
+    // Captured customer signature image path.
+    signature: { type: String },
     status: { type: String, enum: creditNoteStatus, default: 'Draft' },
     sub_total: { type: Number, default: 0 },
     deposit: { type: Number, default: 0 },

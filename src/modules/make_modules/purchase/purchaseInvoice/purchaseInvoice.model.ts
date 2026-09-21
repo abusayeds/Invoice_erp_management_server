@@ -63,6 +63,8 @@ const purchaseInvoiceSchema = new Schema<TPurchaseInvoice>(
     notes: { type: String },
     internal_notes: { type: String },
     Attachment: { type: String },
+    // Captured vendor signature image path (rendered in the PO PDF / detail panel).
+    signature: { type: String },
     status: { type: String, enum: purchaseInvoiceStatus, default: "draft" },
     sub_total: { type: Number, default: 0 },
     deposit: { type: Number, default: 0 },

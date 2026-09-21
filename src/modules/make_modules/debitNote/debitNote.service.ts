@@ -172,22 +172,24 @@ const updateSignatureDB = async (
 };
 
 const deleteDraftDBOne = async (id: string, userId: string) => {
-  const record = await DebitNoteModel.findOne({ _id: id, user_id: userId, isDeleted: false });
-  if (!record) throw new AppError(httpStatus.NOT_FOUND, "Debit note not found");
-  if (record.status !== "Draft") {
-    throw new AppError(httpStatus.BAD_REQUEST, "Only draft debit notes can be deleted");
-  }
-  record.isDeleted = true;
-  await record.save();
-  return record;
+  // Soft-trash any status (list Trash tab); permanent delete is a separate hard-delete path if added later.
+  const trashed = await DebitNoteModel.findOneAndUpdate(
+    { _id: id, user_id: userId, isDeleted: false },
+    { isDeleted: true },
+    { new: true },
+  );
+  if (!trashed) throw new AppError(httpStatus.NOT_FOUND, "Debit note not found");
+  return trashed;
 };
 
 const getSingleDB = async (id: string, userId: string) => {
+  // Not pinned to isDeleted/isArchive false: single view must open Trash/Archive rows too.
   const record = await DebitNoteModel.findOne({
     _id: id,
     user_id: userId,
-    isArchive: false,
-    isDeleted: false,
+  }).populate({
+    path: 'vendor_id',
+    select: CLIENT_POPULATE_SELECT,
   });
   if (!record) {
     throw new AppError(httpStatus.NOT_FOUND, 'DebitNote not found');

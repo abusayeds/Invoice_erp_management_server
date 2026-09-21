@@ -154,12 +154,15 @@ const invoiceCustomerList = async (
 const singleCustomerDB = async (
   user_id: string,
   _id: string,
-  query: Record<string, unknown> = {}
+  _query: Record<string, unknown> = {}
 ): Promise<IUser | null> => {
+  // Do not pin isArchive/isDeleted — detail/edit must open Archived + Trash rows.
   const doc = await UserModel.findOne({
-    ...partyBaseFilter(user_id, role.customer, query),
+    companyId: user_id,
     _id,
-  }).populate("businessProfile.default_tax_service_id", "name rate type")
+    role: { $in: [...CUSTOMER_ROLE_SET] },
+  })
+    .populate("businessProfile.default_tax_service_id", "name rate type")
     .populate("businessProfile.default_tax_product_id", "name rate type")
     .select("-password");
   if (!doc) return null;

@@ -103,11 +103,13 @@ const VendorReturnList = async (
 const singleVendorDB = async (
   user_id: string,
   _id: string,
-  query: Record<string, unknown> = {}
+  _query: Record<string, unknown> = {}
 ): Promise<IUser | null> => {
+  // Do not pin isArchive/isDeleted — detail/edit must open Archived + Trash rows.
   const doc = await UserModel.findOne({
-    ...partyBaseFilter(user_id, role.vendor, query),
+    companyId: user_id,
     _id,
+    role: { $in: [...VENDOR_ROLE_SET] },
   }).select("-password");
   if (!doc) return null;
   return toPartyUserResponse(doc);

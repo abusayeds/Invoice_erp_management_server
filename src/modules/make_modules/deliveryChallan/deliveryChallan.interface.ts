@@ -62,6 +62,8 @@ export type TDeliveryChallan = {
   notes?: string;
   internal_notes?: string;
   Attachment?: string;
+  /** Captured customer signature image path. */
+  signature?: string;
   sub_total: number;
   deposit: number | string;
   discount: number | string;

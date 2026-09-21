@@ -244,8 +244,20 @@ const getSingleDB = async (userId: string, id: string) => {
 const updateDB = async (userId: string, id: string, body: Record<string, unknown>) => {
   const existing = await PurchaseInvoiceModel.findOne({ _id: id, user_id: userId });
   if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Purchase invoice not found");
+
+  // Non-draft POs are locked for line/money edits, but vendor signature must
+  // still be savable (Sent / Approved / Received / …).
   if (existing.status !== "draft") {
-    throw new AppError(httpStatus.BAD_REQUEST, "Cannot update a posted invoice");
+    const signature = typeof body.signature === "string" ? body.signature.trim() : "";
+    if (!signature) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Cannot update a posted invoice");
+    }
+    const updated = await PurchaseInvoiceModel.findOneAndUpdate(
+      { _id: id, user_id: userId },
+      { $set: { signature } },
+      { new: true, runValidators: true }
+    ).populate(POPULATE);
+    return updated;
   }
 
   const payload = normalizeBody(body) as TPurchaseInvoice;
