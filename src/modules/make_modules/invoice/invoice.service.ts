@@ -155,6 +155,10 @@ const getSingleDB = async (id: string, userId: string) => {
       select: CLIENT_POPULATE_SELECT,
     })
     .populate({
+      path: "salesperson",
+      select: "name email status",
+    })
+    .populate({
       path: "product.product_id",
       select: "productName description",
     });
@@ -174,6 +178,10 @@ const getAllDB = async (query: Record<string, unknown>, user_id: string) => {
       .populate({
         path: "customer_id",
         select: CLIENT_POPULATE_SELECT,
+      })
+      .populate({
+        path: "salesperson",
+        select: "name email status",
       })
       .populate({
         path: "product.product_id",
