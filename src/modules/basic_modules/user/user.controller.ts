@@ -307,6 +307,16 @@ const rolePermissions = catchAsync(async (req: AuthRequest, res: Response) => {
   });
 });
 
+const loginPresets = catchAsync(async (_req: Request, res: Response) => {
+  const result = await userService.loginPresetsDB();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Login presets retrieved successfully",
+    data: result,
+  });
+});
+
 export const userController = {
   registerUser,
   loginUser,
@@ -324,7 +334,8 @@ export const userController = {
   createCompanyBySuperadmin , 
   allUserForCompany ,
   allRole ,
-  rolePermissions
+  rolePermissions,
+  loginPresets,
 };
 
 export const BlockUser = catchAsync(async (req: Request, res: Response) => {

@@ -124,7 +124,34 @@ const getPermissionByRoleDB = async (companyId: string, roleName: string) => {
   return result;
 };
 
+/** Toggle whether a role is allowed to log in for this company. */
+const setRoleActiveDB = async (
+  companyId: string,
+  payload: { role?: string; isActive?: boolean; label?: string },
+) => {
+  const roleName = String(payload.role ?? "").trim();
+  if (!roleName) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Role is required");
+  }
+  if (RESERVED_ROLE_NAMES.has(roleName)) {
+    throw new AppError(httpStatus.BAD_REQUEST, "This role name is reserved");
+  }
+  if (typeof payload.isActive !== "boolean") {
+    throw new AppError(httpStatus.BAD_REQUEST, "isActive must be a boolean");
+  }
 
+  const update: Record<string, unknown> = { isActive: payload.isActive };
+  if (payload.label !== undefined) {
+    update.label = String(payload.label).trim();
+  }
+
+  const result = await PermissionModel.findOneAndUpdate(
+    { companyId, role: roleName },
+    { $set: update, $setOnInsert: { permissions: [] } },
+    { new: true, upsert: true, runValidators: true },
+  );
+  return result;
+};
 
 export const permissionService = {
   updatePermissionDB,
@@ -132,6 +159,6 @@ export const permissionService = {
   updateUserPermissionsDB,
   getPermissionsByCompanyDB,
   getPermissionByRoleDB,
-
+  setRoleActiveDB,
 };
 

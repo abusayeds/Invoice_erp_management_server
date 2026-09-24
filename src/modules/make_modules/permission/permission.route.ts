@@ -29,6 +29,16 @@ router.get(
   permissionController.getPermissionsByCompany
 );
 
- router.get("/all-permissions", authMiddleware(role.superadmin  , role.company), permissionController.getAllPermissions);
+router.get(
+  "/all-permissions",
+  authMiddleware(role.superadmin, role.company),
+  permissionController.getAllPermissions,
+);
+
+router.patch(
+  "/role-active",
+  authMiddleware(role.company),
+  permissionController.setRoleActive,
+);
 
 export const permissionRoutes = router;

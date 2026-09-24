@@ -17,6 +17,15 @@ const permissionSchema = new Schema<TPermission>(
       trim: true,
     },
     permissions: [{ type: String }],
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    label: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   { timestamps: true },
 );

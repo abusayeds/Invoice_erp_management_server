@@ -98,6 +98,24 @@ const loginDB = async (email: string, password: string) => {
   if (!user.login) {throw new AppError(httpStatus.UNAUTHORIZED,"You are not allowed to login.")}
   if (user.isDeleted) { throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
 
+  // Block login when the company has deactivated this user's role.
+  if (
+    user.role !== role.superadmin &&
+    user.role !== role.company &&
+    user.companyId
+  ) {
+    const rolePerm = await PermissionModel.findOne({
+      companyId: user.companyId,
+      role: user.role,
+    }).select("isActive");
+    if (rolePerm && rolePerm.isActive === false) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "This role is inactive. Contact your administrator.",
+      );
+    }
+  }
+
   const isPasswordValid = await bcrypt.compare(
     password,
     user.password as string,
@@ -121,6 +139,24 @@ const googleLoginDB = async (payload : IUser) => {
   let user = await UserModel.findOne({ email: email  , authProvider : "google" }).select('+permissionsOverridden');
   if (!user) { throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
   if (user.isDeleted) {throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
+
+  if (
+    user.role !== role.superadmin &&
+    user.role !== role.company &&
+    user.companyId
+  ) {
+    const rolePerm = await PermissionModel.findOne({
+      companyId: user.companyId,
+      role: user.role,
+    }).select("isActive");
+    if (rolePerm && rolePerm.isActive === false) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "This role is inactive. Contact your administrator.",
+      );
+    }
+  }
+
  if (!user) {
     user = await UserModel.create({
       name: payload.name,
@@ -347,7 +383,7 @@ const allRoleDB = async (companyId: string) => {
   const users = await UserModel.find({
     isDeleted: false,
     companyId,
-  }).select("name role");
+  }).select("name role email");
 
   // All permission docs for this company (base + custom roles).
   const permissionsData = await PermissionModel.find({ companyId });
@@ -363,6 +399,11 @@ const allRoleDB = async (companyId: string) => {
   // Union, de-duplicated, base roles first then custom roles.
   const allRoleNames = Array.from(new Set<string>([...baseRoles, ...customRoles]));
 
+  const prettyLabel = (name: string, stored?: string) => {
+    if (stored && stored.trim()) return stored.trim();
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
   const result = allRoleNames.map((singleRole) => {
 
     const roleUsers = users.filter(
@@ -373,23 +414,77 @@ const allRoleDB = async (companyId: string) => {
       (item) => item.role === singleRole
     );
 
+    const testUser = roleUsers.find((u) => Boolean(u.email));
+
     return {
       name: singleRole,
 
-      label:
-        singleRole.charAt(0).toUpperCase() +
-        singleRole.slice(1),
+      label: prettyLabel(singleRole, permission?.label),
 
       permissions:
         permission?.permissions?.length || 0,
 
+      isActive: permission?.isActive !== false,
+
+      /** First user email for this role — handy for quick login testing. */
+      testEmail: testUser?.email ?? "",
+
       users: roleUsers.map((user) => ({
         _id: user._id,
         name: user.name,
+        email: user.email ?? "",
       })),
     };
   });
   return result;
+};
+
+/**
+ * Public list of roles for the Login "Login as …" chips.
+ * Mirrors company role names (base roles + any custom role that has at least
+ * one user) and includes a sample email when a user exists.
+ * Inactive roles for the default seed company are still listed but flagged.
+ */
+const loginPresetsDB = async () => {
+  const DEMO_PASSWORD = "1qazxsw2";
+
+  const systemRoles = [
+    role.superadmin,
+    role.company,
+    role.hr,
+    role.staff,
+    role.vendor,
+    role.customer,
+  ];
+
+  const users = await UserModel.find({
+    isDeleted: false,
+    role: { $in: systemRoles },
+    email: { $exists: true, $ne: "" },
+  })
+    .select("name role email companyId")
+    .lean();
+
+  // Prefer a demo-looking email (`*@gmail.com`) when available.
+  const pickEmail = (roleName: string) => {
+    const forRole = users.filter((u) => u.role === roleName);
+    const preferred =
+      forRole.find((u) => String(u.email).endsWith("@gmail.com")) ??
+      forRole[0];
+    return preferred?.email || `${roleName}@gmail.com`;
+  };
+
+  const pretty = (name: string) => {
+    if (name === role.superadmin) return "Super Admin";
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
+  return systemRoles.map((roleName) => ({
+    role: roleName,
+    label: pretty(roleName),
+    email: pickEmail(roleName),
+    password: DEMO_PASSWORD,
+  }));
 };
 
 const rolePermissionsDB = async (companyId: string, roleName: string) => {
@@ -429,7 +524,8 @@ export const userService = {
   createCompanyBySuperadminDB , 
   allRoleDB ,
   rolePermissionsDB ,
-  allUserForCompanyDB
+  allUserForCompanyDB,
+  loginPresetsDB,
 }
 
 

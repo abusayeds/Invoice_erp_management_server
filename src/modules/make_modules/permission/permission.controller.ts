@@ -69,10 +69,27 @@ const getAllPermissions = catchAsync(async (req: AuthRequest, res: Response) => 
   });
 });
 
+const setRoleActive = catchAsync(async (req: AuthRequest, res: Response) => {
+  const companyId = req.user?._id;
+  const result = await permissionService.setRoleActiveDB(
+    companyId as string,
+    req.body,
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: result?.isActive
+      ? "Role activated successfully"
+      : "Role deactivated successfully",
+    data: result,
+  });
+});
+
 export const permissionController = {
   updatePermission,
   createRole,
   updateUserPermission,
   getPermissionsByCompany,
   getAllPermissions,
+  setRoleActive,
 };
