@@ -25,3 +25,17 @@ export const VENDOR_ROLE_SET = [role.vendor, PARTY_BOTH_ROLE] as const;
 
 export const isCustomerRole = (value: string) =>
   (CUSTOMER_ROLE_VALUES as readonly string[]).includes(value);
+
+/**
+ * "System" roles that always exist and never need a Permission doc to be
+ * considered valid. Any role NOT in this set is a company-defined custom
+ * role (see Permission model) — its validity is determined dynamically by
+ * whether a Permission doc exists for it, not by a hardcoded list.
+ */
+export const BASE_ROLE_VALUES = new Set<string>([
+  role.customer,
+  "client",
+  role.staff,
+  role.vendor,
+  role.hr,
+]);

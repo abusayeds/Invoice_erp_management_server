@@ -17,6 +17,18 @@ router.post(
   permissionController.createRole
 );
 
+router.delete(
+  "/delete-role/:role",
+  authMiddleware(role.company),
+  permissionController.deleteRole
+);
+
+router.patch(
+  "/rename-role",
+  authMiddleware(role.company),
+  permissionController.renameRole
+);
+
 router.patch(
   "/update-user-permission",
   authMiddleware(role.company),

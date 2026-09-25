@@ -107,9 +107,15 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    // Set by superadmin BlockUser (existing endpoint); undefined == "active".
+    status: {
+      type: String,
+      enum: ["active", "blocked"],
+      default: "active",
+    },
     isVerify: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     login: {
       type: Boolean,

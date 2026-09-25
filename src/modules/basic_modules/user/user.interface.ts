@@ -44,6 +44,8 @@ export type IUser = {
   isDeleted: boolean;
   isVerify: boolean;
   login: boolean;
+  /** Set by superadmin BlockUser; undefined behaves as "active". */
+  status?: "active" | "blocked";
   /** True once a company has consumed its one-time plan trial. */
   is_trial_done?: boolean;
 } & Document;

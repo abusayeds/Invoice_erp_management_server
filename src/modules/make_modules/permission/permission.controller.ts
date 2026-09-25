@@ -28,6 +28,28 @@ const createRole = catchAsync(async (req: AuthRequest, res: Response) => {
   });
 });
 
+const deleteRole = catchAsync(async (req: AuthRequest, res: Response) => {
+  const companyId = req.user?._id;
+  await permissionService.deleteRoleDB(companyId as string, req.params.role);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Role deleted successfully",
+    data: null,
+  });
+});
+
+const renameRole = catchAsync(async (req: AuthRequest, res: Response) => {
+  const companyId = req.user?._id;
+  const result = await permissionService.renameRoleDB(companyId as string, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Role renamed successfully",
+    data: result,
+  });
+});
+
 const updateUserPermission = catchAsync(async (req: AuthRequest, res: Response) => {
   const companyId = req.user?._id;
   const result = await permissionService.updateUserPermissionsDB(
@@ -88,6 +110,8 @@ const setRoleActive = catchAsync(async (req: AuthRequest, res: Response) => {
 export const permissionController = {
   updatePermission,
   createRole,
+  deleteRole,
+  renameRole,
   updateUserPermission,
   getPermissionsByCompany,
   getAllPermissions,

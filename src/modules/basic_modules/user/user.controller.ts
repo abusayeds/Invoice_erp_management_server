@@ -341,7 +341,7 @@ export const userController = {
 export const BlockUser = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.body;
   const { decoded }: any = await tokenDecoded(req, res);
-  const adminId = decoded.id;
+  const adminId = decoded.user?._id;
   const requestingUser = await UserModel.findById(adminId);
   if (!requestingUser || requestingUser.role !== role.superadmin) {
     throw new AppError(

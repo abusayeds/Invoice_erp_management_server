@@ -12,3 +12,4 @@ export const max_file_size = Number(process.env.max_file_size);
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 export const NODE_ENV = process.env.NODE_ENV;
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

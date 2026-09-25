@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import AppError from "../../../errors/AppError";
 import { TPermission } from "./permission.interface";
 import { PermissionModel } from "./permission.model";
-import { role } from "../../../utils/role";
+import { role, BASE_ROLE_VALUES } from "../../../utils/role";
 import { parseValidPermissions, normalizePermission } from "../../../utils/permissionCatalog";
 import { UserModel } from "../../basic_modules/user/user.model";
 import { resolveEffectivePermissions } from "../../../utils/userPermissions";
@@ -16,6 +16,68 @@ const ROLES_BLOCKED_FOR_USER_PERMISSION_UPDATE = new Set<string>([
 
 // Names a company may not create/redefine (system-owned).
 const RESERVED_ROLE_NAMES = new Set<string>([role.superadmin, role.company]);
+
+/**
+ * Shared guard for delete/rename: only a company-defined custom role with
+ * zero currently-assigned users may be deleted or renamed. System roles
+ * (superadmin/company/base roles) can never be deleted or renamed, and a
+ * role still held by any user is locked until every user is moved off it.
+ */
+const assertRoleDeletableOrRenamable = async (companyId: string, roleName: string) => {
+  if (RESERVED_ROLE_NAMES.has(roleName) || BASE_ROLE_VALUES.has(roleName)) {
+    throw new AppError(httpStatus.BAD_REQUEST, "This role is a system role and cannot be deleted or renamed.");
+  }
+  const existing = await PermissionModel.findOne({ companyId, role: roleName });
+  if (!existing) {
+    throw new AppError(httpStatus.NOT_FOUND, "Role not found.");
+  }
+  const userCount = await UserModel.countDocuments({ companyId, role: roleName, isDeleted: false });
+  if (userCount > 0) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `This role is assigned to ${userCount} user${userCount === 1 ? "" : "s"} and cannot be deleted or renamed. Reassign or remove those users first.`,
+    );
+  }
+  return existing;
+};
+
+const deleteRoleDB = async (companyId: string, roleName: string) => {
+  const name = String(roleName ?? "").trim();
+  if (!name) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Role is required");
+  }
+  await assertRoleDeletableOrRenamable(companyId, name);
+  await PermissionModel.deleteOne({ companyId, role: name });
+};
+
+const renameRoleDB = async (
+  companyId: string,
+  payload: { role?: string; newRole?: string; label?: string },
+) => {
+  const currentName = String(payload.role ?? "").trim();
+  const nextName = String(payload.newRole ?? "").trim();
+  if (!currentName || !nextName) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Both role and newRole are required");
+  }
+  const existing = await assertRoleDeletableOrRenamable(companyId, currentName);
+
+  if (currentName !== nextName) {
+    if (RESERVED_ROLE_NAMES.has(nextName) || BASE_ROLE_VALUES.has(nextName)) {
+      throw new AppError(httpStatus.BAD_REQUEST, "This role name is reserved");
+    }
+    const conflict = await PermissionModel.findOne({ companyId, role: nextName });
+    if (conflict) {
+      throw new AppError(httpStatus.CONFLICT, "A role with this name already exists");
+    }
+  }
+
+  existing.role = nextName;
+  if (payload.label !== undefined) {
+    existing.label = String(payload.label).trim();
+  }
+  await existing.save();
+  return existing;
+};
 
 const updatePermissionDB = async (companyId: string, payload: Partial<TPermission>) => {
   const { role: prevRole, permissions: rawPermissions } = payload;
@@ -41,7 +103,7 @@ const updatePermissionDB = async (companyId: string, payload: Partial<TPermissio
 
 // Create a brand-new company-defined role (fails if it already exists).
 const createRoleDB = async (companyId: string, payload: Partial<TPermission>) => {
-  const { role: roleRaw, permissions: rawPermissions } = payload;
+  const { role: roleRaw, permissions: rawPermissions, label: labelRaw } = payload;
   if (!roleRaw || !String(roleRaw).trim()) {
     throw new AppError(httpStatus.BAD_REQUEST, "Role is required");
   }
@@ -58,6 +120,7 @@ const createRoleDB = async (companyId: string, payload: Partial<TPermission>) =>
     companyId,
     role: roleName,
     permissions,
+    label: String(labelRaw ?? "").trim(),
   });
   return result;
 };
@@ -156,6 +219,8 @@ const setRoleActiveDB = async (
 export const permissionService = {
   updatePermissionDB,
   createRoleDB,
+  deleteRoleDB,
+  renameRoleDB,
   updateUserPermissionsDB,
   getPermissionsByCompanyDB,
   getPermissionByRoleDB,

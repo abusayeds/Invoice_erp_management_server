@@ -3,13 +3,14 @@ import bcrypt from "bcrypt";
 
 import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import queryBuilder from "../../../builder/queryBuilder";
-import { JWT_SECRET_KEY, } from "../../../config";
+import { JWT_SECRET_KEY, GOOGLE_CLIENT_ID } from "../../../config";
 import AppError from "../../../errors/AppError";
 import { sendEmail, sendRegistationOtpEmail, } from "./sendEmail";
 import { IUser, } from "./user.interface";
 import { OTPModel, UserModel } from "./user.model";
-import { role,  } from "../../../utils/role";
+import { role, BASE_ROLE_VALUES } from "../../../utils/role";
 import { Types } from "mongoose";
 import { PermissionModel } from "../../make_modules/permission/permission.model";
 import { TPermission } from "../../make_modules/permission/permission.interface";
@@ -58,6 +59,9 @@ const createUserDB = async (payload: IUser) => {
   if (password !== confirmPassword) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Passwords do not match');
   }
+  if (!payload.role) {
+    payload.role = role.company;
+  }
 
   if (isUserRegistered && isUserRegistered.isVerify === false) {
     await UserModel.findOneAndUpdate(
@@ -92,29 +96,61 @@ const verifyOtpDB = async (email: string) => {
   }
 }
 
+/**
+ * Dynamic company/role validation for login (local + Google). Skipped for
+ * superadmin/company (owner) accounts — they don't reference another company.
+ * A role's validity is never hardcoded: any role not in BASE_ROLE_VALUES is
+ * only valid while a matching Permission doc exists for that company.
+ */
+const assertCompanyAndRoleActive = async (user: IUser) => {
+  if (user.role === role.superadmin || user.role === role.company) return;
+
+  if (!user.companyId) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Your account is not linked to a company. Contact your administrator.",
+    );
+  }
+
+  const company = await UserModel.findOne({
+    _id: user.companyId,
+    role: role.company,
+    isDeleted: false,
+  }).select("_id");
+  if (!company) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Your company account no longer exists. Contact your administrator.",
+    );
+  }
+
+  const rolePerm = await PermissionModel.findOne({
+    companyId: user.companyId,
+    role: user.role,
+  }).select("isActive");
+
+  if (!rolePerm && !BASE_ROLE_VALUES.has(user.role)) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Your role no longer exists in this company. Contact your administrator.",
+    );
+  }
+  if (rolePerm && rolePerm.isActive === false) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "This role is inactive. Contact your administrator.",
+    );
+  }
+};
+
 const loginDB = async (email: string, password: string) => {
   const user = await UserModel.findOne({ email: email  , authProvider : "local" }).select('+password +permissionsOverridden');
   if (!user) {throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
   if (!user.login) {throw new AppError(httpStatus.UNAUTHORIZED,"You are not allowed to login.")}
   if (user.isDeleted) { throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
+  if (user.status === "blocked") { throw new AppError(httpStatus.UNAUTHORIZED,"Your account has been blocked. Contact your administrator.")}
 
-  // Block login when the company has deactivated this user's role.
-  if (
-    user.role !== role.superadmin &&
-    user.role !== role.company &&
-    user.companyId
-  ) {
-    const rolePerm = await PermissionModel.findOne({
-      companyId: user.companyId,
-      role: user.role,
-    }).select("isActive");
-    if (rolePerm && rolePerm.isActive === false) {
-      throw new AppError(
-        httpStatus.UNAUTHORIZED,
-        "This role is inactive. Contact your administrator.",
-      );
-    }
-  }
+  await assertCompanyAndRoleActive(user);
 
   const isPasswordValid = await bcrypt.compare(
     password,
@@ -134,40 +170,46 @@ const loginDB = async (email: string, password: string) => {
 
   return userSafe;
 }
-const googleLoginDB = async (payload : IUser) => {
-  const { email } = payload;
-  let user = await UserModel.findOne({ email: email  , authProvider : "google" }).select('+permissionsOverridden');
-  if (!user) { throw new AppError(httpStatus.NOT_FOUND,"This account does not exist.")}
-  if (user.isDeleted) {throw new AppError(httpStatus.NOT_FOUND,"your account is deleted by admin.")}
+const googleOAuthClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-  if (
-    user.role !== role.superadmin &&
-    user.role !== role.company &&
-    user.companyId
-  ) {
-    const rolePerm = await PermissionModel.findOne({
-      companyId: user.companyId,
-      role: user.role,
-    }).select("isActive");
-    if (rolePerm && rolePerm.isActive === false) {
-      throw new AppError(
-        httpStatus.UNAUTHORIZED,
-        "This role is inactive. Contact your administrator.",
-      );
-    }
+const googleLoginDB = async (payload: { credential?: string }) => {
+  if (!payload.credential) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Google credential is required.");
   }
 
- if (!user) {
+  // Verify the ID token server-side so we never trust a client-supplied email/name.
+  const ticket = await googleOAuthClient.verifyIdToken({
+    idToken: payload.credential,
+    audience: GOOGLE_CLIENT_ID,
+  });
+  const googlePayload = ticket.getPayload();
+  if (!googlePayload?.email) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Google credential.");
+  }
+  const email = googlePayload.email;
+  const name = googlePayload.name || email;
+  const image = googlePayload.picture;
+
+  let user = await UserModel.findOne({ email, authProvider: "google" }).select('+permissionsOverridden');
+
+  if (!user) {
     user = await UserModel.create({
-      name: payload.name,
-      email: payload.email,
-      image: payload.image,
+      name,
+      email,
+      image,
       authProvider: "google",
-      isVerified: true,
+      role: role.company,
+      isVerify: true,
       password: null,
     });
   }
-  const userSafe = { ...user.toObject ? user.toObject() : user };
+
+  if (user.isDeleted) { throw new AppError(httpStatus.NOT_FOUND, "your account is deleted by admin.") }
+  if (user.status === "blocked") { throw new AppError(httpStatus.UNAUTHORIZED, "Your account has been blocked. Contact your administrator.") }
+
+  await assertCompanyAndRoleActive(user);
+
+  const userSafe = { ...(user.toObject ? user.toObject() : user) };
   delete userSafe.password;
   delete userSafe.isVerify;
   delete userSafe.permissionsOverridden;
@@ -425,6 +467,9 @@ const allRoleDB = async (companyId: string) => {
         permission?.permissions?.length || 0,
 
       isActive: permission?.isActive !== false,
+
+      /** False for system roles (staff/hr/vendor/customer) — those can never be renamed/deleted. */
+      isCustom: !BASE_ROLE_VALUES.has(singleRole),
 
       /** First user email for this role — handy for quick login testing. */
       testEmail: testUser?.email ?? "",
