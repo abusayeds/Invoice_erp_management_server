@@ -41,9 +41,12 @@ router.get(
   permissionController.getPermissionsByCompany
 );
 
+// Read-only catalog of permission definitions (keys/labels only, no user or
+// company data) — every authenticated role needs it client-side to know
+// which permission keys exist at all, for permission-aware UI rendering.
 router.get(
   "/all-permissions",
-  authMiddleware(role.superadmin, role.company),
+  authMiddleware(),
   permissionController.getAllPermissions,
 );
 
