@@ -355,10 +355,10 @@ export const resolveSalesDoc = async (type: string, id: string | undefined, user
       customerImage: inv.signature || null,
     },
     // Scanning the QR opens the document as a PDF, scoped to the owning account
-    // and addressed by its human number, e.g. https://temp-api.ssh.bd/<user_id>/invoice/16.
+    // and addressed by its human number, e.g. https://qyad-api.ssh.bd <user_id>/invoice/16.
     // The tenant segment is the document's user_id (what it's stored under) so the
     // public route below can resolve it without auth. Base overridable via QR_BASE_URL.
-    qrCodeData: `${process.env.QR_BASE_URL || "https://temp-api.ssh.bd"}/${String(user?._id ?? "")}/${String(type).toLowerCase().replace(/_/g, "-")}/${encodeURIComponent(String(inv.invoice_number || inv._id))}`,
+    qrCodeData: `${process.env.QR_BASE_URL || "https://qyad-api.ssh.bd"}/${String(user?._id ?? "")}/${String(type).toLowerCase().replace(/_/g, "-")}/${encodeURIComponent(String(inv.invoice_number || inv._id))}`,
     paymentDetails,
     paymentSummary,
     paymentMethods,
