@@ -90,6 +90,17 @@ const remove = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash — removes rows entirely. */
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  await vendorPaymentService.hardDeleteDB(req.params.id, req.user!._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Vendor payment permanently deleted",
+    data: null,
+  });
+});
+
 export const vendorPaymentController = {
   create,
   record,
@@ -98,4 +109,5 @@ export const vendorPaymentController = {
   getOutstanding,
   updateStatus,
   remove,
+  hardRemove,
 };

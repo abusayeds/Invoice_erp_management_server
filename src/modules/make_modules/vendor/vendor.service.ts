@@ -4,6 +4,7 @@ import { TPartyUserWrite } from "../../basic_modules/user/user.business.interfac
 import { IUser } from "../../basic_modules/user/user.interface";
 import { UserModel } from "../../basic_modules/user/user.model";
 import AppError from "../../../errors/AppError";
+import { withBulkDeleteIdSecond } from "../../../utils/bulkDelete";
 import {
   buildPartyUserForCreate,
   createOrPromotePartyUser,
@@ -152,6 +153,17 @@ const mergeVendorsDB = (
   mergedIds: string[],
 ) => mergePartyUsersDB(companyId, role.vendor, survivorId, mergedIds);
 
+/** Permanent delete from Trash — removes the row entirely (idempotent). */
+const hardDeleteVendorDBOne = async (user_id: string, id: string) => {
+  const removed = await UserModel.findOneAndDelete({
+    companyId: user_id,
+    _id: id,
+    role: { $in: [...VENDOR_ROLE_SET] },
+  }).select("-password");
+  return removed;
+};
+const hardDeleteVendorDB = withBulkDeleteIdSecond(hardDeleteVendorDBOne);
+
 export const vendorService = {
   mergeVendorsDB,
   vendorCreateDB,
@@ -159,5 +171,6 @@ export const vendorService = {
   VendorReturnList,
   singleVendorDB,
   deleteVendorDB,
+  hardDeleteVendorDB,
   updateVendorDB,
 };

@@ -86,4 +86,23 @@ const remove = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const expensesController = { create, getSingle, getAll, update, remove };
+/** Permanent delete from Trash — removes rows entirely. */
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await expensesService.hardDeleteDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Expense permanently deleted.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.expenses,
+    entity_ids: [id],
+    action: ActivityAction.deleted,
+    title: `Expense ${id} Permanently Deleted`,
+  });
+});
+
+export const expensesController = { create, getSingle, getAll, update, remove, hardRemove };

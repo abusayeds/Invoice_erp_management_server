@@ -72,6 +72,13 @@ const deleteServiceDBOne = async (user_id: string, id: string) => {
 
 const deleteServiceDB = withBulkDeleteIdSecond(deleteServiceDBOne);
 
+/** Permanent delete from Trash — removes the row entirely (idempotent). */
+const hardDeleteServiceDBOne = async (user_id: string, id: string) => {
+  const removed = await ServiceModel.findOneAndDelete({ user_id, _id: id });
+  return removed;
+};
+const hardDeleteServiceDB = withBulkDeleteIdSecond(hardDeleteServiceDBOne);
+
 const mergeServicesDB = async (
   user_id: string,
   survivorId: string,
@@ -93,5 +100,6 @@ export const ServiceService = {
   getSingleServiceDB,
   updateServiceDB,
   deleteServiceDB,
+  hardDeleteServiceDB,
   mergeServicesDB,
 };

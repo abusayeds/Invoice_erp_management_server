@@ -11,6 +11,8 @@ router.get("/single/:id", authMiddleware(role.company), accountDebitNoteControll
 router.patch("/update/:id", authMiddleware(role.company), accountDebitNoteController.update);
 router.post("/approve/:id", authMiddleware(role.company), accountDebitNoteController.approve);
 router.delete("/delete/:id", authMiddleware(role.company), accountDebitNoteController.remove);
+// Permanent delete from Trash — new, additive endpoint.
+router.delete("/hard-delete/:id", authMiddleware(role.company), accountDebitNoteController.hardRemove);
 router.patch("/signature/:id", authMiddleware(role.company), accountDebitNoteController.updateSignature);
 
 export const accountDebitNoteRoutes = router;

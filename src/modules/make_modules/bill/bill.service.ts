@@ -226,6 +226,13 @@ const deleteDBOne = async (id: string, userId: string) => {
 
 const deleteDB = withBulkDeleteId(deleteDBOne);
 
+/** Permanent delete from Trash — removes the row entirely (idempotent). */
+const hardDeleteDBOne = async (id: string, userId: string) => {
+  const removed = await BillModel.findOneAndDelete({ _id: id, user_id: userId });
+  return removed;
+};
+const hardDeleteDB = withBulkDeleteId(hardDeleteDBOne);
+
 // `delete` is a soft delete (isDeleted: true); restore brings a trashed bill
 // back to the active list. Counterpart of deleteDBOne.
 const restoreDB = async (id: string, userId: string) => {
@@ -240,6 +247,6 @@ const restoreDB = async (id: string, userId: string) => {
   return restored;
 };
 
-export const billService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, restoreDB };
+export const billService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, hardDeleteDB, restoreDB };
 
 

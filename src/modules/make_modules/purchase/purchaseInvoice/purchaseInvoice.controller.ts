@@ -61,6 +61,17 @@ const remove = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash — removes rows entirely. */
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  await purchaseInvoiceService.hardRemoveDB(req.user?._id as string, req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Purchase invoice permanently deleted",
+    data: null,
+  });
+});
+
 /** Brings a soft-deleted purchase invoice back — the counterpart of `remove`. */
 const restore = catchAsync(async (req: AuthRequest, res) => {
   const result = await purchaseInvoiceService.restoreDB(req.user?._id as string, req.params.id);
@@ -105,4 +116,4 @@ const print = catchAsync(async (req: AuthRequest, res) => {
   generatePurchaseInvoicePDF(invoice, settings, res);
 });
 
-export const purchaseInvoiceController = { create, getAll, getSingle, update, updateStatus, remove, restore, post, print };
+export const purchaseInvoiceController = { create, getAll, getSingle, update, updateStatus, remove, hardRemove, restore, post, print };

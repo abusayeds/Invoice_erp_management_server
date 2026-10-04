@@ -15,5 +15,7 @@ router.post("/edit/:id", auth, purchaseReturnController.update);
 router.patch("/status/:id", auth, purchaseReturnController.updateStatus);
 router.post("/restore/:id", auth, purchaseReturnController.restore);
 router.delete("/delete/:id", auth, purchaseReturnController.remove);
+// Permanent delete from Trash — new, additive endpoint.
+router.delete("/hard-delete/:id", auth, purchaseReturnController.hardRemove);
 
 export const purchaseReturnRoutes = router;

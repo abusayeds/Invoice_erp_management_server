@@ -15,6 +15,8 @@ router.get("/single/:id", auth, purchaseInvoiceController.getSingle);
 router.patch("/edit/:id", auth, purchaseInvoiceController.update);
 
 router.delete("/delete/:id", auth, purchaseInvoiceController.remove);
+// Permanent delete from Trash — new, additive endpoint.
+router.delete("/hard-delete/:id", auth, purchaseInvoiceController.hardRemove);
 
 // `delete` is a soft delete, so a trashed purchase invoice can be brought back.
 router.post("/restore/:id", auth, purchaseInvoiceController.restore);

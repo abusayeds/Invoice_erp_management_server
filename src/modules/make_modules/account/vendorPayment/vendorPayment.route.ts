@@ -25,5 +25,7 @@ router.patch(
   vendorPaymentController.updateStatus
 );
 router.delete("/delete/:id", authMiddleware(role.company), vendorPaymentController.remove);
+// Permanent delete from Trash — new, additive endpoint.
+router.delete("/hard-delete/:id", authMiddleware(role.company), vendorPaymentController.hardRemove);
 
 export const vendorPaymentRoutes = router;

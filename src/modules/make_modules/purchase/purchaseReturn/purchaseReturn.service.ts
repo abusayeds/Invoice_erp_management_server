@@ -149,6 +149,13 @@ const removeDBOne = async (userId: string, id: string) => {
 
 const removeDB = withBulkDeleteIdSecond(removeDBOne);
 
+/** Permanent delete from Trash — removes the row entirely (idempotent). */
+const hardRemoveDBOne = async (userId: string, id: string) => {
+  const removed = await PurchaseReturnModel.findOneAndDelete({ _id: id, user_id: userId });
+  return removed ? { _id: id } : null;
+};
+const hardRemoveDB = withBulkDeleteIdSecond(hardRemoveDBOne);
+
 /**
  * Edits a purchase return. The app's edit form changes header fields (vendor,
  * warehouse, reason, date, notes); it carries display names, so ids arrive only
@@ -289,6 +296,7 @@ export const purchaseReturnService = {
   approveDB,
   completeDB,
   removeDB,
+  hardRemoveDB,
   updateDB,
   updateStatusDB,
   restoreDB,

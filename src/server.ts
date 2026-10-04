@@ -8,6 +8,8 @@ import { DATABASE_URL, PORT } from "./config";
 import { initSocketIO } from "./utils/socket";
 import { createServer } from "node:http";
 import http from "http";
+import seedPlans from "./DB/seedPlans";
+import seedUsers from "./DB/seedFunction";
 
 const server = http.createServer(app);
 initSocketIO(server);
@@ -20,6 +22,8 @@ async function main() {
 
     // Seed super admin data
     await seedSuperAdmin();
+    await seedPlans();
+
     server.listen(PORT, () => {
       console.log(`Server is running on ${PORT}`);
     });

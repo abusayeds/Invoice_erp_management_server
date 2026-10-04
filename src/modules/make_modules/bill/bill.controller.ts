@@ -86,6 +86,25 @@ const remove = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash — removes rows entirely. */
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await billService.hardDeleteDB(id, req.user?._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Bill permanently deleted.',
+    data: null,
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.bill,
+    entity_ids: [id],
+    action: ActivityAction.deleted,
+    title: `Bill ${id} Permanently Deleted`,
+  });
+});
+
 /** Brings a soft-deleted bill back — the counterpart of `remove`. */
 const restore = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params;
@@ -105,4 +124,4 @@ const restore = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const billController = { create, getSingle, getAll, update, remove, restore };
+export const billController = { create, getSingle, getAll, update, remove, hardRemove, restore };

@@ -108,6 +108,26 @@ const deleteService = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash — removes rows entirely. */
+const hardDeleteService = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const ids = parseDeleteIdsFromParam(id);
+  const result = await ServiceService.hardDeleteServiceDB(req?.user?._id as string, id);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Service permanently deleted.",
+    data: bulkDeleteResponseData(ids, result),
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.service,
+    entity_ids: ids,
+    action: ActivityAction.deleted,
+    title: ids.length === 1 ? "Service permanently deleted" : `${ids.length} Services permanently deleted`,
+  });
+});
+
 const mergeServices = catchAsync(async (req: AuthRequest, res) => {
   const result = await ServiceService.mergeServicesDB(
     req.user?._id as string,
@@ -135,5 +155,6 @@ export const ServiceController = {
   getSingleService,
   updateService,
   deleteService,
+  hardDeleteService,
   mergeServices,
 };

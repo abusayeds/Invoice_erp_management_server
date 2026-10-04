@@ -243,7 +243,9 @@ const getSingleDB = async (userId: string, id: string) => {
 
 const updateDB = async (userId: string, id: string, body: Record<string, unknown>) => {
   const existing = await PurchaseInvoiceModel.findOne({ _id: id, user_id: userId });
-  if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Purchase invoice not found");
+  // Gone (truly missing OR already soft-deleted): don't surface a scary 404.
+  // The frontend's next list sync will drop the stale row — no-op is enough.
+  if (!existing || existing.isDeleted) return null;
 
   // Non-draft POs are locked for line/money edits, but vendor signature must
   // still be savable (Sent / Approved / Received / …).
@@ -288,11 +290,12 @@ const updateDB = async (userId: string, id: string, body: Record<string, unknown
 };
 
 const removeDBOne = async (userId: string, id: string) => {
-  const existing = await PurchaseInvoiceModel.findOne({ _id: id, user_id: userId, isDeleted: false });
-  if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Purchase invoice not found");
-  if (existing.status === "posted") {
-    throw new AppError(httpStatus.BAD_REQUEST, "Cannot delete a posted invoice");
-  }
+  // Idempotent soft-delete: re-deleting (single or in a bulk batch) a row
+  // that's already gone/soft-deleted succeeds silently instead of 404. Any
+  // status — including "posted" — can be deleted; the record stays in DB
+  // for audit (just isDeleted:true), it's only hidden from the active list.
+  const existing = await PurchaseInvoiceModel.findOne({ _id: id, user_id: userId });
+  if (!existing || existing.isDeleted) return { _id: id };
   await PurchaseInvoiceModel.findOneAndUpdate({ _id: id, user_id: userId }, { isDeleted: true });
   return { _id: id };
 };
@@ -327,6 +330,13 @@ const updateStatusDB = async (userId: string, id: string, status: string) => {
 
 const removeDB = withBulkDeleteIdSecond(removeDBOne);
 
+/** Permanent delete from Trash — removes the row entirely (idempotent). */
+const hardRemoveDBOne = async (userId: string, id: string) => {
+  const removed = await PurchaseInvoiceModel.findOneAndDelete({ _id: id, user_id: userId });
+  return removed ? { _id: id } : null;
+};
+const hardRemoveDB = withBulkDeleteIdSecond(hardRemoveDBOne);
+
 // `delete` is a soft delete (isDeleted: true); restore brings a trashed purchase
 // invoice back to the active list. Counterpart of removeDBOne.
 const restoreDB = async (userId: string, id: string) => {
@@ -346,6 +356,7 @@ export const purchaseInvoiceService = {
   updateDB,
   updateStatusDB,
   removeDB,
+  hardRemoveDB,
   postDB,
   restoreDB,
 };

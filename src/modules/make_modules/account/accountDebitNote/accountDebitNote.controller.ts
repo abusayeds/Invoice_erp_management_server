@@ -89,6 +89,17 @@ const remove = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash — removes rows entirely. */
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  await accountDebitNoteService.hardDeleteDB(req.params.id, req.user!._id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Debit note permanently deleted",
+    data: null,
+  });
+});
+
 const updateSignature = catchAsync(async (req: AuthRequest, res) => {
   const data = await accountDebitNoteService.updateSignatureDB(
     req.params.id,
@@ -110,4 +121,4 @@ const updateSignature = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const accountDebitNoteController = { create, update, getAll, getSingle, approve, remove, updateSignature };
+export const accountDebitNoteController = { create, update, getAll, getSingle, approve, remove, hardRemove, updateSignature };

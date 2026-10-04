@@ -87,6 +87,18 @@ const deleteVendor = catchAsync(async (req: AuthRequest, res) => {
         : `${ids.length} Vendors Archived`,
   });
 });
+/** Permanent delete from Trash — removes rows entirely. */
+const hardDeleteVendor = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  await vendorService.hardDeleteVendorDB(req?.user?._id as string, id);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Vendor permanently deleted.",
+    data: null,
+  });
+});
+
 const updateVendor = catchAsync(async (req: AuthRequest, res) => {
   const result = await vendorService.updateVendorDB(req?.user?._id as string, req.body);
 
@@ -126,5 +138,6 @@ export const vendorController = {
   VendorReturnList,
   singleVendor,
   deleteVendor,
+  hardDeleteVendor,
   updateVendor
 };

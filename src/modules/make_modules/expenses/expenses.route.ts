@@ -35,4 +35,11 @@ router.delete(
   expensesController.remove
 );
 
+// Permanent delete from Trash — new, additive endpoint.
+router.delete(
+  '/hard-delete/:id',
+  authMiddleware(role.company),
+  expensesController.hardRemove
+);
+
 export const expensesRoutes = router;

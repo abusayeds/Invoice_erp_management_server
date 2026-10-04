@@ -17,7 +17,9 @@ const approveDB = (id: string, userId: string) => debitNoteService.approveDB(id,
 
 const deleteDB = (id: string, userId: string) => debitNoteService.deleteDraftDB(id, userId);
 
+const hardDeleteDB = (id: string, userId: string) => debitNoteService.hardDeleteDB(id, userId);
+
 const updateSignatureDB = (id: string, userId: string, signature: string) =>
   debitNoteService.updateSignatureDB(id, userId, signature);
 
-export const accountDebitNoteService = { getAllDB, getSingleDB, createDB, updateDB, approveDB, deleteDB, updateSignatureDB };
+export const accountDebitNoteService = { getAllDB, getSingleDB, createDB, updateDB, approveDB, deleteDB, hardDeleteDB, updateSignatureDB };

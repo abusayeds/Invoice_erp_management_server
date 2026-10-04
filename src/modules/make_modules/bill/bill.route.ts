@@ -35,6 +35,13 @@ router.delete(
   billController.remove
 );
 
+// Permanent delete from Trash — new, additive endpoint.
+router.delete(
+  '/hard-delete/:id',
+  authMiddleware(role.company),
+  billController.hardRemove
+);
+
 // `delete` is a soft delete, so a trashed bill can be brought back.
 router.post(
   '/restore/:id',

@@ -68,6 +68,17 @@ const remove = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash — removes rows entirely. */
+const hardRemove = catchAsync(async (req: AuthRequest, res) => {
+  await purchaseReturnService.hardRemoveDB(req.user?._id as string, req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Purchase return permanently deleted",
+    data: null,
+  });
+});
+
 const update = catchAsync(async (req: AuthRequest, res) => {
   const result = await purchaseReturnService.updateDB(
     req.user?._id as string,
@@ -109,4 +120,4 @@ const restore = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
-export const purchaseReturnController = { create, getAll, getSingle, approve, complete, remove, update, updateStatus, restore };
+export const purchaseReturnController = { create, getAll, getSingle, approve, complete, remove, hardRemove, update, updateStatus, restore };

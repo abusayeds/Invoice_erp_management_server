@@ -34,6 +34,12 @@ router.delete(
   authMiddleware(role.company),
   vendorController.deleteVendor
 );
+// Permanent delete from Trash — new, additive endpoint.
+router.delete(
+  "/hard-delete/:id",
+  authMiddleware(role.company),
+  vendorController.hardDeleteVendor
+);
 router.post(
   "/update",
   authMiddleware(role.company),

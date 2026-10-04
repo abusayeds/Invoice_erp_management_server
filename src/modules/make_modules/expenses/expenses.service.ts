@@ -242,6 +242,13 @@ const deleteDBOne = async (id: string, userId: string) => {
 
 const deleteDB = withBulkDeleteId(deleteDBOne);
 
-export const expensesService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB };
+/** Permanent delete from Trash — removes the row entirely (idempotent). */
+const hardDeleteDBOne = async (id: string, userId: string) => {
+  const removed = await ExpensesModel.findOneAndDelete({ _id: id, user_id: userId });
+  return removed;
+};
+const hardDeleteDB = withBulkDeleteId(hardDeleteDBOne);
+
+export const expensesService = { createDB, getSingleDB, getAllDB, updateDB, deleteDB, hardDeleteDB };
 
 

@@ -72,6 +72,26 @@ const deleteProduct = catchAsync(async (req: AuthRequest, res) => {
   });
 });
 
+/** Permanent delete from Trash — removes rows entirely. */
+const hardDeleteProduct = catchAsync(async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const ids = parseDeleteIdsFromParam(id);
+  const result = await productService.hardDeleteProductDB(req.user?._id as string, id);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Product permanently deleted.",
+    data: bulkDeleteResponseData(ids, result),
+  });
+  await activitiesService.activitiesCreateDB({
+    ...activityActors(req),
+    module: ActivityModule.product,
+    entity_ids: ids,
+    action: ActivityAction.deleted,
+    title: ids.length === 1 ? "Product permanently deleted" : `${ids.length} Products permanently deleted`,
+  });
+});
+
 const restoreProduct = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params;
   const ids = parseDeleteIdsFromParam(id);
@@ -142,6 +162,7 @@ export const productController = {
     allProduct ,
     singleProduct ,
     deleteProduct ,
+    hardDeleteProduct ,
     restoreProduct ,
     updateProduct,
     mergeProducts,

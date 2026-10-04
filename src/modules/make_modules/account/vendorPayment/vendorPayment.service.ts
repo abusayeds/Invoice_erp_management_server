@@ -122,8 +122,12 @@ const validateAllocations = async (
 
 const createDB = async (payload: TVendorPayment) => {
   await assertVendorUser(payload.vendor_id);
-  // bank_account_id is optional from the app; fall back to the company's first
-  // account so a payment can be recorded without an explicit account picker.
+  // bank_account_id is optional on the schema; the app can record a vendor
+  // payment without one. Prefer an explicit picker; else the company's first
+  // account; else leave unset (matches recordDB's behaviour). Previously this
+  // threw 400 when no bank existed — a relaxation that is strictly additive
+  // (same success response shape; only new successes replace what used to be
+  // 400s), so clients already handling it keep working.
   let bank = payload.bank_account_id
     ? await BankAccountModel.findOne({
         _id: payload.bank_account_id,
@@ -135,8 +139,8 @@ const createDB = async (payload: TVendorPayment) => {
       ...companyScope(String(payload.user_id)),
     }).sort({ createdAt: 1 });
   }
-  if (!bank) throw new AppError(httpStatus.BAD_REQUEST, "No bank account found for this company");
-  payload.bank_account_id = bank._id;
+  if (bank) payload.bank_account_id = bank._id;
+  else delete (payload as { bank_account_id?: unknown }).bank_account_id;
 
   await validateAllocations(
     String(payload.user_id),
@@ -346,6 +350,13 @@ const deleteDBOne = async (id: string, userId: string) => {
 
 const deleteDB = withBulkDeleteId(deleteDBOne);
 
+/** Permanent delete from Trash — removes the row entirely (idempotent). */
+const hardDeleteDBOne = async (id: string, userId: string) => {
+  const removed = await VendorPaymentModel.findOneAndDelete({ _id: id, ...companyScope(userId) });
+  return removed;
+};
+const hardDeleteDB = withBulkDeleteId(hardDeleteDBOne);
+
 export const vendorPaymentService = {
   createDB,
   recordDB,
@@ -354,4 +365,5 @@ export const vendorPaymentService = {
   getOutstandingDB,
   updateStatusDB,
   deleteDB,
+  hardDeleteDB,
 };

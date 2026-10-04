@@ -99,6 +99,13 @@ const updateProductDB = async (user_id : string , id : string , payload : TProdu
 const deleteProductDB = withBulkDeleteIdSecond(deleteProductDBOne);
 const restoreProductDB = withBulkDeleteIdSecond(restoreProductDBOne);
 
+/** Permanent delete from Trash — removes the row entirely. */
+const hardDeleteProductDBOne = async (user_id: string, id: string) => {
+  const removed = await ProductModel.findOneAndDelete({ user_id, _id: id });
+  return removed;
+};
+const hardDeleteProductDB = withBulkDeleteIdSecond(hardDeleteProductDBOne);
+
 const mergeProductsDB = async (
   user_id: string,
   survivorId: string,
@@ -119,6 +126,7 @@ export const productService  = {
     allProductDB  ,
     singleProductDB ,
     deleteProductDB ,
+    hardDeleteProductDB ,
     restoreProductDB ,
     updateProductDB,
     mergeProductsDB,

@@ -37,7 +37,7 @@ const paymentCreateDB = async (payload: TPayment) => {
 };
 
 const paymentGetAllDB = async ( query  :  Record<string, unknown> ,  user_id: string) => {
-  const paymentQuery =  new queryBuilder(PaymentModel.find({ user_id, isActive: true , isDeleted: false , isArchive: false }) , query).search(["payment_type" , "notes" , "internal_notes"]).filter().sort().fields()
+  const paymentQuery =  new queryBuilder(PaymentModel.find({ user_id, isActive: true , isDeleted: false , isArchive: false }).populate("customer_id") , query).search(["payment_type" , "notes" , "internal_notes"]).filter().sort().fields()
   const { totalData } = await paymentQuery.paginate(PaymentModel.find({ user_id, isActive: true , isDeleted: false , isArchive: false }))
   const allPayment = await paymentQuery.modelQuery.exec();
   const currentPage = Number(query?.page) || 1;
