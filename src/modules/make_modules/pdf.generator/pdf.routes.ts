@@ -21,6 +21,7 @@ import { PaymentModel } from "../addPayment/payment.model";
 import { VendorPaymentModel } from "../account/vendorPayment/vendorPayment.model";
 import sendResponse from "../../../utils/sendResponse";
 import httpStatus from "http-status";
+import { renderWebPaymentReceiptResponse } from "./web.payment.receipt.service";
 
 const router = express.Router();
 
@@ -178,6 +179,13 @@ const handler = async (req: AuthRequest, res: Response) => {
   try {
     const type = (req.body.type || req.body.pdfType) as string;
     if (!type) throw new AppError(400, "type is required");
+
+    // Explicit opt-in only. Existing app requests use the original handlers,
+    // request fields, response headers and error envelope below unchanged.
+    if (req.body.renderMode === "web-receipt") {
+      if (type !== pdfTypes.Payment_Received) throw new AppError(400, "Receipt mode requires Payment_Received");
+      return await renderWebPaymentReceiptResponse(req, res);
+    }
 
     // Statement period (ignored by every other type). `variant: "thermal"`
     // (or thermal:true) switches sales docs to the 80mm roll renderer.
