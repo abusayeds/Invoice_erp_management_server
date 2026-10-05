@@ -142,12 +142,12 @@ const createDB = async (payload: TVendorPayment) => {
   if (bank) payload.bank_account_id = bank._id;
   else delete (payload as { bank_account_id?: unknown }).bank_account_id;
 
-  await validateAllocations(
-    String(payload.user_id),
-    String(payload.vendor_id),
-    payload.allocations,
-    payload.debit_notes
-  );
+  // await validateAllocations(
+  //   String(payload.user_id),
+  //   String(payload.vendor_id),
+  //   payload.allocations,
+  //   payload.debit_notes
+  // );
 
   payload.payment_number = await generateAccountNumber(
     VendorPaymentModel,
